@@ -100,3 +100,4 @@ final marketplaceControllerProvider =
   final repo = ref.watch(marketplaceRepositoryProvider);
   return MarketplaceController(repo);
 });
+

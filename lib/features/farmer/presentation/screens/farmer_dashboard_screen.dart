@@ -163,6 +163,60 @@ class _FarmerDashboardScreenState extends ConsumerState<FarmerDashboardScreen> {
 
               const SizedBox(height: 20.0),
 
+              // AI Crop Advisor & Weather Bento Action Card (Part 2)
+              AppCard(
+                padding: const EdgeInsets.all(18.0),
+                backgroundColor: AppColors.primary50,
+                borderColor: AppColors.primary300,
+                borderWidth: 1.5,
+                onTap: () => context.push(RouteNames.cropAdvisor),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12.0),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary500,
+                        borderRadius: BorderRadius.circular(12.0),
+                      ),
+                      child: const Icon(Icons.cloudy_snowing, color: Colors.white, size: 28.0),
+                    ),
+                    const SizedBox(width: 14.0),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                'advisor.title'.tr(),
+                                style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16.0, color: AppColors.soil900),
+                              ),
+                              const SizedBox(width: 6.0),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 2.0),
+                                decoration: BoxDecoration(
+                                  color: AppColors.wheat400,
+                                  borderRadius: BorderRadius.circular(4.0),
+                                ),
+                                child: const Text('लाइव', style: TextStyle(fontSize: 10.0, fontWeight: FontWeight.bold, color: AppColors.soil900)),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4.0),
+                          const Text(
+                            'मौसम अलर्ट, मिट्टी अनुसार सर्वोत्तम फसल व कृषि कैलेंडर',
+                            style: TextStyle(fontSize: 12.0, color: AppColors.soil700),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(Icons.arrow_forward_ios_rounded, size: 16.0, color: AppColors.primary600),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 20.0),
+
               // Bento Stats Grid
               Text('ताज़ा आंकड़े (Overview)', style: AppTypography.headlineSmall),
               const SizedBox(height: 12.0),
@@ -333,3 +387,4 @@ class _FarmerDashboardScreenState extends ConsumerState<FarmerDashboardScreen> {
     );
   }
 }
+

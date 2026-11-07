@@ -1,0 +1,346 @@
+{
+  "version": "1.0.0",
+  "metadata": {
+    "source": "ICAR-IARI & State Agricultural Universities (SAUs) Agronomic Compendium",
+    "updated_at": "2026-11-01",
+    "expansion_guide": "To add new crops, add a JSON object to 'crops' with unique 'crop_id', list of supported 'soil_types' (black_soil, alluvial, red_soil, sandy_loam, clay_loam), 'season' (kharif, rabi, zaid), 'water_source', 'varieties', and 4-8 chronological 'calendar_tasks' with days relative to sowing."
+  },
+  "crops": [
+    {
+      "crop_id": "crop_wheat_sharbati",
+      "name_hi": "शरबती गेहूं (Sharbati Wheat)",
+      "name_en": "Sharbati Wheat",
+      "scientific_name": "Triticum aestivum",
+      "season": "rabi",
+      "soil_types": ["black_soil", "clay_loam", "alluvial"],
+      "water_sources": ["tube_well", "canal", "drip_sprinkler"],
+      "recommended_variety": "C-306 / सुजाता (Sujata) HI-617",
+      "yield_per_acre_quintal_min": 16.0,
+      "yield_per_acre_quintal_max": 20.0,
+      "summary_hi": "काली गहरी मिट्टी एवं 3-4 सिंचाई के लिए शरबती गेहूं सबसे अधिक लाभकारी है। बाजार में इसके दाने की चमक और मिठास के कारण 20-30% अधिक प्रीमियम भाव मिलता है।",
+      "confidence": 0.94,
+      "calendar_tasks": [
+        {
+          "stage": "soil_prep",
+          "days_after_sowing": -7,
+          "title_hi": "खेत की तैयारी व गोबर खाद",
+          "title_en": "Field Preparation & Compost",
+          "description_hi": "2 बार गहरी जुताई करें। प्रति एकड़ 4-5 ट्रॉली सड़ी गोबर की खाद एवं 50 किग्रा डीएपी मिलाएं।",
+          "description_en": "Deep plowing twice. Apply 4-5 trolleys FYM and 50 kg DAP per acre."
+        },
+        {
+          "stage": "sowing",
+          "days_after_sowing": 0,
+          "title_hi": "बीज उपचार एवं बुआई",
+          "title_en": "Seed Treatment & Sowing",
+          "description_hi": "40 किग्रा बीज प्रति एकड़। ट्राइकोडर्मा (5 ग्राम/किग्रा) से उपचारित कर 20 सेमी कतार दूरी पर बोएं।",
+          "description_en": "40 kg seed per acre. Treat with Trichoderma and sow at 20 cm row spacing."
+        },
+        {
+          "stage": "irrigation",
+          "days_after_sowing": 21,
+          "title_hi": "प्रथम सिंचाई: मुकुट जड़ (CRI चरण) [महत्वपूर्ण]",
+          "title_en": "First Irrigation: Crown Root Stage",
+          "description_hi": "बोआई के 21 दिन बाद पहली हल्की सिंचाई करें और 30 किग्रा यूरिया प्रति एकड़ दें।",
+          "description_en": "Crucial irrigation at 21 DAS. Top dress 30 kg Urea per acre."
+        },
+        {
+          "stage": "pest_control",
+          "days_after_sowing": 35,
+          "title_hi": "खरपतवार नियंत्रण व निंदाई-गुड़ाई",
+          "title_en": "Weed Eradication",
+          "description_hi": "सकरी व चौड़ी पत्ती के खरपतवार निकालें। निंदाई कर मिट्टी भुरभुरी रखें।",
+          "description_en": "Manual weeding to prevent nutrient competition."
+        },
+        {
+          "stage": "irrigation",
+          "days_after_sowing": 55,
+          "title_hi": "द्वितीय सिंचाई: कल्ले फूटते समय (Tillering)",
+          "title_en": "Second Irrigation: Tillering Stage",
+          "description_hi": "पौधों में कल्ले फूटते समय पर्याप्त नमी बनाए रखें और बची हुई 20 किग्रा यूरिया दें।",
+          "description_en": "Maintain soil moisture for tillering. Apply second split of Urea."
+        },
+        {
+          "stage": "irrigation",
+          "days_after_sowing": 85,
+          "title_hi": "तृतीय सिंचाई: दाना भरते समय (Milking Stage)",
+          "title_en": "Third Irrigation: Milking Stage",
+          "description_hi": "बालियों में दाना भरते समय तेज हवा न होने पर हल्की सिंचाई करें ताकि दाना पुष्ट व चमकदार बने।",
+          "description_en": "Light irrigation during milking stage for plumper grains."
+        },
+        {
+          "stage": "harvesting",
+          "days_after_sowing": 125,
+          "title_hi": "फसल कटाई एवं गहाई (Harvesting)",
+          "title_en": "Harvesting & Threshing",
+          "description_hi": "बालियां सुनहरी पीली होने व दाने में नमी 12% रहने पर कंबाइन हार्वेस्टर से कटाई करें।",
+          "description_en": "Harvest when moisture is below 12% and grains are golden hard."
+        }
+      ]
+    },
+    {
+      "crop_id": "crop_chickpea_desi",
+      "name_hi": "देसी चना (Desi Chickpea)",
+      "name_en": "Desi Chickpea",
+      "scientific_name": "Cicer arietinum",
+      "season": "rabi",
+      "soil_types": ["black_soil", "sandy_loam", "red_soil"],
+      "water_sources": ["rainfed", "tube_well", "drip_sprinkler"],
+      "recommended_variety": "JAKi-9218 / विजय (Vijay) / JG-14",
+      "yield_per_acre_quintal_min": 8.0,
+      "yield_per_acre_quintal_max": 11.0,
+      "summary_hi": "कम पानी और शुष्क परिस्थितियों के लिए देसी चना सर्वोत्तम है। यह हवा से नाइट्रोजन खींचकर जमीन की उर्वरा शक्ति भी बढ़ाता है।",
+      "confidence": 0.92,
+      "calendar_tasks": [
+        {
+          "stage": "soil_prep",
+          "days_after_sowing": -5,
+          "title_hi": "खेत की तैयारी व राइजोबियम संवर्धन",
+          "title_en": "Field Prep & Rhizobium Inoculation",
+          "description_hi": "खेत में नमी संरक्षित रखने हेतु हल्की जुताई करें और सिंगल सुपर फॉस्फेट (SSP) 100 किग्रा/एकड़ दें।",
+          "description_en": "Shallow plowing to conserve moisture. Apply SSP 100 kg/acre."
+        },
+        {
+          "stage": "sowing",
+          "days_after_sowing": 0,
+          "title_hi": "बीज उपचार व बुआई",
+          "title_en": "Seed Treatment & Sowing",
+          "description_hi": "30-35 किग्रा बीज प्रति एकड़। राइजोबियम कल्चर (10 ग्राम/किग्रा) से उपचारित कर 30 सेमी कतार दूरी पर बोएं।",
+          "description_en": "35 kg seed per acre with Rhizobium culture. 30 cm row spacing."
+        },
+        {
+          "stage": "pest_control",
+          "days_after_sowing": 30,
+          "title_hi": "चने की खोंटी तोड़ना (Nipping / Top Plucking)",
+          "title_en": "Shoot Nipping",
+          "description_hi": "पौधे के ऊपरी सिरे की 2-3 सेमी पत्तियां तोड़े जिससे अधिक शाखाएं व नए फूल निकलें।",
+          "description_en": "Pluck apical buds at 30-35 days to promote side branching."
+        },
+        {
+          "stage": "pest_control",
+          "days_after_sowing": 50,
+          "title_hi": "इल्ली (Helicoverpa) नियंत्रण: फेरोमोन ट्रैप व नीम तेल",
+          "title_en": "Pod Borer Biological Control",
+          "description_hi": "खेत में 5 फेरोमोन ट्रैप लगाएं। इल्लियों से बचाव हेतु 1500 PPM नीम तेल का छिड़काव करें।",
+          "description_en": "Install 5 pheromone traps per acre and spray Neem oil (1500 ppm)."
+        },
+        {
+          "stage": "harvesting",
+          "days_after_sowing": 110,
+          "title_hi": "फसल कटाई (Harvesting)",
+          "title_en": "Harvesting",
+          "description_hi": "पत्तियां सूखकर पीली पड़ने पर सुबह के समय कटाई करें ताकि फलियां चटककर दाना न बिखरे।",
+          "description_en": "Harvest in early morning to minimize pod shattering."
+        }
+      ]
+    },
+    {
+      "crop_id": "crop_mustard_yellow",
+      "name_hi": "पीली सरसों (Yellow Mustard)",
+      "name_en": "Mustard",
+      "scientific_name": "Brassica juncea",
+      "season": "rabi",
+      "soil_types": ["sandy_loam", "alluvial", "red_soil"],
+      "water_sources": ["tube_well", "canal", "drip_sprinkler"],
+      "recommended_variety": "पूसा बोल्ड (Pusa Bold) / गिरिराज (Giriraj)",
+      "yield_per_acre_quintal_min": 8.0,
+      "yield_per_acre_quintal_max": 10.5,
+      "summary_hi": "बलुई व दोमट मिट्टी में मात्र 2 सिंचाइयों में सरसों बंपर उत्पादन देती है। तेल प्रतिशत 40-42% होने से मंडी में हमेशा तुरंत नकद भाव मिलता है।",
+      "confidence": 0.91,
+      "calendar_tasks": [
+        {
+          "stage": "soil_prep",
+          "days_after_sowing": -5,
+          "title_hi": "खेत की तैयारी व सल्फर (गंधक) प्रयोग",
+          "title_en": "Land Prep & Sulfur Application",
+          "description_hi": "सरसों में तेल की मात्रा बढ़ाने हेतु 15 किग्रा बेंटोनाइट सल्फर प्रति एकड़ अवश्य दें।",
+          "description_en": "Apply 15 kg bentonite sulfur per acre for higher oil recovery."
+        },
+        {
+          "stage": "sowing",
+          "days_after_sowing": 0,
+          "title_hi": "सरसों की बुआई (Sowing)",
+          "title_en": "Sowing",
+          "description_hi": "1.5 से 2 किग्रा बीज प्रति एकड़। 45 सेमी कतार व 15 सेमी पौधे से पौधे की दूरी रखें।",
+          "description_en": "1.5-2 kg seed per acre at 45x15 cm spacing."
+        },
+        {
+          "stage": "irrigation",
+          "days_after_sowing": 30,
+          "title_hi": "प्रथम सिंचाई व छंटाई (Thinning)",
+          "title_en": "First Irrigation & Thinning",
+          "description_hi": "घने पौधों की छंटाई करें और पहली हल्की सिंचाई देकर 25 किग्रा यूरिया दें।",
+          "description_en": "Thin excess seedlings and apply light irrigation with Urea."
+        },
+        {
+          "stage": "pest_control",
+          "days_after_sowing": 60,
+          "title_hi": "माहू / चेपा (Aphids) कीट निगरानी",
+          "title_en": "Aphids Monitoring & Protection",
+          "description_hi": "बादल छाए रहने पर माहू का प्रकोप हो सकता है। आवश्यकता पड़ने पर इमिडाक्लोप्रिड का छिड़काव करें।",
+          "description_en": "Scout for aphids during cloudy weather. Spray Imidacloprid if threshold crossed."
+        },
+        {
+          "stage": "harvesting",
+          "days_after_sowing": 115,
+          "title_hi": "फसल कटाई (Harvesting)",
+          "title_en": "Harvesting",
+          "description_hi": "फलियां पीली पड़ते ही 75% परिपक्वता पर कटाई करें।",
+          "description_en": "Harvest when 75% siliquae turn yellowish-brown."
+        }
+      ]
+    },
+    {
+      "crop_id": "crop_soybean_yellow",
+      "name_hi": "पीला सोयाबीन (Yellow Soybean)",
+      "name_en": "Yellow Soybean",
+      "scientific_name": "Glycine max",
+      "season": "kharif",
+      "soil_types": ["black_soil", "clay_loam"],
+      "water_sources": ["rainfed", "tube_well"],
+      "recommended_variety": "JS-2034 / JS-9560 / NRC-138",
+      "yield_per_acre_quintal_min": 9.0,
+      "yield_per_acre_quintal_max": 12.0,
+      "summary_hi": "काली मिट्टी में मानसून की पहली बारिश के बाद सोयाबीन की बुआई उत्तम है। 90-95 दिनों में तैयार होकर अगली रबी फसल के लिए खेत समय पर खाली कर देती है।",
+      "confidence": 0.93,
+      "calendar_tasks": [
+        {
+          "stage": "soil_prep",
+          "days_after_sowing": -4,
+          "title_hi": "गहरी जुताई व सिंगल सुपर फॉस्फेट (SSP)",
+          "title_en": "Land Prep & SSP",
+          "description_hi": "मानसून पूर्व जुताई करें और 100 किग्रा एसएसपी खेत में मिलाएं।",
+          "description_en": "Pre-monsoon tilling and basal SSP 100 kg/acre."
+        },
+        {
+          "stage": "sowing",
+          "days_after_sowing": 0,
+          "title_hi": "बीज उपचार व BBF पद्धति से बुआई",
+          "title_en": "Seed Inoculation & Ridge-Furrow Sowing",
+          "description_hi": "30-35 किग्रा बीज। ब्राडीराइजोबियम कल्चर से उपचारित कर 45 सेमी दूरी पर बोएं।",
+          "description_en": "Inoculate with Bradyrhizobium and sow on Broad Bed Furrow."
+        },
+        {
+          "stage": "pest_control",
+          "days_after_sowing": 25,
+          "title_hi": "गर्डल बीटल व सेमीलूपर कीट नियंत्रण",
+          "title_en": "Girdle Beetle Management",
+          "description_hi": "तने पर छल्ला बनाने वाले कीट की निगरानी करें और जैविक कीटनाशक का छिड़काव करें।",
+          "description_en": "Inspect stems for girdle beetle incisions."
+        },
+        {
+          "stage": "harvesting",
+          "days_after_sowing": 95,
+          "title_hi": "सोयाबीन कटाई व सुखाना",
+          "title_en": "Harvesting",
+          "description_hi": "पत्तियां झड़ जाने व फलियों का रंग भूरा होने पर कटाई करें।",
+          "description_en": "Harvest when leaves shed and pods turn dry straw-colored."
+        }
+      ]
+    },
+    {
+      "crop_id": "crop_paddy_sona_masoori",
+      "name_hi": "सोना मसूरी धान (Rice Paddy)",
+      "name_en": "Sona Masoori Rice",
+      "scientific_name": "Oryza sativa",
+      "season": "kharif",
+      "soil_types": ["clay", "clay_loam", "alluvial"],
+      "water_sources": ["canal", "tube_well"],
+      "recommended_variety": "सोना मसूरी (BPT-5204) / MTU-1010",
+      "yield_per_acre_quintal_min": 22.0,
+      "yield_per_acre_quintal_max": 28.0,
+      "summary_hi": "नहरी पानी और चिकनी दोमट मिट्टी में धान की पैदावार सबसे सुरक्षित और बंपर होती है। बारीक सुगंधित चावल के कारण बाजार मांग अत्यधिक है।",
+      "confidence": 0.95,
+      "calendar_tasks": [
+        {
+          "stage": "soil_prep",
+          "days_after_sowing": -25,
+          "title_hi": "नर्सरी तैयार करना व बीज बोना",
+          "title_en": "Nursery Preparation",
+          "description_hi": "15 किग्रा प्रमाणित धान बीज की नर्सरी तैयार करें।",
+          "description_en": "Raise healthy nursery beds with 15 kg certified seed."
+        },
+        {
+          "stage": "sowing",
+          "days_after_sowing": 0,
+          "title_hi": "खेत में लेह (Puddling) व रोपाई (Transplanting)",
+          "title_en": "Puddling & Transplanting",
+          "description_hi": "20-25 दिन के पौधों की 2-3 पौध प्रति हिल 20x15 सेमी दूरी पर रोपाई करें।",
+          "description_en": "Transplant 21-day seedlings at 20x15 cm spacing in puddled field."
+        },
+        {
+          "stage": "fertilizer",
+          "days_after_sowing": 21,
+          "title_hi": "कल्ले फूटते समय यूरिया व जिंक सल्फेट",
+          "title_en": "Tillering Nutrition & Zinc",
+          "description_hi": "30 किग्रा यूरिया व 10 किग्रा जिंक सल्फेट (21%) प्रति एकड़ दें।",
+          "description_en": "Top dress 30 kg Urea and 10 kg Zinc Sulfate."
+        },
+        {
+          "stage": "irrigation",
+          "days_after_sowing": 65,
+          "title_hi": "बालियां निकलते समय पानी का स्तर",
+          "title_en": "Panicle Initiation Water Management",
+          "description_hi": "खेत में 3-5 सेमी पानी निरंतर बनाए रखें।",
+          "description_en": "Maintain 3-5 cm standing water during panicle emergence."
+        },
+        {
+          "stage": "harvesting",
+          "days_after_sowing": 135,
+          "title_hi": "धान की कटाई व गहाई",
+          "title_en": "Harvesting & Threshing",
+          "description_hi": "बालियां 85% सुनहरी होने पर पानी निकालें और कटाई करें।",
+          "description_en": "Drain field 10 days before harvest and cut at golden maturity."
+        }
+      ]
+    },
+    {
+      "crop_id": "crop_moong_summer",
+      "name_hi": "ग्रीष्मकालीन मूंग (Summer Green Gram)",
+      "name_en": "Green Gram (Moong)",
+      "scientific_name": "Vigna radiata",
+      "season": "zaid",
+      "soil_types": ["sandy_loam", "alluvial", "black_soil"],
+      "water_sources": ["tube_well", "drip_sprinkler"],
+      "recommended_variety": "IPM 02-03 / शिखा / सम्राट (Samrat)",
+      "yield_per_acre_quintal_min": 5.0,
+      "yield_per_acre_quintal_max": 7.5,
+      "summary_hi": "गेहूं कटाई के तुरंत बाद 60-65 दिनों की अतिरिक्त फसल। मिट्टी में 30-40 किग्रा नाइट्रोजन जोड़कर अगली खरीफ फसल का खर्च घटाती है।",
+      "confidence": 0.90,
+      "calendar_tasks": [
+        {
+          "stage": "sowing",
+          "days_after_sowing": 0,
+          "title_hi": "बीज उपचार व सीधी बुआई",
+          "title_en": "Seed Treatment & Sowing",
+          "description_hi": "10-12 किग्रा बीज प्रति एकड़। राइजोबियम से उपचारित कर 25 सेमी कतार दूरी पर बोएं।",
+          "description_en": "10-12 kg seed per acre treated with Rhizobium culture."
+        },
+        {
+          "stage": "irrigation",
+          "days_after_sowing": 15,
+          "title_hi": "प्रथम सिंचाई व खरपतवार नियंत्रण",
+          "title_en": "First Irrigation & Weeding",
+          "description_hi": "गर्मी में नमी बनाए रखने हेतु 15-20 दिनों पर हल्की सिंचाई करें।",
+          "description_en": "Light irrigation at 15-20 days."
+        },
+        {
+          "stage": "pest_control",
+          "days_after_sowing": 35,
+          "title_hi": "सफेद मक्खी (Whitefly) व पीला मोज़ेक वायरस रोकथाम",
+          "title_en": "Whitefly & YMV Management",
+          "description_hi": "पीले चिपचिपे कार्ड लगाएं व कीटनाशक का छिड़काव करें।",
+          "description_en": "Install yellow sticky traps to prevent viral vector."
+        },
+        {
+          "stage": "harvesting",
+          "days_after_sowing": 65,
+          "title_hi": "फलियों की तुड़ाई अथवा कटाई",
+          "title_en": "Pod Picking / Harvesting",
+          "description_hi": "75% फलियां काली/भूरी पड़ने पर पहली तुड़ाई करें।",
+          "description_en": "Pick pods when 75% turn dark brown or black."
+        }
+      ]
+    }
+  ]
+}

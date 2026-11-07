@@ -149,3 +149,4 @@ final authControllerProvider = StateNotifierProvider<AuthController, AuthState>(
   final repo = ref.watch(authRepositoryProvider);
   return AuthController(repo);
 });
+

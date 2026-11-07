@@ -137,3 +137,4 @@ final cartControllerProvider = StateNotifierProvider<CartController, CartState>(
   final repo = ref.watch(marketplaceRepositoryProvider);
   return CartController(repo);
 });
+

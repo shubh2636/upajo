@@ -1,8 +1,8 @@
 import os
 from fastapi import FastAPI, HTTPException, Header, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import Optional
+from routers.crop_advisor import router as crop_advisor_router
 
 app = FastAPI(
     title="Upajo ML & AI Farming Service",
@@ -35,24 +35,5 @@ def health_check():
         "version": "1.0.0"
     }
 
-class CropAdvisoryRequest(BaseModel):
-    soil_type: str = Field(..., example="black_soil")
-    land_area_acres: float = Field(..., gt=0, example=2.5)
-    season: str = Field(..., example="rabi")
-    water_source: str = Field(..., example="tube_well")
-    district: Optional[str] = Field("Sehore", example="Sehore")
-    state: Optional[str] = Field("Madhya Pradesh", example="Madhya Pradesh")
-
-@app.post("/api/v1/crop-advisor", dependencies=[Depends(verify_api_key)])
-def recommend_crop(req: CropAdvisoryRequest):
-    # Foundation rule-based endpoint (expanded in Part 2)
-    return {
-        "recommended_crop_hi": "शरबती गेहूं (C-306)",
-        "recommended_crop_en": "Sharbati Wheat",
-        "variety": "C-306 / Sujata",
-        "expected_yield_per_acre_quintal": 18.5,
-        "total_expected_yield_quintal": round(req.land_area_acres * 18.5, 2),
-        "confidence": 0.94,
-        "calendar_summary": "सप्ताह 1: खेत की जुताई व पाटा लगाना; सप्ताह 3: बीज बोआई; सप्ताह 6: पहली सिंचाई (CRI चरण)"
-    }
-
+# Mount Feature Routers
+app.include_router(crop_advisor_router)

@@ -55,3 +55,4 @@ abstract class MarketplaceRepository {
     required bool verifiedByAdmin,
   });
 }
+

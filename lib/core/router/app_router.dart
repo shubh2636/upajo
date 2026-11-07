@@ -19,6 +19,8 @@ import '../../features/consumer/presentation/screens/checkout_screen.dart';
 import '../../features/consumer/presentation/screens/consumer_orders_screen.dart';
 import '../../features/consumer/presentation/screens/order_tracking_screen.dart';
 import '../../features/admin/presentation/screens/admin_verification_screen.dart';
+import '../../features/crop_advisor/presentation/screens/crop_advisor_screen.dart';
+import '../../features/crop_advisor/presentation/screens/crop_calendar_screen.dart';
 import '../../features/marketplace/domain/models/product_model.dart';
 import '../../features/marketplace/domain/models/order_model.dart';
 
@@ -113,10 +115,14 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) => const AdminVerificationScreen(),
     ),
 
-    // Later Phase Shell Stubs
+    // Advisory & AI Features
     GoRoute(
       path: RouteNames.cropAdvisor,
-      builder: (context, state) => _placeholderScaffold('Crop Advisor (Part 2)'),
+      builder: (context, state) => const CropAdvisorScreen(),
+    ),
+    GoRoute(
+      path: RouteNames.cropCalendar,
+      builder: (context, state) => const CropCalendarScreen(),
     ),
     GoRoute(
       path: RouteNames.diseaseDetection,

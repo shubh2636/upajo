@@ -375,3 +375,4 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
     );
   }
 }
+

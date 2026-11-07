@@ -212,3 +212,4 @@ class CartScreen extends ConsumerWidget {
     );
   }
 }
+

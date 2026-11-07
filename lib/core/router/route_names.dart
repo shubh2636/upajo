@@ -25,6 +25,7 @@ class RouteNames {
 
   // Advisory & AI Features
   static const String cropAdvisor = '/advisor';
+  static const String cropCalendar = '/advisor/calendar';
   static const String diseaseDetection = '/disease-scan';
   static const String krishiSahayak = '/krishi-sahayak';
 

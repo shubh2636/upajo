@@ -212,3 +212,4 @@ class _FarmerEarningsScreenState extends ConsumerState<FarmerEarningsScreen> {
     );
   }
 }
+
