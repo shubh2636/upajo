@@ -11,6 +11,12 @@ subprojects {
 }
 subprojects {
     project.evaluationDependsOn(":app")
+    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach { kotlinTask ->
+        def javaTask = tasks.findByName(kotlinTask.name.replace("Kotlin", "JavaWithJavac"))
+        if (javaTask != null && javaTask.hasProperty("targetCompatibility")) {
+            kotlinTask.kotlinOptions.jvmTarget = javaTask.targetCompatibility
+        }
+    }
 }
 
 tasks.register("clean", Delete) {
