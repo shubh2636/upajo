@@ -3,6 +3,8 @@ from fastapi import FastAPI, HTTPException, Header, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional
 from routers.crop_advisor import router as crop_advisor_router
+from routers.disease_detection import router as disease_detection_router
+from routers.krishi_sahayak import router as krishi_sahayak_router
 
 app = FastAPI(
     title="Upajo ML & AI Farming Service",
@@ -37,3 +39,5 @@ def health_check():
 
 # Mount Feature Routers
 app.include_router(crop_advisor_router)
+app.include_router(disease_detection_router)
+app.include_router(krishi_sahayak_router)

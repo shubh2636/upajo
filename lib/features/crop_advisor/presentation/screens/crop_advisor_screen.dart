@@ -677,3 +677,4 @@ class _CropAdvisorScreenState extends ConsumerState<CropAdvisorScreen> {
     );
   }
 }
+

@@ -199,3 +199,4 @@ final cropAdvisorControllerProvider =
   final repo = ref.watch(cropAdvisorRepositoryProvider);
   return CropAdvisorController(repo);
 });
+

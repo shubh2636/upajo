@@ -28,3 +28,4 @@ abstract class CropAdvisorRepository {
   /// Toggles task completion state
   Future<void> toggleTaskCompletion(String taskId, bool isCompleted);
 }
+

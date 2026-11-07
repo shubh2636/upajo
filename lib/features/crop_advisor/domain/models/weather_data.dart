@@ -66,3 +66,4 @@ class WeatherData {
     return true;
   }
 }
+

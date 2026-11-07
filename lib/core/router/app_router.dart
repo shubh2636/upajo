@@ -21,6 +21,8 @@ import '../../features/consumer/presentation/screens/order_tracking_screen.dart'
 import '../../features/admin/presentation/screens/admin_verification_screen.dart';
 import '../../features/crop_advisor/presentation/screens/crop_advisor_screen.dart';
 import '../../features/crop_advisor/presentation/screens/crop_calendar_screen.dart';
+import '../../features/disease_detection/presentation/screens/disease_detection_screen.dart';
+import '../../features/krishi_sahayak/presentation/screens/krishi_sahayak_screen.dart';
 import '../../features/marketplace/domain/models/product_model.dart';
 import '../../features/marketplace/domain/models/order_model.dart';
 
@@ -126,11 +128,11 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: RouteNames.diseaseDetection,
-      builder: (context, state) => _placeholderScaffold('Disease Detection (Part 3)'),
+      builder: (context, state) => const DiseaseDetectionScreen(),
     ),
     GoRoute(
       path: RouteNames.krishiSahayak,
-      builder: (context, state) => _placeholderScaffold('Krishi Sahayak (Part 3)'),
+      builder: (context, state) => const KrishiSahayakScreen(),
     ),
     GoRoute(
       path: RouteNames.machinery,

@@ -155,3 +155,4 @@ def get_seed_data():
         raise HTTPException(status_code=404, detail="Seed data file not found")
     with open(SEED_FILE_PATH, "r", encoding="utf-8") as f:
         return json.load(f)
+

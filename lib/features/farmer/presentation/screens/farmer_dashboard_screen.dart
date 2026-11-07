@@ -215,6 +215,92 @@ class _FarmerDashboardScreenState extends ConsumerState<FarmerDashboardScreen> {
                 ),
               ),
 
+              const SizedBox(height: 14.0),
+
+              // AI Tools Bento Grid (Part 3)
+              Row(
+                children: [
+                  // Camera Disease Scanner
+                  Expanded(
+                    child: AppCard(
+                      padding: const EdgeInsets.all(14.0),
+                      backgroundColor: AppColors.terracotta50,
+                      borderColor: AppColors.terracotta200,
+                      onTap: () => context.push(RouteNames.diseaseDetection),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8.0),
+                                decoration: BoxDecoration(
+                                  color: AppColors.terracotta500,
+                                  borderRadius: BorderRadius.circular(8.0),
+                                ),
+                                child: const Icon(Icons.document_scanner_rounded, size: 20.0, color: Colors.white),
+                              ),
+                              const Icon(Icons.arrow_forward_rounded, size: 16.0, color: AppColors.terracotta600),
+                            ],
+                          ),
+                          const SizedBox(height: 10.0),
+                          const Text(
+                            'रोग पहचान',
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.0, color: AppColors.soil900),
+                          ),
+                          const SizedBox(height: 2.0),
+                          const Text(
+                            'पत्ती फोटो से तुरंत इलाज',
+                            style: TextStyle(fontSize: 11.0, color: AppColors.soil600),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10.0),
+
+                  // Krishi Sahayak Voice AI
+                  Expanded(
+                    child: AppCard(
+                      padding: const EdgeInsets.all(14.0),
+                      backgroundColor: AppColors.wheat50,
+                      borderColor: AppColors.wheat300,
+                      onTap: () => context.push(RouteNames.krishiSahayak),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8.0),
+                                decoration: BoxDecoration(
+                                  color: AppColors.wheat600,
+                                  borderRadius: BorderRadius.circular(8.0),
+                                ),
+                                child: const Icon(Icons.psychology_rounded, size: 20.0, color: Colors.white),
+                              ),
+                              const Icon(Icons.arrow_forward_rounded, size: 16.0, color: AppColors.wheat700),
+                            ],
+                          ),
+                          const SizedBox(height: 10.0),
+                          const Text(
+                            'कृषि सहायक',
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.0, color: AppColors.soil900),
+                          ),
+                          const SizedBox(height: 2.0),
+                          const Text(
+                            'हिंदी आवाज़ बातचीत AI',
+                            style: TextStyle(fontSize: 11.0, color: AppColors.soil600),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
               const SizedBox(height: 20.0),
 
               // Bento Stats Grid

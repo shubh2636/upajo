@@ -220,3 +220,4 @@ class CropAdvisorRepositoryImpl implements CropAdvisorRepository {
     }
   }
 }
+
