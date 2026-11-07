@@ -48,7 +48,7 @@ class AppTheme {
       ),
 
       // Card Theme with Bento Corners
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: Colors.white,
         elevation: 1,
         margin: EdgeInsets.zero,
@@ -148,7 +148,7 @@ class AppTheme {
         foregroundColor: AppColors.soil100,
         elevation: 0,
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: AppColors.darkCard,
         elevation: 1,
         shape: RoundedRectangleBorder(

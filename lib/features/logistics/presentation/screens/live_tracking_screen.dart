@@ -280,3 +280,4 @@ class _LiveTrackingScreenState extends ConsumerState<LiveTrackingScreen> {
     );
   }
 }
+

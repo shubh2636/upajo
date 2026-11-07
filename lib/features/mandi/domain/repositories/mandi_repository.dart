@@ -13,3 +13,4 @@ abstract class MandiRepository {
   /// Removes an active alert
   Future<void> deletePriceAlert(String alertId);
 }
+

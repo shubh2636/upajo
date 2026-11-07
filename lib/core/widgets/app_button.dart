@@ -3,7 +3,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
 import '../theme/app_typography.dart';
 
-enum ButtonVariant { primary, secondary, outline, danger }
+enum ButtonVariant { primary, secondary, outline, danger, terracotta }
 
 class AppButton extends StatelessWidget {
   final String label;
@@ -48,6 +48,7 @@ class AppButton extends StatelessWidget {
         borderSide = const BorderSide(color: AppColors.soil200, width: 2.0);
         break;
       case ButtonVariant.danger:
+      case ButtonVariant.terracotta:
         backgroundColor = AppColors.clay500;
         foregroundColor = Colors.white;
         borderSide = BorderSide.none;

@@ -23,3 +23,4 @@ abstract class LogisticsRepository {
     double? lng,
   });
 }
+

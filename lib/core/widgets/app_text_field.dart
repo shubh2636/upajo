@@ -6,6 +6,7 @@ import '../theme/app_typography.dart';
 class AppTextField extends StatelessWidget {
   final String? label;
   final String? hintText;
+  final String? hint;
   final String? errorText;
   final TextEditingController? controller;
   final TextInputType? keyboardType;
@@ -24,6 +25,7 @@ class AppTextField extends StatelessWidget {
     super.key,
     this.label,
     this.hintText,
+    this.hint,
     this.errorText,
     this.controller,
     this.keyboardType,
@@ -41,6 +43,8 @@ class AppTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final effectiveHint = hintText ?? hint;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -67,7 +71,7 @@ class AppTextField extends StatelessWidget {
           enabled: enabled,
           style: AppTypography.bodyLarge,
           decoration: InputDecoration(
-            hintText: hintText,
+            hintText: effectiveHint,
             errorText: errorText,
             prefixIcon: prefixIcon,
             suffixIcon: onVoiceInputPressed != null
@@ -90,4 +94,3 @@ class AppTextField extends StatelessWidget {
     );
   }
 }
-

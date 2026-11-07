@@ -442,3 +442,4 @@ class _MandiPricesScreenState extends ConsumerState<MandiPricesScreen> {
     );
   }
 }
+

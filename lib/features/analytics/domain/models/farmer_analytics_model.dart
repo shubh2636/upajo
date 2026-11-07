@@ -31,3 +31,4 @@ class FarmerAnalyticsModel {
     required this.topBuyers,
   });
 }
+

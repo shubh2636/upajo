@@ -6,6 +6,7 @@ class AppCard extends StatelessWidget {
   final EdgeInsetsGeometry? padding;
   final Color? backgroundColor;
   final Color? borderColor;
+  final double borderWidth;
   final double borderRadius;
   final VoidCallback? onTap;
   final double elevation;
@@ -16,6 +17,7 @@ class AppCard extends StatelessWidget {
     this.padding = const EdgeInsets.all(16.0),
     this.backgroundColor,
     this.borderColor,
+    this.borderWidth = 1.2,
     this.borderRadius = 16.0,
     this.onTap,
     this.elevation = 0.5,
@@ -25,7 +27,7 @@ class AppCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final border = Border.all(
       color: borderColor ?? AppColors.soil200,
-      width: 1.2,
+      width: borderWidth,
     );
 
     final card = Container(

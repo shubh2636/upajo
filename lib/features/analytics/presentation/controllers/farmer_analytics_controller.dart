@@ -52,3 +52,4 @@ final farmerAnalyticsControllerProvider =
   final repo = ref.watch(analyticsRepositoryProvider);
   return FarmerAnalyticsController(repo);
 });
+

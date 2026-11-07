@@ -19,3 +19,4 @@ abstract class DeliveryPartnerAdapter {
   /// Cancels active shipment
   Future<bool> cancelShipment(String trackingNumber);
 }
+

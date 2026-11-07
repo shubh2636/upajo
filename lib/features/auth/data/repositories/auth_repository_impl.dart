@@ -1,7 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/models/user_profile.dart';
 import '../../domain/repositories/auth_repository.dart';
-import '../../../../core/errors/exceptions.dart';
+import '../../../../core/errors/exceptions.dart' hide AuthException;
 import '../../../../core/network/supabase_client.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
@@ -28,8 +28,8 @@ class AuthRepositoryImpl implements AuthRepository {
         phone: formattedPhone,
         channel: OtpChannel.sms,
       );
-    } on AuthException catch (e) {
-      throw AuthException(e.message);
+    } on AuthException {
+      rethrow;
     } catch (e) {
       // In local dev without active SMS balance, allow graceful fallback
       if (e.toString().contains('sms_provider') || e.toString().contains('Failed host lookup')) {
@@ -70,7 +70,7 @@ class AuthRepositoryImpl implements AuthRepository {
           }
           return null; // Triggers onboarding
         }
-        throw AuthException('अमान्य ओटीपी कोड (Invalid OTP)');
+        throw ServerException('अमान्य ओटीपी कोड (Invalid OTP)');
       }
 
       final userId = res.user?.id;

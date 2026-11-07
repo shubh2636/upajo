@@ -59,3 +59,4 @@ final logisticsControllerProvider =
   final repo = ref.watch(logisticsRepositoryProvider);
   return LogisticsController(repo);
 });
+

@@ -98,3 +98,4 @@ class ThirdPartyLogisticsAdapter implements DeliveryPartnerAdapter {
     return true;
   }
 }
+

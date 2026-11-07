@@ -142,3 +142,4 @@ def predict_crop_yield(req: YieldPredictionRequest):
         ],
         "recommendations_hindi": recommendations,
     }
+

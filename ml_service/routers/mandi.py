@@ -220,3 +220,4 @@ def get_price_suggestion(
         "rationale_hindi": f"पारंपरिक मंडी में आढ़तिया व तुलाई कटौतियों के बाद आपको केवल ₹{traditional_net_received_per_kg}/kg मिलते। उपजो पर सीधे ग्राहक को ₹{suggested_direct_per_kg}/kg में बेचकर आप {farmer_profit_increase_pct}% अधिक मुनाफा कमाएंगे।",
         "msp_benchmark_quintal": MSP_BENCHMARKS.get(crop_lower, 2275.0),
     }
+

@@ -72,3 +72,4 @@ class ManualSelfDeliveryAdapter implements DeliveryPartnerAdapter {
     return true;
   }
 }
+

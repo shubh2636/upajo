@@ -62,8 +62,23 @@ class AppColors {
 
   // Semantic Status Colors
   static const Color success = Color(0xFF25603A);
+  static const Color success400 = Color(0xFF4ADE80);
+  static const Color success500 = Color(0xFF25603A);
+  static const Color success600 = Color(0xFF1B492C);
   static const Color warning = Color(0xFFD8972C);
   static const Color error = Color(0xFFBA4A38);
+  static const Color error50 = clay50;
+  static const Color error300 = clay300;
+  static const Color error400 = clay400;
+  static const Color error600 = Color(0xFF963626);
+  static const Color error700 = clay700;
   static const Color info = Color(0xFF2E5E8A);
+
+  // Terracotta aliases for clay
+  static const Color terracotta50 = clay50;
+  static const Color terracotta200 = clay200;
+  static const Color terracotta500 = clay500;
+  static const Color terracotta600 = clay600;
+  static const Color terracotta800 = clay800;
 }
 

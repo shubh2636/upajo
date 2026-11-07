@@ -40,6 +40,7 @@ class UserProfile {
   bool get isFarmer => role == 'farmer';
   bool get isConsumer => role == 'consumer';
   bool get isAdmin => role == 'admin';
+  String get phoneNumber => phone;
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
     return UserProfile(

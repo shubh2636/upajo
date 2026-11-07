@@ -2,70 +2,70 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/models/store_item_model.dart';
 import '../../domain/repositories/store_repository.dart';
 import '../../data/repositories/store_repository_impl.dart';
-import '../../../marketplace/presentation/controllers/cart_controller.dart';
 import '../../../marketplace/domain/models/product_model.dart';
-
-final storeRepositoryProvider = Provider<StoreRepository>((ref) {
-  return StoreRepositoryImpl();
-});
+import '../../../marketplace/presentation/controllers/cart_controller.dart';
 
 class StoreState {
+  final List<StoreItemModel> items;
   final bool isLoading;
-  final List<StoreItemModel> catalog;
+  final String? error;
   final String selectedCategory; // 'all', 'seed', 'fertilizer', 'bio_nutrient', 'farm_tool'
   final String searchQuery;
-  final String? errorMessage;
 
   const StoreState({
+    this.items = const [],
     this.isLoading = false,
-    this.catalog = const [],
+    this.error,
     this.selectedCategory = 'all',
     this.searchQuery = '',
-    this.errorMessage,
   });
 
-  List<StoreItemModel> get filteredCatalog {
-    return catalog.where((item) {
-      final matchesCat = selectedCategory == 'all' || item.itemType == selectedCategory;
-      final matchesSearch = searchQuery.isEmpty ||
+  StoreState copyWith({
+    List<StoreItemModel>? items,
+    bool? isLoading,
+    String? error,
+    String? selectedCategory,
+    String? searchQuery,
+  }) {
+    return StoreState(
+      items: items ?? this.items,
+      isLoading: isLoading ?? this.isLoading,
+      error: error,
+      selectedCategory: selectedCategory ?? this.selectedCategory,
+      searchQuery: searchQuery ?? this.searchQuery,
+    );
+  }
+
+  List<StoreItemModel> get filteredItems {
+    return items.where((item) {
+      final matchesCategory = selectedCategory == 'all' || item.itemType == selectedCategory;
+      final matchesQuery = searchQuery.isEmpty ||
           item.titleHi.toLowerCase().contains(searchQuery.toLowerCase()) ||
+          item.titleEn.toLowerCase().contains(searchQuery.toLowerCase()) ||
           item.brand.toLowerCase().contains(searchQuery.toLowerCase());
-      return matchesCat && matchesSearch;
+      return matchesCategory && matchesQuery;
     }).toList();
   }
 
-  StoreState copyWith({
-    bool? isLoading,
-    List<StoreItemModel>? catalog,
-    String? selectedCategory,
-    String? searchQuery,
-    String? errorMessage,
-  }) {
-    return StoreState(
-      isLoading: isLoading ?? this.isLoading,
-      catalog: catalog ?? this.catalog,
-      selectedCategory: selectedCategory ?? this.selectedCategory,
-      searchQuery: searchQuery ?? this.searchQuery,
-      errorMessage: errorMessage,
-    );
-  }
+  List<StoreItemModel> get filteredCatalog => filteredItems;
 }
 
 class StoreController extends StateNotifier<StoreState> {
   final StoreRepository _repository;
 
   StoreController(this._repository) : super(const StoreState()) {
-    loadCatalog();
+    loadStoreCatalog();
   }
 
-  Future<void> loadCatalog({String? itemType}) async {
-    state = state.copyWith(isLoading: true, errorMessage: null);
+  Future<void> loadCatalog() => loadStoreCatalog();
+
+  Future<void> loadStoreCatalog() async {
+    state = state.copyWith(isLoading: true, error: null);
     try {
-      final cat = itemType ?? state.selectedCategory;
-      final items = await _repository.getStoreCatalog(itemType: cat);
-      state = state.copyWith(catalog: items, selectedCategory: cat, isLoading: false);
+      final items = await _repository.getStoreCatalog();
+      state = state.copyWith(items: items, isLoading: false);
     } catch (e) {
-      state = state.copyWith(isLoading: false, errorMessage: 'भंडार सामग्री लोड नहीं हो सकी: $e');
+      state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
 
@@ -82,21 +82,28 @@ class StoreController extends StateNotifier<StoreState> {
     final product = ProductModel(
       id: item.id,
       farmerId: 'upajo_certified_store',
-      farmerName: '${item.brand} (सरकारी प्रमाणित)',
-      farmerPhone: '18001801551',
-      nameHi: item.titleHi,
-      nameEn: item.titleEn,
-      category: item.itemType,
-      pricePerKg: item.price,
-      totalStockKg: item.stockQuantity.toDouble(),
-      harvestDate: DateTime.now(),
-      deliveryMode: 'self_delivery',
-      isOrganic: item.itemType == 'bio_nutrient' || item.brand.contains('Organic'),
+      categoryId: item.itemType,
+      titleHi: item.titleHi,
+      titleEn: item.titleEn,
+      descriptionHi: item.descriptionHi,
+      descriptionEn: item.descriptionEn,
       images: [item.imageUrl ?? 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=600'],
+      pricePerKg: item.price,
+      stockKg: item.stockQuantity.toDouble(),
+      packSizesKg: const [1],
+      harvestDate: DateTime.now(),
+      shelfLifeDays: 365,
+      deliveryModes: const ['delivery', 'pickup'],
+      isOrganic: item.itemType == 'bio_nutrient' || item.brand.contains('Organic'),
+      isActive: true,
       villageOrCity: 'केंद्रीय कृषि बीज निगम',
       district: 'सीहोर',
       state: 'मध्य प्रदेश',
-      packSizes: const [1], // 1 pack unit
+      pinCode: '466001',
+      createdAt: DateTime.now(),
+      farmerName: '${item.brand} (सरकारी प्रमाणित)',
+      farmerPhone: '18001801551',
+      farmerVerified: true,
     );
 
     return ref.read(cartControllerProvider.notifier).addToCart(product, 1, 1);
@@ -108,4 +115,3 @@ final storeControllerProvider =
   final repo = ref.watch(storeRepositoryProvider);
   return StoreController(repo);
 });
-

@@ -169,3 +169,4 @@ class MandiRepositoryImpl implements MandiRepository {
     ];
   }
 }
+

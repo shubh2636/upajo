@@ -57,10 +57,10 @@ class _FarmerEarningsScreenState extends ConsumerState<FarmerEarningsScreen> {
             _totalSettled = settled;
             _pendingSettlement = pending;
             if (bankData != null) {
-              _upiController.text = bankData['upi_vpa'] ?? '';
-              _accountController.text = bankData['bank_account_number'] ?? '';
-              _ifscController.text = bankData['bank_ifsc'] ?? '';
-              _holderController.text = bankData['bank_account_holder_name'] ?? user.fullName;
+              _upiController.text = (bankData['upi_vpa'] as String?) ?? '';
+              _accountController.text = (bankData['bank_account_number'] as String?) ?? '';
+              _ifscController.text = (bankData['bank_ifsc'] as String?) ?? '';
+              _holderController.text = (bankData['bank_account_holder_name'] as String?) ?? user.fullName;
             }
           });
         }

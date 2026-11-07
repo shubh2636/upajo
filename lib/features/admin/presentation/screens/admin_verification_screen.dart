@@ -119,7 +119,7 @@ class _AdminVerificationScreenState extends ConsumerState<AdminVerificationScree
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Text(farmer['full_name'] ?? 'किसान', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16.0)),
+                                      Text((farmer['full_name'] as String?) ?? 'किसान', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16.0)),
                                       Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 3.0),
                                         decoration: BoxDecoration(
@@ -146,7 +146,7 @@ class _AdminVerificationScreenState extends ConsumerState<AdminVerificationScree
                                     children: [
                                       Expanded(
                                         child: OutlinedButton(
-                                          onPressed: () => _verifyFarmer(farmer['id'], false),
+                                          onPressed: () => _verifyFarmer((farmer['id'] as String?) ?? '', false),
                                           style: OutlinedButton.styleFrom(
                                             foregroundColor: AppColors.clay500,
                                             side: const BorderSide(color: AppColors.clay300),
@@ -159,7 +159,7 @@ class _AdminVerificationScreenState extends ConsumerState<AdminVerificationScree
                                         child: AppButton(
                                           height: 44.0,
                                           label: 'सत्यापित करें (Approve)',
-                                          onPressed: () => _verifyFarmer(farmer['id'], true),
+                                          onPressed: () => _verifyFarmer((farmer['id'] as String?) ?? '', true),
                                         ),
                                       ),
                                     ],

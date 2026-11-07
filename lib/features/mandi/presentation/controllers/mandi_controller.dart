@@ -106,3 +106,4 @@ final mandiControllerProvider =
   final repo = ref.watch(mandiRepositoryProvider);
   return MandiController(repo);
 });
+

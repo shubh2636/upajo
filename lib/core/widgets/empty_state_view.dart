@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:easy_localization/easy_localization.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 import 'app_button.dart';
@@ -7,6 +6,7 @@ import 'app_button.dart';
 class EmptyStateView extends StatelessWidget {
   final String title;
   final String? message;
+  final String? subtitle;
   final IconData icon;
   final String? actionLabel;
   final VoidCallback? onAction;
@@ -15,6 +15,7 @@ class EmptyStateView extends StatelessWidget {
     super.key,
     required this.title,
     this.message,
+    this.subtitle,
     this.icon = Icons.inbox_outlined,
     this.actionLabel,
     this.onAction,
@@ -22,6 +23,8 @@ class EmptyStateView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final subText = message ?? subtitle;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -49,10 +52,10 @@ class EmptyStateView extends StatelessWidget {
               style: AppTypography.headlineMedium,
               textAlign: TextAlign.center,
             ),
-            if (message != null) ...[
+            if (subText != null) ...[
               const SizedBox(height: 8.0),
               Text(
-                message!,
+                subText,
                 style: AppTypography.bodyMedium,
                 textAlign: TextAlign.center,
               ),
@@ -71,4 +74,3 @@ class EmptyStateView extends StatelessWidget {
     );
   }
 }
-
