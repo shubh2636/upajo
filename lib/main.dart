@@ -52,3 +52,4 @@ class UpajoApp extends StatelessWidget {
     );
   }
 }
+

@@ -55,3 +55,4 @@ def recommend_crop(req: CropAdvisoryRequest):
         "confidence": 0.94,
         "calendar_summary": "सप्ताह 1: खेत की जुताई व पाटा लगाना; सप्ताह 3: बीज बोआई; सप्ताह 6: पहली सिंचाई (CRI चरण)"
     }
+

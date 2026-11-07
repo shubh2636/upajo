@@ -727,3 +727,4 @@ CREATE POLICY "Public view product images" ON storage.objects FOR SELECT TO publ
 
 CREATE POLICY "Farmers upload images" ON storage.objects FOR INSERT TO authenticated
   WITH CHECK (bucket_id IN ('product-images', 'disease-scans', 'machinery-images', 'kyc-docs'));
+

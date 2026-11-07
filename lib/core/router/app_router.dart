@@ -3,6 +3,24 @@ import 'package:go_router/go_router.dart';
 import 'route_names.dart';
 import '../../features/auth/presentation/splash_screen.dart';
 import '../../features/auth/presentation/language_select_screen.dart';
+import '../../features/auth/presentation/screens/login_screen.dart';
+import '../../features/auth/presentation/screens/verify_otp_screen.dart';
+import '../../features/auth/presentation/screens/role_selection_screen.dart';
+import '../../features/auth/presentation/screens/onboarding_screen.dart';
+import '../../features/farmer/presentation/screens/farmer_dashboard_screen.dart';
+import '../../features/farmer/presentation/screens/add_product_screen.dart';
+import '../../features/farmer/presentation/screens/farmer_orders_screen.dart';
+import '../../features/farmer/presentation/screens/farmer_earnings_screen.dart';
+import '../../features/farmer/presentation/screens/my_products_screen.dart';
+import '../../features/consumer/presentation/screens/consumer_home_screen.dart';
+import '../../features/consumer/presentation/screens/product_detail_screen.dart';
+import '../../features/consumer/presentation/screens/cart_screen.dart';
+import '../../features/consumer/presentation/screens/checkout_screen.dart';
+import '../../features/consumer/presentation/screens/consumer_orders_screen.dart';
+import '../../features/consumer/presentation/screens/order_tracking_screen.dart';
+import '../../features/admin/presentation/screens/admin_verification_screen.dart';
+import '../../features/marketplace/domain/models/product_model.dart';
+import '../../features/marketplace/domain/models/order_model.dart';
 
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -20,28 +38,82 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: RouteNames.login,
-      builder: (context, state) => _placeholderScaffold('Login Screen (Part 1)'),
+      builder: (context, state) => const LoginScreen(),
     ),
     GoRoute(
       path: RouteNames.verifyOtp,
-      builder: (context, state) => _placeholderScaffold('Verify OTP (Part 1)'),
+      builder: (context, state) => const VerifyOtpScreen(),
     ),
     GoRoute(
       path: RouteNames.roleSelect,
-      builder: (context, state) => _placeholderScaffold('Role Select (Part 1)'),
+      builder: (context, state) => const RoleSelectionScreen(),
     ),
     GoRoute(
       path: RouteNames.onboarding,
-      builder: (context, state) => _placeholderScaffold('Onboarding (Part 1)'),
+      builder: (context, state) => const OnboardingScreen(),
     ),
+
+    // Farmer Routes
     GoRoute(
       path: RouteNames.farmerDashboard,
-      builder: (context, state) => _placeholderScaffold('Farmer Dashboard (Part 1)'),
+      builder: (context, state) => const FarmerDashboardScreen(),
     ),
     GoRoute(
-      path: RouteNames.consumerHome,
-      builder: (context, state) => _placeholderScaffold('Consumer Marketplace (Part 1)'),
+      path: RouteNames.addProduct,
+      builder: (context, state) => const AddProductScreen(),
     ),
+    GoRoute(
+      path: RouteNames.farmerOrders,
+      builder: (context, state) => const FarmerOrdersScreen(),
+    ),
+    GoRoute(
+      path: RouteNames.farmerEarnings,
+      builder: (context, state) => const FarmerEarningsScreen(),
+    ),
+    GoRoute(
+      path: RouteNames.myProducts,
+      builder: (context, state) => const MyProductsScreen(),
+    ),
+
+    // Consumer Routes
+    GoRoute(
+      path: RouteNames.consumerHome,
+      builder: (context, state) => const ConsumerHomeScreen(),
+    ),
+    GoRoute(
+      path: RouteNames.productDetail,
+      builder: (context, state) {
+        final product = state.extra as ProductModel;
+        return ProductDetailScreen(product: product);
+      },
+    ),
+    GoRoute(
+      path: RouteNames.cart,
+      builder: (context, state) => const CartScreen(),
+    ),
+    GoRoute(
+      path: RouteNames.checkout,
+      builder: (context, state) => const CheckoutScreen(),
+    ),
+    GoRoute(
+      path: RouteNames.consumerOrders,
+      builder: (context, state) => const ConsumerOrdersScreen(),
+    ),
+    GoRoute(
+      path: RouteNames.orderDetail,
+      builder: (context, state) {
+        final order = state.extra as OrderModel;
+        return OrderTrackingScreen(order: order);
+      },
+    ),
+
+    // Admin Route
+    GoRoute(
+      path: RouteNames.admin,
+      builder: (context, state) => const AdminVerificationScreen(),
+    ),
+
+    // Later Phase Shell Stubs
     GoRoute(
       path: RouteNames.cropAdvisor,
       builder: (context, state) => _placeholderScaffold('Crop Advisor (Part 2)'),
@@ -61,10 +133,6 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: RouteNames.store,
       builder: (context, state) => _placeholderScaffold('Agri Store (Part 4)'),
-    ),
-    GoRoute(
-      path: RouteNames.admin,
-      builder: (context, state) => _placeholderScaffold('Admin Verification (Part 1)'),
     ),
   ],
 );

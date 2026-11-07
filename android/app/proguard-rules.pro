@@ -22,3 +22,4 @@
 # SQLite / Drift
 -keep class org.sqlite.** { *; }
 -keep class com.google.android.gms.** { *; }
+

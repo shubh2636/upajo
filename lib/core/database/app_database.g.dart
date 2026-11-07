@@ -319,3 +319,4 @@ class $SyncQueueItemsTable extends SyncQueueItems
     return $SyncQueueItemsTable(attachedDatabase, alias);
   }
 }
+

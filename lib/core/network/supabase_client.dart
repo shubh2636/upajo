@@ -23,3 +23,4 @@ class SupabaseService {
 
   static String? get currentUserId => client.auth.currentUser?.id;
 }
+

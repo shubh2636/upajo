@@ -43,3 +43,4 @@ class LoadingView extends StatelessWidget {
     );
   }
 }
+

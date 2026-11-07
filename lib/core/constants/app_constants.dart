@@ -37,3 +37,4 @@ class AppConstants {
   static const String keyAuthToken = 'upajo_auth_token';
   static const String keySelectedLocale = 'upajo_selected_locale';
 }
+

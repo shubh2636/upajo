@@ -1,0 +1,187 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:easy_localization/easy_localization.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/app_button.dart';
+import '../../../../core/widgets/app_card.dart';
+import '../../../auth/presentation/controllers/auth_controller.dart';
+import '../../../marketplace/domain/models/order_model.dart';
+import '../../../marketplace/presentation/controllers/marketplace_controller.dart';
+
+class FarmerOrdersScreen extends ConsumerStatefulWidget {
+  const FarmerOrdersScreen({super.key});
+
+  @override
+  ConsumerState<FarmerOrdersScreen> createState() => _FarmerOrdersScreenState();
+}
+
+class _FarmerOrdersScreenState extends ConsumerState<FarmerOrdersScreen> {
+  List<OrderModel> _orders = [];
+  bool _isLoading = true;
+  String? _updatingOrderId;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadOrders();
+  }
+
+  Future<void> _loadOrders() async {
+    final user = ref.read(authControllerProvider).userProfile;
+    if (user != null) {
+      final repo = ref.read(marketplaceRepositoryProvider);
+      try {
+        final data = await repo.getFarmerOrders(user.id);
+        if (mounted) setState(() { _orders = data; _isLoading = false; });
+      } catch (_) {
+        if (mounted) setState(() => _isLoading = false);
+      }
+    } else {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _updateStatus(String orderId, String newStatus) async {
+    setState(() => _updatingOrderId = orderId);
+    final repo = ref.read(marketplaceRepositoryProvider);
+    try {
+      await repo.updateOrderStatus(orderId, newStatus);
+      await _loadOrders();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('स्थिति बदलने में त्रुटि: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _updatingOrderId = null);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.soil50,
+      appBar: AppBar(
+        title: Text('farmer.pending_orders'.tr()),
+        backgroundColor: Colors.white,
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _orders.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.inbox_rounded, size: 54.0, color: AppColors.soil400),
+                      const SizedBox(height: 12.0),
+                      Text('common.empty'.tr(), style: AppTypography.headlineSmall),
+                    ],
+                  ),
+                )
+              : ListView.separated(
+                  padding: const EdgeInsets.all(16.0),
+                  itemCount: _orders.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 14.0),
+                  itemBuilder: (context, index) {
+                    final order = _orders[index];
+                    final isPickup = order.deliveryMode == 'pickup';
+
+                    String? nextStatus;
+                    String? nextLabel;
+
+                    if (order.status == 'confirmed') {
+                      nextStatus = 'harvesting_packed';
+                      nextLabel = 'farmer.mark_packed'.tr();
+                    } else if (order.status == 'harvesting_packed') {
+                      nextStatus = isPickup ? 'ready_for_pickup' : 'out_for_delivery';
+                      nextLabel = isPickup ? 'उठाने के लिए तैयार' : 'farmer.mark_out_delivery'.tr();
+                    } else if (order.status == 'out_for_delivery' || order.status == 'ready_for_pickup') {
+                      nextStatus = 'delivered';
+                      nextLabel = 'farmer.mark_delivered'.tr();
+                    }
+
+                    return AppCard(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(order.orderNumber, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16.0)),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 4.0),
+                                decoration: BoxDecoration(
+                                  color: order.status == 'delivered' ? AppColors.primary100 : AppColors.wheat100,
+                                  borderRadius: BorderRadius.circular(8.0),
+                                ),
+                                child: Text(
+                                  order.status,
+                                  style: TextStyle(
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: order.status == 'delivered' ? AppColors.primary800 : AppColors.wheat900,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10.0),
+
+                          Text('ग्राहक: ${order.deliveryAddress['full_name'] ?? 'ग्राहक'} (फोन: +91 ${order.deliveryAddress['phone'] ?? ''})', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5)),
+                          Text('${order.deliveryAddress['address_line'] ?? ''}, ${order.deliveryAddress['village_or_city'] ?? ''} - ${order.deliveryAddress['pin_code'] ?? ''}', style: const TextStyle(fontSize: 12.0, color: AppColors.soil600)),
+                          const SizedBox(height: 10.0),
+
+                          // Items summary
+                          Container(
+                            padding: const EdgeInsets.all(10.0),
+                            decoration: BoxDecoration(color: AppColors.soil100, borderRadius: BorderRadius.circular(8.0)),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text('${isPickup ? 'खेत से उठाना (Pickup)' : 'होम डिलीवरी'}', style: const TextStyle(fontSize: 12.0, fontWeight: FontWeight.w600)),
+                                Text('कुल राशि: ₹${order.totalAmount.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.primary600)),
+                              ],
+                            ),
+                          ),
+
+                          const SizedBox(height: 14.0),
+
+                          Row(
+                            children: [
+                              // WhatsApp Action
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  onPressed: () {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('WhatsApp संदेश लिंक जनरेट किया गया')),
+                                    );
+                                  },
+                                  icon: const Icon(Icons.chat_bubble_outline_rounded, color: Colors.green, size: 18.0),
+                                  label: const Text('WhatsApp', style: TextStyle(fontSize: 12.5)),
+                                ),
+                              ),
+                              if (nextStatus != null && nextLabel != null) ...[
+                                const SizedBox(width: 10.0),
+                                Expanded(
+                                  flex: 2,
+                                  child: AppButton(
+                                    height: 48.0,
+                                    label: nextLabel,
+                                    isLoading: _updatingOrderId == order.id,
+                                    onPressed: () => _updateStatus(order.id, nextStatus!),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+    );
+  }
+}

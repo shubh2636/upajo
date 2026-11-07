@@ -34,3 +34,4 @@ INSERT INTO public.store_items (title_hi, title_en, item_type, brand, price, pac
   ('ट्राइकोडर्मा विरिडी जैव-फफूंदनाशक', 'Trichoderma Viride Bio-Fungicide', 'bio_nutrient', 'KRIBHCO', 220.00, '1 kg Pack', 500, 'जड़ गलन और उकठा (Wilt) रोग से बीज एवं भूमि उपचार के लिए उत्तम।', 'Effective bio-control agent against seed & soil-borne pathogens.'),
   ('मैनुअल हस्तचालित स्प्रेयर (16L)', 'Knapsack Manual Sprayer 16L', 'farm_tool', 'Kisan Kraft', 1850.00, '1 Unit', 80, 'टिकाऊ पीतल की नोजल, मजबूत प्लास्टिक टंकी, 3 साल वारंटी।', 'Durable brass nozzle with high pressure chamber.')
 ON CONFLICT DO NOTHING;
+

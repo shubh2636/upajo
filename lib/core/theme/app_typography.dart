@@ -92,3 +92,4 @@ class AppTypography {
     color: AppColors.primary500,
   );
 }
+

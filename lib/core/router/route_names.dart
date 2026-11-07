@@ -35,3 +35,4 @@ class RouteNames {
   // Admin
   static const String admin = '/admin';
 }
+

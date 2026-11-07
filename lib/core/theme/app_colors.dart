@@ -66,3 +66,4 @@ class AppColors {
   static const Color error = Color(0xFFBA4A38);
   static const Color info = Color(0xFF2E5E8A);
 }
+
