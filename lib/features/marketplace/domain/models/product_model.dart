@@ -61,6 +61,9 @@ class ProductModel {
     return pricePerKg * packSizeKg;
   }
 
+  double priceForPack(int packSizeKg) => pricePerKg * packSizeKg;
+  int stockInPacks(int packSizeKg) => (stockKg / packSizeKg).floor();
+
   factory ProductModel.fromJson(Map<String, dynamic> json) {
     final rawPackSizes = json['pack_sizes_kg'];
     List<int> packSizes = [10, 20, 50];

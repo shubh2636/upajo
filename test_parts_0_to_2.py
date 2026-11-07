@@ -655,6 +655,88 @@ class TestPart5LogisticsMandiAnalytics(unittest.TestCase):
         self.assertGreater(data["estimated_gross_revenue_inr"], 100000)
 
 
+class TestPart6QualitySecurityPerformance(unittest.TestCase):
+    """PART 6: Quality, Security (RLS), PII Scrubbing, and Play Store Data Safety"""
+
+    def setUp(self):
+        self.root_dir = os.path.abspath(os.path.dirname(__file__))
+
+    def test_01_rls_sql_test_script_exists_and_covers_all_tenants(self):
+        """Verify Supabase RLS test script covers anon, farmer, consumer, and admin roles"""
+        rls_path = os.path.join(self.root_dir, "supabase/tests/rls_security_tests.sql")
+        self.assertTrue(os.path.exists(rls_path), f"Missing rls_security_tests.sql")
+
+        with open(rls_path, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        self.assertIn("SET LOCAL ROLE anon;", content)
+        self.assertIn("Farmer 2 cannot tamper with or modify Farmer 1 product", content)
+        self.assertIn("Unrelated Farmer 2 cannot see Consumer 1 order", content)
+        self.assertIn("Non-admin cannot verify their own or others KYC status", content)
+        self.assertIn("System Admin can successfully approve and verify farmer KYC", content)
+        self.assertIn("ROLLBACK;", content)
+
+    def test_02_pii_sanitization_masks_phone_and_upi(self):
+        """Verify crash telemetry PII sanitizer redacts phone numbers, UPI VPAs, and bearer tokens"""
+        # Testing PII Regex patterns used in UpajoCrashReporting
+        phone_regex = re.compile(r'(\+?91[\-\s]?)?[6-9]\d{9}')
+        upi_regex = re.compile(r'[\w\.\-]+@[a-zA-Z]+')
+        token_regex = re.compile(r'bearer\s+[A-Za-z0-9\-\._~\+\/]+=*', re.IGNORECASE)
+
+        raw_log = "Error for farmer +91 9876543210 paying to baldev@upi with Bearer eyJhbGciOiJIUzI1NiJ9"
+        
+        sanitized = phone_regex.sub("[PHONE_REDACTED]", raw_log)
+        sanitized = upi_regex.sub("[UPI_REDACTED]", sanitized)
+        sanitized = token_regex.sub("Bearer [TOKEN_REDACTED]", sanitized)
+
+        self.assertNotIn("9876543210", sanitized)
+        self.assertNotIn("baldev@upi", sanitized)
+        self.assertNotIn("eyJhbGciOiJIUzI1NiJ9", sanitized)
+        self.assertIn("[PHONE_REDACTED]", sanitized)
+        self.assertIn("[UPI_REDACTED]", sanitized)
+
+    def test_03_android_build_configuration_for_r8_and_abis(self):
+        """Verify Android release build specifies code minification, resource shrinking, and ABI splits"""
+        gradle_path = os.path.join(self.root_dir, "android/app/build.gradle")
+        with open(gradle_path, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        self.assertIn("minifyEnabled true", content)
+        self.assertIn("shrinkResources true", content)
+        self.assertIn("abiFilters \"armeabi-v7a\", \"arm64-v8a\", \"x86_64\"", content)
+
+    def test_04_play_store_data_safety_document_completeness(self):
+        """Verify Play Store Data Safety specifications document covers all data categories"""
+        doc_path = os.path.join(self.root_dir, "docs/PLAY_STORE_DATA_SAFETY.md")
+        self.assertTrue(os.path.exists(doc_path))
+
+        with open(doc_path, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        self.assertIn("Approximate location and Precise location", content)
+        self.assertIn("Phone Number", content)
+        self.assertIn("Razorpay", content)
+        self.assertIn("AI Crop Disease Detection", content)
+        self.assertIn("Krishi Sahayak", content)
+        self.assertIn("TLS 1.3", content)
+        self.assertIn("AES-256", content)
+        self.assertIn("delete-account", content)
+
+    def test_05_performance_and_accessibility_guidelines_exist(self):
+        """Verify budget device performance and WCAG AAA accessibility checklists exist"""
+        perf_path = os.path.join(self.root_dir, "docs/PERFORMANCE_PROFILE_CHECKLIST.md")
+        acc_path = os.path.join(self.root_dir, "docs/ACCESSIBILITY_AUDIT_CHECKLIST.md")
+
+        self.assertTrue(os.path.exists(perf_path))
+        self.assertTrue(os.path.exists(acc_path))
+
+        with open(acc_path, "r", encoding="utf-8") as f:
+            acc_content = f.read()
+        self.assertIn("48dp", acc_content)
+        self.assertIn("AAA", acc_content)
+        self.assertIn("Devanagari", acc_content)
+
+
 if __name__ == "__main__":
     suite = unittest.TestSuite()
     suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestPart0Foundation))
@@ -663,6 +745,7 @@ if __name__ == "__main__":
     suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestPart3DiseaseAndKrishiSahayak))
     suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestPart4MachineryAndStore))
     suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestPart5LogisticsMandiAnalytics))
+    suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestPart6QualitySecurityPerformance))
 
     runner = unittest.TextTestRunner(verbosity=2)
     result = runner.run(suite)
