@@ -304,3 +304,4 @@ class MachineryRepositoryImpl implements MachineryRepository {
     return all;
   }
 }
+

@@ -36,7 +36,11 @@ class RouteNames {
   static const String myRentals = '/machinery/my-rentals';
   static const String store = '/store';
 
+  // Logistics, Mandi & Analytics (Part 5)
+  static const String liveTracking = '/logistics/tracking';
+  static const String mandiPrices = '/mandi';
+  static const String farmerAnalytics = '/farmer/analytics';
+
   // Admin
   static const String admin = '/admin';
 }
-

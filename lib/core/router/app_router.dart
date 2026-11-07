@@ -29,6 +29,9 @@ import '../../features/machinery/presentation/screens/list_machinery_screen.dart
 import '../../features/machinery/presentation/screens/my_rentals_screen.dart';
 import '../../features/machinery/domain/models/machinery_model.dart';
 import '../../features/agri_store/presentation/screens/store_catalog_screen.dart';
+import '../../features/logistics/presentation/screens/live_tracking_screen.dart';
+import '../../features/mandi/presentation/screens/mandi_prices_screen.dart';
+import '../../features/analytics/presentation/screens/farmer_analytics_screen.dart';
 import '../../features/marketplace/domain/models/product_model.dart';
 import '../../features/marketplace/domain/models/order_model.dart';
 
@@ -140,6 +143,7 @@ final GoRouter appRouter = GoRouter(
       path: RouteNames.krishiSahayak,
       builder: (context, state) => const KrishiSahayakScreen(),
     ),
+
     // Machinery Routes
     GoRoute(
       path: RouteNames.machinery,
@@ -166,17 +170,26 @@ final GoRouter appRouter = GoRouter(
       path: RouteNames.store,
       builder: (context, state) => const StoreCatalogScreen(),
     ),
+
+    // Logistics Route (Live OSM Tracking - Part 5)
+    GoRoute(
+      path: RouteNames.liveTracking,
+      builder: (context, state) {
+        final orderId = state.extra as String? ?? 'demo_order_id';
+        return LiveTrackingScreen(orderId: orderId);
+      },
+    ),
+
+    // Mandi Prices & Agmarknet Feed (Part 5)
+    GoRoute(
+      path: RouteNames.mandiPrices,
+      builder: (context, state) => const MandiPricesScreen(),
+    ),
+
+    // Farmer Analytics & GST Invoicing (Part 5)
+    GoRoute(
+      path: RouteNames.farmerAnalytics,
+      builder: (context, state) => const FarmerAnalyticsScreen(),
+    ),
   ],
 );
-
-Widget _placeholderScaffold(String title) {
-  return Scaffold(
-    appBar: AppBar(title: Text(title)),
-    body: Center(
-      child: Text(
-        title,
-        style: const TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
-      ),
-    ),
-  );
-}

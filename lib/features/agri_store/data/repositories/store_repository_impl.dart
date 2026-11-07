@@ -144,3 +144,4 @@ class StoreRepositoryImpl implements StoreRepository {
     return all;
   }
 }
+

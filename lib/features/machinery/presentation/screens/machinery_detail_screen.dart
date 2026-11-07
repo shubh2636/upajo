@@ -387,3 +387,4 @@ class _MachineryDetailScreenState extends ConsumerState<MachineryDetailScreen> {
     );
   }
 }
+

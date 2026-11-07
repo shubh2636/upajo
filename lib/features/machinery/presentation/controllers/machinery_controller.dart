@@ -162,3 +162,4 @@ final machineryControllerProvider =
   final repo = ref.watch(machineryRepositoryProvider);
   return MachineryController(repo);
 });
+

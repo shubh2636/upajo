@@ -158,6 +158,39 @@
     "title": "प्रमाणित बीज व खाद भंडार",
     "certified_badge": "100% सरकारी प्रमाणित",
     "buy_now": "अभी खरीदें"
+  },
+  "logistics": {
+    "title": "लाइव डिलीवरी ट्रैकिंग",
+    "subtitle": "ओपन स्ट्रीट मैप (OSM) पर लाइव वाहन स्थिति",
+    "driver_name": "डिलीवरी साथी",
+    "driver_phone": "चालक का फोन",
+    "eta": "अनुमानित समय",
+    "distance": "दूरी",
+    "vehicle_number": "वाहन क्रमांक",
+    "call_driver": "चालक को कॉल करें"
+  },
+  "mandi": {
+    "title": "मंडी भाव एवं भाव सुझाव",
+    "subtitle": "Agmarknet APMC दैनिक दरें एवं 7-दिन का ऐतिहासिक ट्रेंड",
+    "modal_price": "मॉडल दर (Modal Price)",
+    "min_price": "न्यूनतम",
+    "max_price": "अधिकतम",
+    "price_per_quintal": "₹ प्रति क्विंटल",
+    "price_per_kg": "₹ प्रति किग्रा",
+    "price_suggestion": "उपजो उचित मूल्य सुझाव",
+    "price_alert": "भाव अलर्ट सेट करें",
+    "history_7d": "पिछले 7 दिनों का ट्रेंड ग्राफ"
+  },
+  "analytics": {
+    "title": "किसान बिक्री एवं कमाई रिपोर्ट",
+    "subtitle": "पारदर्शी डिजिटल बहीखाता एवं GST-मुक्त इनवॉइस",
+    "total_revenue": "कुल शुद्ध बिक्री (₹)",
+    "completed_orders": "सफल ऑर्डर",
+    "total_volume": "कुल विक्रय वजन (किग्रा)",
+    "top_crops": "सर्वाधिक बिकने वाली फसलें",
+    "top_buyers": "प्रमुख नियमित ग्राहक",
+    "download_invoice": "GST-मुक्त PDF इनवॉइस डाउनलोड करें",
+    "gst_exempt_declaration": "CGST अधिनियम धारा 23 के तहत कृषि उपज 100% GST-मुक्त है"
   }
 }
 

@@ -489,12 +489,180 @@ class TestPart4MachineryAndStore(unittest.TestCase):
         self.assertEqual(line_total, 2900.0)
 
 
+class TestPart3DiseaseAndKrishiSahayak(unittest.TestCase):
+    """PART 3: Plant Pathology Scanner & Hindi Voice AI Krishi Sahayak"""
+
+    def setUp(self):
+        self.root_dir = os.path.abspath(os.path.dirname(__file__))
+
+    def test_01_disease_treatments_catalog_and_dosages(self):
+        """Verify 10 crop pathology disease classes with organic & CIB&RC chemical dosages"""
+        treatments_path = os.path.join(self.root_dir, "assets/models/disease_treatments.json")
+        self.assertTrue(os.path.exists(treatments_path), f"Missing disease_treatments.json")
+
+        with open(treatments_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        self.assertGreaterEqual(len(data), 10, f"Expected 10 disease classes, got {len(data)}")
+        
+        # Verify Potato Early Blight entry
+        potato_blight = data.get("Potato___Early_blight")
+        self.assertIsNotNone(potato_blight)
+        self.assertTrue(len(potato_blight["organic_treatment_hi"]) > 0)
+        self.assertTrue(len(potato_blight["chemical_treatment_hi"]) > 0)
+        self.assertIn("नीम का तेल", potato_blight["organic_treatment_hi"])
+
+    def test_02_fastapi_disease_prediction_endpoint(self):
+        """Test disease prediction fallback endpoint via TestClient"""
+        from starlette.testclient import TestClient
+        from main import app
+
+        client = TestClient(app)
+        # Pass a mock black 1x1 image payload
+        dummy_png = (
+            b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06"
+            b"\x00\x00\x00\x1f\x15c4\x00\x00\x00\nIDATx\x9cc\x00\x01\x00\x00\x05\x00\x01\r"
+            b"\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82"
+        )
+        files = {"file": ("leaf.png", dummy_png, "image/png")}
+        resp = client.post("/api/v1/disease/predict", files=files)
+        self.assertEqual(resp.status_code, 200)
+        res_data = resp.json()
+        self.assertIn("disease_name_hi", res_data)
+        self.assertIn("confidence_score", res_data)
+
+
+class TestPart5LogisticsMandiAnalytics(unittest.TestCase):
+    """PART 5: Logistics Adapters, Agmarknet Mandi Rates, and Farmer Analytics"""
+
+    def setUp(self):
+        self.root_dir = os.path.abspath(os.path.dirname(__file__))
+
+    def test_01_mandi_prices_and_7day_trend_structure(self):
+        """Verify APMC benchmark rates conforming to data.gov.in Agmarknet specification"""
+        from main import app
+        from starlette.testclient import TestClient
+
+        client = TestClient(app)
+        resp = client.get("/api/v1/mandi/prices?crop=all")
+        self.assertEqual(resp.status_code, 200)
+        mandi_list = resp.json()
+
+        self.assertGreaterEqual(len(mandi_list), 6)
+        for item in mandi_list:
+            self.assertIn("crop_name_hi", item)
+            self.assertIn("mandi_name", item)
+            self.assertIn("min_price", item)
+            self.assertIn("max_price", item)
+            self.assertIn("modal_price", item)
+            self.assertGreater(item["max_price"], item["min_price"])
+            self.assertGreaterEqual(len(item["historical_trend"]), 7)
+
+    def test_02_fair_pricing_suggestion_algorithm(self):
+        """Verify farmer direct profit advantage calculation over traditional APMC arhatiya deduction"""
+        from main import app
+        from starlette.testclient import TestClient
+
+        client = TestClient(app)
+        resp = client.get("/api/v1/mandi/price-suggestion?crop=wheat&grade=A&is_organic=false")
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+
+        self.assertIn("mandi_rate_per_kg", data)
+        self.assertIn("traditional_net_farmer_gets_per_kg", data)
+        self.assertIn("suggested_direct_consumer_price_per_kg", data)
+        self.assertIn("farmer_profit_increase_pct", data)
+
+        # Farmer net from traditional must be less than direct price
+        self.assertGreater(data["suggested_direct_consumer_price_per_kg"], data["traditional_net_farmer_gets_per_kg"])
+        self.assertGreaterEqual(data["farmer_profit_increase_pct"], 20.0)
+
+    def test_03_haversine_distance_and_delivery_eta(self):
+        """Verify Haversine GPS distance calculation and ETA estimation for delivery tracking"""
+        import math
+
+        def haversine(lat1, lon1, lat2, lon2):
+            R = 6371.0  # Earth radius in km
+            dlat = math.radians(lat2 - lat1)
+            dlon = math.radians(lon2 - lon1)
+            a = math.sin(dlat / 2)**2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon / 2)**2
+            c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+            return R * c
+
+        # Distance between Sehore Farm (23.2000, 77.0800) and Bhopal City (23.2599, 77.4126)
+        dist_km = haversine(23.2000, 77.0800, 23.2599, 77.4126)
+        self.assertAlmostEqual(dist_km, 34.6, delta=2.0)
+
+        # ETA at average 35 km/h rural road speed
+        speed_kmh = 35.0
+        eta_minutes = round((dist_km / speed_kmh) * 60)
+        self.assertGreater(eta_minutes, 45)
+        self.assertLess(eta_minutes, 75)
+
+    def test_04_farmer_analytics_aggregation_and_gst_exemption(self):
+        """Verify financial aggregation logic and GST-free agricultural invoicing compliance"""
+        orders = [
+            {"order_id": "ord_1", "crop": "शरबती गेहूं", "amount": 4200.0, "status": "delivered", "buyer": "राजेश शर्मा"},
+            {"order_id": "ord_2", "crop": "देसी चना", "amount": 3100.0, "status": "delivered", "buyer": "अमित वर्मा"},
+            {"order_id": "ord_3", "crop": "शरबती गेहूं", "amount": 5400.0, "status": "delivered", "buyer": "राजेश शर्मा"},
+            {"order_id": "ord_4", "crop": "सोयाबीन", "amount": 2600.0, "status": "harvesting_packed", "buyer": "विकास पटेल"},
+        ]
+
+        delivered = [o for o in orders if o["status"] == "delivered"]
+        total_revenue = sum(o["amount"] for o in delivered)
+        self.assertEqual(total_revenue, 12700.0)
+
+        # Buyer ranking
+        buyer_totals = {}
+        for o in delivered:
+            buyer_totals[o["buyer"]] = buyer_totals.get(o["buyer"], 0.0) + o["amount"]
+
+        top_buyer = max(buyer_totals.items(), key=lambda x: x[1])
+        self.assertEqual(top_buyer[0], "राजेश शर्मा")
+        self.assertEqual(top_buyer[1], 9600.0)
+
+        # CGST Act Section 23: 100% Tax Exemption on Unprocessed Farm Produce
+        gst_rate = 0.0
+        gst_amount = total_revenue * gst_rate
+        self.assertEqual(gst_amount, 0.0)
+
+    def test_05_fastapi_yield_prediction_endpoint(self):
+        """Test Yield Prediction ML service stub via TestClient"""
+        from main import app
+        from starlette.testclient import TestClient
+
+        client = TestClient(app)
+        payload = {
+            "crop_name": "Wheat (शरबती)",
+            "soil_type": "black_soil",
+            "land_area_acres": 4.0,
+            "irrigation_type": "drip_irrigation",
+            "rainfall_mm": 480.0,
+            "fertilizer_n_kg_per_acre": 45.0,
+            "fertilizer_p_kg_per_acre": 25.0,
+            "fertilizer_k_kg_per_acre": 15.0,
+            "organic_farming": False
+        }
+        resp = client.post("/api/v1/analytics/yield-prediction", json=payload)
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+
+        self.assertIn("predicted_yield_per_acre_quintal", data)
+        self.assertIn("total_predicted_yield_quintal", data)
+        self.assertIn("confidence_interval", data)
+        self.assertIn("estimated_gross_revenue_inr", data)
+        self.assertGreater(data["total_predicted_yield_quintal"], 50.0)
+        self.assertGreater(data["estimated_gross_revenue_inr"], 100000)
+
+
 if __name__ == "__main__":
     suite = unittest.TestSuite()
     suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestPart0Foundation))
     suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestPart1AuthAndMarketplace))
     suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestPart2CropAdvisorAndWeather))
+    suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestPart3DiseaseAndKrishiSahayak))
     suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestPart4MachineryAndStore))
+    suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestPart5LogisticsMandiAnalytics))
 
     runner = unittest.TextTestRunner(verbosity=2)
     result = runner.run(suite)

@@ -158,6 +158,39 @@
     "title": "Certified Seeds & Fertilizer Store",
     "certified_badge": "100% Certified Authentic",
     "buy_now": "Buy Now"
+  },
+  "logistics": {
+    "title": "Live Delivery Tracking",
+    "subtitle": "Real-time delivery location on OpenStreetMap (OSM)",
+    "driver_name": "Delivery Partner",
+    "driver_phone": "Driver Phone",
+    "eta": "Estimated Arrival",
+    "distance": "Distance",
+    "vehicle_number": "Vehicle Number",
+    "call_driver": "Call Driver"
+  },
+  "mandi": {
+    "title": "Mandi Rates & Price Advisor",
+    "subtitle": "Agmarknet APMC daily benchmark rates and 7-day historical trend",
+    "modal_price": "Modal Price",
+    "min_price": "Minimum",
+    "max_price": "Maximum",
+    "price_per_quintal": "₹ per Quintal",
+    "price_per_kg": "₹ per Kg",
+    "price_suggestion": "Upajo Direct Fair Price",
+    "price_alert": "Set Price Alert",
+    "history_7d": "Last 7 Days Trend Graph"
+  },
+  "analytics": {
+    "title": "Farmer Sales & Revenue Analytics",
+    "subtitle": "Transparent digital ledger & GST-exempt invoicing",
+    "total_revenue": "Total Net Revenue (₹)",
+    "completed_orders": "Completed Orders",
+    "total_volume": "Total Volume Sold (Kg)",
+    "top_crops": "Top Selling Crops",
+    "top_buyers": "Top Regular Buyers",
+    "download_invoice": "Download GST-Exempt PDF Invoice",
+    "gst_exempt_declaration": "Agricultural produce is 100% GST-exempt under Section 23 of the CGST Act"
   }
 }
 

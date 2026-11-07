@@ -336,3 +336,4 @@ class _StoreCatalogScreenState extends ConsumerState<StoreCatalogScreen> {
     );
   }
 }
+

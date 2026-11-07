@@ -387,6 +387,92 @@ class _FarmerDashboardScreenState extends ConsumerState<FarmerDashboardScreen> {
                 ],
               ),
 
+              const SizedBox(height: 14.0),
+
+              // Market Intelligence & Farmer Analytics Grid (Part 5)
+              Row(
+                children: [
+                  // Mandi Rates
+                  Expanded(
+                    child: AppCard(
+                      padding: const EdgeInsets.all(14.0),
+                      backgroundColor: AppColors.wheat50,
+                      borderColor: AppColors.wheat400,
+                      onTap: () => context.push(RouteNames.mandiPrices),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8.0),
+                                decoration: BoxDecoration(
+                                  color: AppColors.wheat600,
+                                  borderRadius: BorderRadius.circular(8.0),
+                                ),
+                                child: const Icon(Icons.trending_up_rounded, size: 20.0, color: Colors.white),
+                              ),
+                              const Icon(Icons.arrow_forward_rounded, size: 16.0, color: AppColors.wheat700),
+                            ],
+                          ),
+                          const SizedBox(height: 10.0),
+                          const Text(
+                            'मंडी भाव (Agmarknet)',
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: AppColors.soil900),
+                          ),
+                          const SizedBox(height: 2.0),
+                          const Text(
+                            'लाइव दरें व 7-दिन ट्रेंड ग्राफ',
+                            style: TextStyle(fontSize: 11.0, color: AppColors.soil600),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10.0),
+
+                  // Analytics & Invoicing
+                  Expanded(
+                    child: AppCard(
+                      padding: const EdgeInsets.all(14.0),
+                      backgroundColor: Colors.white,
+                      borderColor: AppColors.soil300,
+                      onTap: () => context.push(RouteNames.farmerAnalytics),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8.0),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary700,
+                                  borderRadius: BorderRadius.circular(8.0),
+                                ),
+                                child: const Icon(Icons.bar_chart_rounded, size: 20.0, color: Colors.white),
+                              ),
+                              const Icon(Icons.arrow_forward_rounded, size: 16.0, color: AppColors.soil600),
+                            ],
+                          ),
+                          const SizedBox(height: 10.0),
+                          const Text(
+                            'बिक्री रिपोर्ट व बिल',
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: AppColors.soil900),
+                          ),
+                          const SizedBox(height: 2.0),
+                          const Text(
+                            'कमाई ग्राफ व GST इनवॉइस',
+                            style: TextStyle(fontSize: 11.0, color: AppColors.soil600),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
               const SizedBox(height: 20.0),
 
               // Bento Stats Grid

@@ -177,6 +177,21 @@ class _FarmerOrdersScreenState extends ConsumerState<FarmerOrdersScreen> {
                               ],
                             ],
                           ),
+                          if (!isPickup) ...[
+                            const SizedBox(height: 10.0),
+                            SizedBox(
+                              width: double.infinity,
+                              child: OutlinedButton.icon(
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: AppColors.primary700,
+                                  side: const BorderSide(color: AppColors.primary300),
+                                ),
+                                onPressed: () => context.push(RouteNames.liveTracking, extra: order.id),
+                                icon: const Icon(Icons.navigation_rounded, size: 18.0),
+                                label: const Text('लाइव लोकेशन मैप (OSM ट्रैकिंग)', style: TextStyle(fontWeight: FontWeight.bold)),
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     );

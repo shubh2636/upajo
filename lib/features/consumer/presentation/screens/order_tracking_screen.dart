@@ -140,6 +140,17 @@ class OrderTrackingScreen extends ConsumerWidget {
 
             const SizedBox(height: 18.0),
 
+            // Live OSM Delivery Tracking (Part 5)
+            if (!isPickup) ...[
+              AppButton(
+                label: 'लाइव डिलीवरी ट्रैक करें (Live OSM Map)',
+                variant: ButtonVariant.primary,
+                onPressed: () => context.push(RouteNames.liveTracking, extra: order.id),
+                icon: const Icon(Icons.navigation_rounded, size: 20.0, color: Colors.white),
+              ),
+              const SizedBox(height: 12.0),
+            ],
+
             // Rating CTA if Delivered
             if (currentStep == 3)
               AppButton(

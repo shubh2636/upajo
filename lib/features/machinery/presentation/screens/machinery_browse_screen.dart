@@ -329,3 +329,4 @@ class _MachineryBrowseScreenState extends ConsumerState<MachineryBrowseScreen> {
     );
   }
 }
+

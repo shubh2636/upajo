@@ -108,3 +108,4 @@ final storeControllerProvider =
   final repo = ref.watch(storeRepositoryProvider);
   return StoreController(repo);
 });
+

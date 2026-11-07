@@ -61,6 +61,11 @@ dependencies:
   cached_network_image: ^3.3.1
   flutter_svg: ^2.0.10+1
 
+  # Analytics Charts & PDF Invoicing (Part 5)
+  fl_chart: ^0.68.0
+  pdf: ^3.11.0
+  printing: ^5.13.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

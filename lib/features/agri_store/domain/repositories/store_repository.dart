@@ -7,3 +7,4 @@ abstract class StoreRepository {
   /// Fetches single store item details
   Future<StoreItemModel?> getStoreItemById(String id);
 }
+

@@ -270,3 +270,4 @@ class _MyRentalsScreenState extends ConsumerState<MyRentalsScreen> with SingleTi
     }
   }
 }
+
