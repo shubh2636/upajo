@@ -47,3 +47,4 @@ Upajo is specifically tuned to run smoothly on low-spec Indian agricultural hand
 2. **Resource Shrinking**: `shrinkResources true` strips unused layouts and drawables.
 3. **ABI Splitting**: Per-architecture APK generation (`armeabi-v7a`, `arm64-v8a`, `x86_64`) reduces user download payload by 65%.
 4. **Font Tree-Shaking**: Custom icon fonts subsetted automatically during `flutter build appbundle`.
+

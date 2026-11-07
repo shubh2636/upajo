@@ -1,0 +1,20 @@
+services:
+  # Upajo FastAPI ML & AI Microservice on Render
+  - type: web
+    name: upajo-ml-service
+    env: python
+    region: singapore # Closest low-latency region to India
+    plan: free # Can be upgraded to starter/standard in production
+    buildCommand: "pip install -r ml_service/requirements.txt"
+    startCommand: "cd ml_service && uvicorn main:app --host 0.0.0.0 --port $PORT"
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: ENVIRONMENT
+        value: production
+      - key: ML_SERVICE_API_KEY
+        generateValue: true
+      - key: CLAUDE_API_KEY
+        sync: false # Set in Render Dashboard secrets

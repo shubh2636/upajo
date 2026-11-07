@@ -737,6 +737,90 @@ class TestPart6QualitySecurityPerformance(unittest.TestCase):
         self.assertIn("Devanagari", acc_content)
 
 
+class TestPart7DeploymentEndToEnd(unittest.TestCase):
+    """PART 7: Deployment Automation, CI/CD, Releases, and Disaster Recovery"""
+
+    def setUp(self):
+        self.root_dir = os.path.abspath(os.path.dirname(__file__))
+
+    def test_01_ci_cd_workflow_validity_and_jobs(self):
+        """Verify GitHub Actions CI/CD pipeline contains all required jobs"""
+        ci_path = os.path.join(self.root_dir, ".github/workflows/ci_cd.yml")
+        self.assertTrue(os.path.exists(ci_path), "Missing .github/workflows/ci_cd.yml")
+
+        with open(ci_path, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        self.assertIn("lint_and_security:", content)
+        self.assertIn("test_suite:", content)
+        self.assertIn("build_release:", content)
+        self.assertIn("deploy_backend:", content)
+        self.assertIn("flutter build appbundle --release --flavor prod", content)
+        self.assertIn("supabase functions deploy", content)
+
+    def test_02_production_deployment_scripts_and_blueprints(self):
+        """Verify Supabase and cloud PaaS deployment scripts exist"""
+        sh_path = os.path.join(self.root_dir, "supabase/deploy_production.sh")
+        ps_path = os.path.join(self.root_dir, "supabase/deploy_production.ps1")
+        render_path = os.path.join(self.root_dir, "render.yaml")
+        railway_path = os.path.join(self.root_dir, "railway.json")
+
+        self.assertTrue(os.path.exists(sh_path))
+        self.assertTrue(os.path.exists(ps_path))
+        self.assertTrue(os.path.exists(render_path))
+        self.assertTrue(os.path.exists(railway_path))
+
+    def test_03_release_keystore_and_flavor_configuration(self):
+        """Verify Android signing configuration and product flavors"""
+        key_example = os.path.join(self.root_dir, "android/key.properties.example")
+        gradle_path = os.path.join(self.root_dir, "android/app/build.gradle")
+
+        self.assertTrue(os.path.exists(key_example))
+
+        with open(gradle_path, "r", encoding="utf-8") as f:
+            gradle_content = f.read()
+
+        self.assertIn("productFlavors", gradle_content)
+        self.assertIn("dev {", gradle_content)
+        self.assertIn("prod {", gradle_content)
+        self.assertIn("signingConfigs", gradle_content)
+
+    def test_04_play_store_deployment_guide_and_privacy_policy(self):
+        """Verify Play Store listing metadata and official Privacy Policy"""
+        guide_path = os.path.join(self.root_dir, "docs/PLAY_STORE_DEPLOYMENT_GUIDE.md")
+        privacy_path = os.path.join(self.root_dir, "docs/PRIVACY_POLICY.md")
+
+        self.assertTrue(os.path.exists(guide_path))
+        self.assertTrue(os.path.exists(privacy_path))
+
+        with open(guide_path, "r", encoding="utf-8") as f:
+            guide = f.read()
+
+        self.assertIn("उपजो", guide)
+        self.assertIn("0% कमीशन", guide)
+        self.assertIn("1800-180-1551", guide)
+        self.assertIn("Staged Rollout", guide)
+
+        with open(privacy_path, "r", encoding="utf-8") as f:
+            privacy = f.read()
+
+        self.assertIn("DPDP Act", privacy)
+        self.assertIn("delete-account", privacy)
+
+    def test_05_post_launch_ops_and_ml_upgrade_architecture(self):
+        """Verify disaster recovery, PITR backups, and OTA ML model upgrades"""
+        ops_path = os.path.join(self.root_dir, "docs/POST_LAUNCH_OPS_AND_ROLLBACK.md")
+        self.assertTrue(os.path.exists(ops_path))
+
+        with open(ops_path, "r", encoding="utf-8") as f:
+            ops = f.read()
+
+        self.assertIn("Point-in-Time Recovery", ops)
+        self.assertIn("Emergency Rollback", ops)
+        self.assertIn("Remote Model Over-The-Air", ops)
+        self.assertIn("SHA-256", ops)
+
+
 if __name__ == "__main__":
     suite = unittest.TestSuite()
     suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestPart0Foundation))
@@ -746,6 +830,7 @@ if __name__ == "__main__":
     suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestPart4MachineryAndStore))
     suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestPart5LogisticsMandiAnalytics))
     suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestPart6QualitySecurityPerformance))
+    suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestPart7DeploymentEndToEnd))
 
     runner = unittest.TextTestRunner(verbosity=2)
     result = runner.run(suite)

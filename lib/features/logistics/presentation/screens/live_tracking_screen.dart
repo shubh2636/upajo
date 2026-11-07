@@ -5,7 +5,6 @@ import 'package:latlong2/latlong.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_card.dart';
 import '../controllers/logistics_controller.dart';
 import '../../domain/models/delivery_tracking_model.dart';

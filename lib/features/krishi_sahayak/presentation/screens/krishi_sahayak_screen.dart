@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
-import '../../../../core/widgets/app_card.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../../crop_advisor/presentation/controllers/crop_advisor_controller.dart';
 import '../controllers/krishi_sahayak_controller.dart';

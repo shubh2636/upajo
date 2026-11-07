@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/models/product_model.dart';
-import '../../domain/models/order_model.dart';
 import '../../domain/repositories/marketplace_repository.dart';
 import '../../data/repositories/marketplace_repository_impl.dart';
 

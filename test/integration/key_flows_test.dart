@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:upajo/core/theme/app_theme.dart';
 import 'package:upajo/core/widgets/app_button.dart';
 import 'package:upajo/core/widgets/app_card.dart';
 import 'package:upajo/core/widgets/app_text_field.dart';
-import 'package:upajo/features/auth/presentation/language_select_screen.dart';
 import 'package:upajo/features/crop_advisor/domain/models/crop_input_params.dart';
-import 'package:upajo/features/crop_advisor/domain/models/crop_recommendation.dart';
 import 'package:upajo/features/crop_advisor/data/services/rule_based_crop_engine.dart';
 
 void main() {

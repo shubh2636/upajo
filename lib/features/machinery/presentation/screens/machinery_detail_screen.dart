@@ -121,8 +121,9 @@ class _MachineryDetailScreenState extends ConsumerState<MachineryDetailScreen> {
                       securityDeposit: widget.machine.securityDeposit,
                     );
 
-                    if (mounted && success) {
-                      showDialog(
+                    if (!mounted) return;
+                    if (success) {
+                      showDialog<void>(
                         context: context,
                         builder: (_) => AlertDialog(
                           title: const Row(

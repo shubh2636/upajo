@@ -105,7 +105,7 @@ class UpajoCrashReporting implements CrashReportingService {
     };
 
     if (kDebugMode) {
-      debugPrint('🚨 [CrashReport] [${severity.name.toUpperCase()}] $sanitizedError ($sanitizedReason)');
+      debugPrint('🚨 [CrashReport] [${severity.name.toUpperCase()}] $sanitizedError ($sanitizedReason) | payloadKeys: ${errorPayload.keys.join(',')}');
     }
 
     // In Production: Deliver to Sentry / Firebase Crashlytics SDK
@@ -128,3 +128,4 @@ class UpajoCrashReporting implements CrashReportingService {
 
   List<Map<String, dynamic>> get capturedBreadcrumbs => List.unmodifiable(_breadcrumbs);
 }
+

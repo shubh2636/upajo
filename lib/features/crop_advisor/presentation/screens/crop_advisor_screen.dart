@@ -9,7 +9,6 @@ import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_card.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../controllers/crop_advisor_controller.dart';
-import '../../domain/models/weather_data.dart';
 
 class CropAdvisorScreen extends ConsumerStatefulWidget {
   const CropAdvisorScreen({super.key});

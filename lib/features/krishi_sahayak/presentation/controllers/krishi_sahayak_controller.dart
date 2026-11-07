@@ -93,7 +93,7 @@ class KrishiSahayakController extends StateNotifier<KrishiSahayakState> {
     }
   }
 
-  Future<void> toggleListening({Function(String text)? onTextCaptured}) async {
+  Future<void> toggleListening({void Function(String text)? onTextCaptured}) async {
     if (state.isListening) {
       await stopListening();
     } else {
@@ -101,7 +101,7 @@ class KrishiSahayakController extends StateNotifier<KrishiSahayakState> {
     }
   }
 
-  Future<void> startListening({Function(String text)? onTextCaptured}) async {
+  Future<void> startListening({void Function(String text)? onTextCaptured}) async {
     try {
       final available = await _speechToText.initialize(
         onError: (err) {

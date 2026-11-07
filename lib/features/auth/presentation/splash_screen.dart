@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
-import '../../../core/constants/app_constants.dart';
 import '../../../core/network/supabase_client.dart';
 import '../../../core/router/route_names.dart';
 import '../../../core/theme/app_colors.dart';
@@ -40,7 +39,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   }
 
   Future<void> _navigateNext() async {
-    await Future.delayed(const Duration(milliseconds: 2000));
+    await Future<void>.delayed(const Duration(milliseconds: 2000));
     if (!mounted) return;
 
     if (SupabaseService.isAuthenticated) {

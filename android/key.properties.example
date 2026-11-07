@@ -1,0 +1,11 @@
+# Upajo (उपजो) - Android Release Signing Keystore Configuration
+# Copy this file to android/key.properties and replace with your actual keystore credentials.
+# NEVER commit android/key.properties or your *.jks file to public version control!
+#
+# To generate a new production release keystore:
+# keytool -genkey -v -keystore android/app/upload-keystore.jks -keyalg RSA -keysize 2048 -validity 10000 -alias upajo-key
+#
+storePassword=your_keystore_password_here
+keyPassword=your_key_password_here
+keyAlias=upajo-key
+storeFile=upload-keystore.jks

@@ -32,7 +32,7 @@ class _MandiPricesScreenState extends ConsumerState<MandiPricesScreen> {
     final targetController = TextEditingController(text: '${(item.modalPrice + 100).toInt()}');
     String condition = 'above';
 
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.white,

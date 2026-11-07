@@ -22,6 +22,12 @@ if (flutterVersionName == null) {
     flutterVersionName = "1.0.0"
 }
 
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file("key.properties")
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
 android {
     namespace "com.upajo.app"
     compileSdk 34
@@ -53,12 +59,42 @@ android {
         }
     }
 
+    signingConfigs {
+        release {
+            if (keystorePropertiesFile.exists()) {
+                keyAlias = keystoreProperties['keyAlias']
+                keyPassword = keystoreProperties['keyPassword']
+                storeFile = keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null
+                storePassword = keystoreProperties['storePassword']
+            } else {
+                signingConfig signingConfigs.debug
+            }
+        }
+    }
+
+    flavorDimensions "default"
+
+    productFlavors {
+        dev {
+            dimension "default"
+            applicationIdSuffix ".dev"
+            resValue "string", "app_name", "Upajo Dev"
+        }
+        prod {
+            dimension "default"
+            resValue "string", "app_name", "उपजो (Upajo)"
+        }
+    }
+
     buildTypes {
         release {
-            signingConfig signingConfigs.debug
+            signingConfig (keystorePropertiesFile.exists() ? signingConfigs.release : signingConfigs.debug)
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+        }
+        debug {
+            signingConfig signingConfigs.debug
         }
     }
 }
@@ -70,4 +106,3 @@ flutter {
 dependencies {
     implementation "androidx.multidex:multidex:2.0.1"
 }
-

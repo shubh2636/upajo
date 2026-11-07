@@ -1,11 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:upajo/features/marketplace/domain/models/product_model.dart';
-import 'package:upajo/features/marketplace/domain/models/order_model.dart';
 import 'package:upajo/features/machinery/domain/models/machinery_model.dart';
-import 'package:upajo/features/machinery/domain/models/rental_booking_model.dart';
 import 'package:upajo/features/mandi/domain/models/mandi_price_model.dart';
-import 'package:upajo/features/crop_advisor/domain/models/crop_input_params.dart';
-import 'package:upajo/features/crop_advisor/domain/models/crop_recommendation.dart';
 
 void main() {
   group('Part 6: Core Business & Domain Invariants', () {
@@ -45,15 +41,14 @@ void main() {
       const double subtotal = 1750.0;
       const double deliveryCharge = 150.0;
 
+      // Calculate total helper
+      double computeTotal(bool isPickup) => subtotal + (isPickup ? 0.0 : deliveryCharge);
+
       // Farm Pickup
-      const bool isPickup = true;
-      final double totalPickup = subtotal + (isPickup ? 0.0 : deliveryCharge);
-      expect(totalPickup, 1750.0);
+      expect(computeTotal(true), 1750.0);
 
       // Doorstep Delivery
-      const bool isDelivery = false;
-      final double totalDelivery = subtotal + (isDelivery ? 0.0 : deliveryCharge);
-      expect(totalDelivery, 1900.0);
+      expect(computeTotal(false), 1900.0);
     });
 
     test('3. Machinery Rental Days & Deposit Security Computation', () {

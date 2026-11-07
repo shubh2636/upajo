@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
@@ -33,6 +32,9 @@ class ThirdPartyLogisticsAdapter implements DeliveryPartnerAdapter {
 
   @override
   String get partnerName => _partner;
+
+  http.Client get httpClient => _client;
+  String get apiKey => _apiKey;
 
   @override
   Future<DeliveryTrackingModel> createShipment({

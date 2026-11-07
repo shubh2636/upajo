@@ -55,3 +55,4 @@
    - In-app: `Profile -> Delete Account & All Data`.
    - Web deletion request URL: `https://upajo.in/delete-account`
    - Policy: Deletes all personal records, active listings, and un-archived chat logs within 30 days in compliance with the Digital Personal Data Protection (DPDP) Act.
+

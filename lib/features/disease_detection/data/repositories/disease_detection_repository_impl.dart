@@ -74,7 +74,7 @@ class DiseaseDetectionRepositoryImpl implements DiseaseDetectionRepository {
         await http.MultipartFile.fromPath('file', compressed.path),
       );
 
-      final streamedResponse = await request.send().timeout(const Duration(seconds: 6));
+      final streamedResponse = await _httpClient.send(request).timeout(const Duration(seconds: 6));
       final response = await http.Response.fromStream(streamedResponse);
 
       if (response.statusCode == 200) {
