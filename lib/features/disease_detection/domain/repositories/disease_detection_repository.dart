@@ -11,3 +11,4 @@ abstract class DiseaseDetectionRepository {
   /// Fetches historical scans performed by the farmer
   Future<List<DiseaseScanResult>> getFarmerScanHistory(String farmerId);
 }
+

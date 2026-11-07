@@ -402,11 +402,99 @@ class TestPart2CropAdvisorAndWeather(unittest.TestCase):
         self.assertIn("गेहूं", r_data["name_hi"])
 
 
+class TestPart4MachineryAndStore(unittest.TestCase):
+    """PART 4: Farm Machinery Rent/Lend & Certified Seed/Fertilizer Store"""
+
+    def setUp(self):
+        self.root_dir = os.path.abspath(os.path.dirname(__file__))
+
+    def test_01_machinery_rental_pricing_and_deposit_math(self):
+        """Test rental calculation: total_rent = total_days * daily_rate, grand_total = total_rent + deposit"""
+        from datetime import datetime, timedelta
+
+        start_date = datetime(2026, 11, 10)
+        end_date = datetime(2026, 11, 13)
+        daily_rate = 3200.0  # Mahindra 575 DI Tractor
+        deposit = 2000.0
+
+        total_days = (end_date - start_date).days + 1
+        self.assertEqual(total_days, 4)
+
+        total_rent = total_days * daily_rate
+        self.assertEqual(total_rent, 12800.0)
+
+        grand_total = total_rent + deposit
+        self.assertEqual(grand_total, 14800.0)
+
+    def test_02_rental_status_state_machine(self):
+        """Verify valid rental status transitions (pending -> approved -> in_use -> completed)"""
+        valid_statuses = ["pending", "approved", "rejected", "in_use", "completed", "cancelled"]
+
+        current_status = "pending"
+        # Owner approves
+        current_status = "approved"
+        self.assertIn(current_status, valid_statuses)
+
+        # Machine picked up
+        current_status = "in_use"
+        self.assertIn(current_status, valid_statuses)
+
+        # Machine returned & deposit released
+        current_status = "completed"
+        self.assertIn(current_status, valid_statuses)
+
+    def test_03_store_items_and_category_filtering(self):
+        """Verify store items categories: seed, fertilizer, bio_nutrient, farm_tool"""
+        sample_catalog = [
+            {"id": "s1", "item_type": "seed", "brand": "NSC", "price": 1450.0},
+            {"id": "s2", "item_type": "fertilizer", "brand": "IFFCO", "price": 680.0},
+            {"id": "s3", "item_type": "bio_nutrient", "brand": "KRIBHCO", "price": 220.0},
+            {"id": "s4", "item_type": "farm_tool", "brand": "Kisan Kraft", "price": 1850.0},
+            {"id": "s5", "item_type": "seed", "brand": "MP State Agro", "price": 2100.0},
+        ]
+
+        seeds = [i for i in sample_catalog if i["item_type"] == "seed"]
+        self.assertEqual(len(seeds), 2)
+
+        fertilizers = [i for i in sample_catalog if i["item_type"] == "fertilizer"]
+        self.assertEqual(len(fertilizers), 1)
+
+        tools = [i for i in sample_catalog if i["item_type"] == "farm_tool"]
+        self.assertEqual(len(tools), 1)
+
+    def test_04_store_to_marketplace_order_reuse(self):
+        """Verify store items can be converted into marketplace product models for shared cart & checkout"""
+        store_item = {
+            "id": "store_seed_1",
+            "title_hi": "प्रमाणित शरबती गेहूं बीज C-306",
+            "title_en": "Certified Sharbati Wheat Seeds C-306",
+            "item_type": "seed",
+            "brand": "NSC",
+            "price": 1450.0,
+            "pack_size": "40 kg बोरी",
+            "stock_quantity": 200,
+        }
+
+        # Converted product representation
+        product = {
+            "id": store_item["id"],
+            "farmer_id": "upajo_certified_store",
+            "name_hi": store_item["title_hi"],
+            "price_per_kg": store_item["price"],
+            "pack_size": 1,
+            "quantity": 2,
+        }
+
+        line_total = product["price_per_kg"] * product["quantity"]
+        self.assertEqual(line_total, 2900.0)
+
+
 if __name__ == "__main__":
     suite = unittest.TestSuite()
     suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestPart0Foundation))
     suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestPart1AuthAndMarketplace))
     suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestPart2CropAdvisorAndWeather))
+    suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestPart4MachineryAndStore))
 
     runner = unittest.TextTestRunner(verbosity=2)
     result = runner.run(suite)

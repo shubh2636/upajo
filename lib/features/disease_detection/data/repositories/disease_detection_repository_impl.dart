@@ -167,3 +167,4 @@ class DiseaseDetectionRepositoryImpl implements DiseaseDetectionRepository {
     }
   }
 }
+

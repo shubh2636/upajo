@@ -8,3 +8,4 @@ Tomato___healthy
 Wheat___Brown_rust
 Wheat___Yellow_rust
 Rice___Blast
+

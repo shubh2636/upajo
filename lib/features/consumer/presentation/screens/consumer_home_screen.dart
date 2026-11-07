@@ -159,7 +159,60 @@ class _ConsumerHomeScreenState extends ConsumerState<ConsumerHomeScreen> {
                 ),
               ),
 
-              const SizedBox(height: 20.0),
+              const SizedBox(height: 14.0),
+
+              // Farm Direct Store & Machinery Shortcut Pills
+              Row(
+                children: [
+                  Expanded(
+                    child: InkWell(
+                      onTap: () => context.push(RouteNames.store),
+                      borderRadius: BorderRadius.circular(10.0),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary50,
+                          borderRadius: BorderRadius.circular(10.0),
+                          border: Border.all(color: AppColors.primary200),
+                        ),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.spa_rounded, size: 16.0, color: AppColors.primary600),
+                            SizedBox(width: 6.0),
+                            Text('बीज व खाद भंडार', style: TextStyle(fontSize: 12.0, fontWeight: FontWeight.bold, color: AppColors.primary800)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10.0),
+                  Expanded(
+                    child: InkWell(
+                      onTap: () => context.push(RouteNames.machinery),
+                      borderRadius: BorderRadius.circular(10.0),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                        decoration: BoxDecoration(
+                          color: AppColors.wheat50,
+                          borderRadius: BorderRadius.circular(10.0),
+                          border: Border.all(color: AppColors.wheat300),
+                        ),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.agriculture_rounded, size: 16.0, color: AppColors.wheat800),
+                            SizedBox(width: 6.0),
+                            Text('यंत्र किराया शेयरिंग', style: TextStyle(fontSize: 12.0, fontWeight: FontWeight.bold, color: AppColors.wheat900)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 18.0),
 
               // Section Heading
               Row(

@@ -31,6 +31,9 @@ class RouteNames {
 
   // Machinery & Store
   static const String machinery = '/machinery';
+  static const String machineryDetail = '/machinery/detail';
+  static const String listMachinery = '/machinery/list';
+  static const String myRentals = '/machinery/my-rentals';
   static const String store = '/store';
 
   // Admin

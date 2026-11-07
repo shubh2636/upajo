@@ -67,3 +67,4 @@
 * **No Hazardous Pesticides**: Output remedies strictly exclude all banned WHO Class Ia/Ib and CIB&RC prohibited molecules (e.g., Endosulfan, Monocrotophos, Paraquat).
 * **Standard Pump Dosages**: All chemical formulations are converted into standard 15-litre knapsack pump dilution ratios (e.g., 30g Mancozeb / 15L water).
 * **Escalation**: Any scan marked as `severe` features a one-click direct dial to the **Government Kisan Call Center toll-free helpline: `1800-180-1551`**.
+

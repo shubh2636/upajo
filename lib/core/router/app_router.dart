@@ -23,6 +23,12 @@ import '../../features/crop_advisor/presentation/screens/crop_advisor_screen.dar
 import '../../features/crop_advisor/presentation/screens/crop_calendar_screen.dart';
 import '../../features/disease_detection/presentation/screens/disease_detection_screen.dart';
 import '../../features/krishi_sahayak/presentation/screens/krishi_sahayak_screen.dart';
+import '../../features/machinery/presentation/screens/machinery_browse_screen.dart';
+import '../../features/machinery/presentation/screens/machinery_detail_screen.dart';
+import '../../features/machinery/presentation/screens/list_machinery_screen.dart';
+import '../../features/machinery/presentation/screens/my_rentals_screen.dart';
+import '../../features/machinery/domain/models/machinery_model.dart';
+import '../../features/agri_store/presentation/screens/store_catalog_screen.dart';
 import '../../features/marketplace/domain/models/product_model.dart';
 import '../../features/marketplace/domain/models/order_model.dart';
 
@@ -134,13 +140,31 @@ final GoRouter appRouter = GoRouter(
       path: RouteNames.krishiSahayak,
       builder: (context, state) => const KrishiSahayakScreen(),
     ),
+    // Machinery Routes
     GoRoute(
       path: RouteNames.machinery,
-      builder: (context, state) => _placeholderScaffold('Machinery Rentals (Part 4)'),
+      builder: (context, state) => const MachineryBrowseScreen(),
     ),
     GoRoute(
+      path: RouteNames.machineryDetail,
+      builder: (context, state) {
+        final machine = state.extra as MachineryModel;
+        return MachineryDetailScreen(machine: machine);
+      },
+    ),
+    GoRoute(
+      path: RouteNames.listMachinery,
+      builder: (context, state) => const ListMachineryScreen(),
+    ),
+    GoRoute(
+      path: RouteNames.myRentals,
+      builder: (context, state) => const MyRentalsScreen(),
+    ),
+
+    // Certified Store Route
+    GoRoute(
       path: RouteNames.store,
-      builder: (context, state) => _placeholderScaffold('Agri Store (Part 4)'),
+      builder: (context, state) => const StoreCatalogScreen(),
     ),
   ],
 );

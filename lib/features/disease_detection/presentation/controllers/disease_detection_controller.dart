@@ -109,3 +109,4 @@ final diseaseDetectionControllerProvider =
   final repo = ref.watch(diseaseDetectionRepositoryProvider);
   return DiseaseDetectionController(repo);
 });
+

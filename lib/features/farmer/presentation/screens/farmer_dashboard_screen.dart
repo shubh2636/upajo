@@ -301,6 +301,92 @@ class _FarmerDashboardScreenState extends ConsumerState<FarmerDashboardScreen> {
                 ],
               ),
 
+              const SizedBox(height: 14.0),
+
+              // Farm Services Bento Grid (Part 4)
+              Row(
+                children: [
+                  // Machinery Rentals
+                  Expanded(
+                    child: AppCard(
+                      padding: const EdgeInsets.all(14.0),
+                      backgroundColor: Colors.white,
+                      borderColor: AppColors.soil300,
+                      onTap: () => context.push(RouteNames.machinery),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8.0),
+                                decoration: BoxDecoration(
+                                  color: AppColors.soil800,
+                                  borderRadius: BorderRadius.circular(8.0),
+                                ),
+                                child: const Icon(Icons.agriculture_rounded, size: 20.0, color: Colors.white),
+                              ),
+                              const Icon(Icons.arrow_forward_rounded, size: 16.0, color: AppColors.soil600),
+                            ],
+                          ),
+                          const SizedBox(height: 10.0),
+                          const Text(
+                            'यंत्र किराया',
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.0, color: AppColors.soil900),
+                          ),
+                          const SizedBox(height: 2.0),
+                          const Text(
+                            'ट्रैक्टर, रोटावेटर व कंबाइन',
+                            style: TextStyle(fontSize: 11.0, color: AppColors.soil600),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10.0),
+
+                  // Certified Store
+                  Expanded(
+                    child: AppCard(
+                      padding: const EdgeInsets.all(14.0),
+                      backgroundColor: AppColors.primary50,
+                      borderColor: AppColors.primary300,
+                      onTap: () => context.push(RouteNames.store),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8.0),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary600,
+                                  borderRadius: BorderRadius.circular(8.0),
+                                ),
+                                child: const Icon(Icons.spa_rounded, size: 20.0, color: Colors.white),
+                              ),
+                              const Icon(Icons.arrow_forward_rounded, size: 16.0, color: AppColors.primary600),
+                            ],
+                          ),
+                          const SizedBox(height: 10.0),
+                          const Text(
+                            'बीज व खाद',
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.0, color: AppColors.soil900),
+                          ),
+                          const SizedBox(height: 2.0),
+                          const Text(
+                            '100% सरकारी प्रमाणित',
+                            style: TextStyle(fontSize: 11.0, color: AppColors.primary700, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
               const SizedBox(height: 20.0),
 
               // Bento Stats Grid

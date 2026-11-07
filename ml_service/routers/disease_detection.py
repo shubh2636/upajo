@@ -92,3 +92,4 @@ async def predict_crop_disease(file: UploadFile = File(...)):
         image_url=None,
         is_offline_inference=False,
     )
+

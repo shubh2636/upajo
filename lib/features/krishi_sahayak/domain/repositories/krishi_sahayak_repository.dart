@@ -20,3 +20,4 @@ abstract class KrishiSahayakRepository {
   /// Clears current session history
   Future<void> clearHistory(String farmerId);
 }
+
