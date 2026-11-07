@@ -176,3 +176,4 @@ jobs:
           supabase functions deploy create-razorpay-order --project-ref $PROJECT_ID
           supabase functions deploy verify-razorpay-payment --project-ref $PROJECT_ID
           supabase functions deploy send-push-notification --project-ref $PROJECT_ID
+

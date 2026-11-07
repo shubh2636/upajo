@@ -66,3 +66,4 @@ For any privacy grievances or questions:
 - **Grievance Officer**: Privacy & Compliance Officer, Upajo India
 - **Email**: `support@upajo.in` / `grievance@upajo.in`
 - **Address**: Upajo AgriTech Pvt. Ltd., Krishi Innovation Hub, Sehore, Madhya Pradesh - 466001, India.
+

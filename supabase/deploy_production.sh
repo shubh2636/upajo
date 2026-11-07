@@ -40,3 +40,4 @@ supabase functions deploy verify-razorpay-payment --no-verify-jwt
 supabase functions deploy send-push-notification
 
 echo "✅ [Upajo Deployment] Supabase Production Deployment Complete!"
+

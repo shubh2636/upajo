@@ -90,3 +90,4 @@ Upajo uses a hybrid **edge-first + cloud fallback** model lifecycle:
    - Compares SHA-256 checksum to prevent corrupted or tampered models.
    - Atomically renames the file to `disease_model_active.tflite`.
    - The next leaf scan automatically uses the upgraded model without requiring a Play Store APK update!
+

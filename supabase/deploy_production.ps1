@@ -1,4 +1,4 @@
-﻿# ==============================================================================
+# ==============================================================================
 # Upajo (उपजो) - Supabase Production Deployment Script (PowerShell)
 # ==============================================================================
 param (
@@ -35,3 +35,4 @@ supabase functions deploy verify-razorpay-payment --no-verify-jwt
 supabase functions deploy send-push-notification
 
 Write-Host "✅ Supabase Production Deployment Complete!" -ForegroundColor Green
+

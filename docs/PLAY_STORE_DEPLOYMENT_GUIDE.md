@@ -102,3 +102,4 @@ Under **App Access -> Restricted Access**, provide:
    - Day 2: **25%** (Validate Crashlytics Crash-Free Rate $\ge 99.5\%$).
    - Day 3: **50%**.
    - Day 4: **100% Full Rollout**.
+
