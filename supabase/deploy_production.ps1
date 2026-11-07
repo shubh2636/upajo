@@ -19,14 +19,18 @@ Write-Host "🔐 Configuring secrets for Edge Functions..." -ForegroundColor Gre
 if (Test-Path "supabase/.env.production") {
     supabase secrets set --env-file "supabase/.env.production"
 } else {
-    Write-Host "⚠️ Setting fallback environment variables..." -ForegroundColor Yellow
+    # Fail loudly if required production secrets are absent
+    if (-not $env:RAZORPAY_KEY_SECRET -or -not $env:ML_SERVICE_API_KEY) {
+        Write-Error "❌ FATAL: Production secrets missing! Set RAZORPAY_KEY_SECRET and ML_SERVICE_API_KEY in your environment or provide supabase/.env.production"
+        exit 1
+    }
     supabase secrets set `
         RAZORPAY_KEY_ID="$($env:RAZORPAY_KEY_ID)" `
         RAZORPAY_KEY_SECRET="$($env:RAZORPAY_KEY_SECRET)" `
         FCM_SERVER_KEY="$($env:FCM_SERVER_KEY)" `
         CLAUDE_API_KEY="$($env:CLAUDE_API_KEY)" `
-        ML_SERVICE_URL="https://upajo-ml-service.onrender.com" `
-        ML_SERVICE_API_KEY="upajo_internal_ml_secret_key"
+        ML_SERVICE_URL="$($env:ML_SERVICE_URL)" `
+        ML_SERVICE_API_KEY="$($env:ML_SERVICE_API_KEY)"
 }
 
 Write-Host "🚀 Deploying Edge Functions..." -ForegroundColor Green

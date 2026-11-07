@@ -5,9 +5,13 @@ class EnvConfig {
 
   static Future<void> initialize() async {
     try {
-      await dotenv.load(fileName: '.env.example');
+      await dotenv.load(fileName: '.env');
     } catch (_) {
-      // Fallback if file not provided in test harness
+      try {
+        await dotenv.load(fileName: '.env.example');
+      } catch (_) {
+        // Fallback if file not provided in test harness
+      }
     }
   }
 

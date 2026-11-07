@@ -27,7 +27,7 @@ class ThirdPartyLogisticsAdapter implements DeliveryPartnerAdapter {
     String? apiKey,
     String partner = 'porter',
   })  : _client = client ?? http.Client(),
-        _apiKey = apiKey ?? 'test_logistics_api_key',
+        _apiKey = apiKey ?? '',
         _partner = partner;
 
   @override

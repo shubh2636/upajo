@@ -23,12 +23,35 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-API_SECRET = os.getenv("ML_SERVICE_API_KEY", "upajo_internal_ml_secret_key")
+REQUIRED_PRODUCTION_SECRETS = [
+    "ML_SERVICE_API_KEY",
+    "SUPABASE_URL",
+    "SUPABASE_SERVICE_ROLE_KEY",
+    "ANTHROPIC_API_KEY",
+]
+
+@app.on_event("startup")
+def startup_secret_validation():
+    """Fails loudly if required server secrets are missing or set to dummy placeholders in production."""
+    env = os.getenv("ENVIRONMENT", "development").lower()
+    if env == "production":
+        missing_or_placeholder = []
+        for key in REQUIRED_PRODUCTION_SECRETS:
+            val = os.getenv(key, "").strip()
+            if not val or "placeholder" in val.lower() or "your-" in val.lower() or val == "upajo_internal_ml_secret_key":
+                missing_or_placeholder.append(key)
+        if missing_or_placeholder:
+            raise RuntimeError(
+                f"FATAL: Production startup aborted! Missing or placeholder secrets: {', '.join(missing_or_placeholder)}"
+            )
+
+API_SECRET = os.getenv("ML_SERVICE_API_KEY", "")
 
 def verify_api_key(x_api_key: Optional[str] = Header(None)):
-    # Allow open access in local dev, enforce in production
-    if os.getenv("ENVIRONMENT") == "production" and x_api_key != API_SECRET:
-        raise HTTPException(status_code=401, detail="Unauthorized: Invalid internal API key")
+    # In production, require strict API key authentication; reject missing or default keys
+    if os.getenv("ENVIRONMENT") == "production":
+        if not API_SECRET or x_api_key != API_SECRET:
+            raise HTTPException(status_code=401, detail="Unauthorized: Invalid or missing internal API key")
     return True
 
 @app.get("/health")

@@ -44,17 +44,34 @@ undecorated_symbol_map.json
 # Obfuscation related
 app.*.symbols
 
-# Android Studio will create this file, containing all local paths.
+# Android Studio local configuration
 local.properties
+
+# Android Keystores & Signing credentials
+key.properties
 **/android/key.properties
 *.keystore
 *.jks
+*.p12
+*.pem
+*.cer
 
-# Environment variables
-.env
-.env.production
-.env.local
+# Environment variables & secrets (All .env files excluded except template)
+.env*
+!.env.example
+*.env
+supabase/.env*
+!supabase/.env.example
+ml_service/.env*
+!ml_service/.env.example
 
-# ML models large weights (keep tiny demo weights)
+# Google & Firebase service accounts and private configuration
+google-services.json
+**/google-services.json
+*service-account*.json
+*adminsdk*.json
+firebase-adminsdk*.json
+
+# ML models large weights
 ml_service/*.onnx
 ml_service/*.h5
