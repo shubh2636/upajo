@@ -47,7 +47,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     if (success) {
       final profile = ref.read(authControllerProvider).userProfile;
-      if (profile == null || (profile.villageOrCity.isEmpty && profile.district.isEmpty)) {
+      if (profile == null ||
+          ((profile.villageOrCity?.isEmpty ?? true) && (profile.district?.isEmpty ?? true))) {
         context.go(RouteNames.onboarding);
       } else if (profile.isFarmer) {
         context.go(RouteNames.farmerDashboard);

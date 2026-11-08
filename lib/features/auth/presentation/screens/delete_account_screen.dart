@@ -171,7 +171,7 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
               const SizedBox(height: 24),
               AppButton(
                 text: 'मेरा खाता स्थायी रूप से हटाएं',
-                backgroundColor: AppColors.error,
+                variant: ButtonVariant.danger,
                 isLoading: _isDeleting,
                 onPressed: _handleDeleteAccount,
               ),
@@ -188,7 +188,7 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('• ', style: TextStyle(fontSize: 18, color: AppColors.textPrimary)),
+          Text('• ', style: const TextStyle(fontSize: 18, color: AppColors.textPrimary)),
           Expanded(child: Text(text, style: AppTypography.bodyMedium)),
         ],
       ),

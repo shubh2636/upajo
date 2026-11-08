@@ -44,6 +44,10 @@ undecorated_symbol_map.json
 # Obfuscation related
 app.*.symbols
 
+# Built Binaries
+*.apk
+*.aab
+
 # Android Studio local configuration
 local.properties
 

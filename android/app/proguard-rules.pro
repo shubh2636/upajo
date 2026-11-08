@@ -23,3 +23,7 @@
 -keep class org.sqlite.** { *; }
 -keep class com.google.android.gms.** { *; }
 
+# Google Play Core / Deferred Components
+-dontwarn com.google.android.play.core.**
+
+

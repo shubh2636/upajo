@@ -92,14 +92,14 @@ class WelcomeScreen extends StatelessWidget {
                   AppButton(
                     text: 'नया खाता बनाएं (Sign Up)',
                     variant: ButtonVariant.primary,
-                    icon: Icons.person_add_outlined,
+                    icon: const Icon(Icons.person_add_outlined),
                     onPressed: () => context.push(RouteNames.signup),
                   ),
                   const SizedBox(height: 16),
                   AppButton(
                     text: 'लॉग इन करें (Log In)',
                     variant: ButtonVariant.outline,
-                    icon: Icons.login,
+                    icon: const Icon(Icons.login),
                     onPressed: () => context.push(RouteNames.login),
                   ),
                   const SizedBox(height: 12),

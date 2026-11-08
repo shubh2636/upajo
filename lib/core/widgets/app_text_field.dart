@@ -20,6 +20,7 @@ class AppTextField extends StatelessWidget {
   final int maxLines;
   final bool readOnly;
   final bool enabled;
+  final TextCapitalization textCapitalization;
 
   const AppTextField({
     super.key,
@@ -39,6 +40,7 @@ class AppTextField extends StatelessWidget {
     this.maxLines = 1,
     this.readOnly = false,
     this.enabled = true,
+    this.textCapitalization = TextCapitalization.none,
   });
 
   @override
@@ -62,6 +64,7 @@ class AppTextField extends StatelessWidget {
         TextFormField(
           controller: controller,
           keyboardType: keyboardType,
+          textCapitalization: textCapitalization,
           obscureText: obscureText,
           onChanged: onChanged,
           onFieldSubmitted: onSubmitted,

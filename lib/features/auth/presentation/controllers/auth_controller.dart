@@ -156,6 +156,16 @@ class AuthController extends StateNotifier<AuthState> {
     }
   }
 
+  Future<bool> resetPasswordWithOtp({
+    required String phone,
+    required String otpToken,
+    required String newPassword,
+  }) => resetPassword(
+        phone: phone,
+        otpToken: otpToken,
+        newPassword: newPassword,
+      );
+
   Future<bool> completeProfileDetails({
     required String villageOrCity,
     required String district,
@@ -231,6 +241,8 @@ class AuthController extends StateNotifier<AuthState> {
     await _repository.signOut();
     state = const AuthState();
   }
+
+  Future<void> logout() => signOut();
 
   Future<void> signOutAllDevices() async {
     await _repository.signOutAllDevices();

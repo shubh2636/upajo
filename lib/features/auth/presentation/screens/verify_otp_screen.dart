@@ -62,7 +62,8 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
 
     if (result == true) {
       final profile = ref.read(authControllerProvider).userProfile;
-      if (profile == null || (profile.villageOrCity.isEmpty && profile.district.isEmpty)) {
+      if (profile == null ||
+          ((profile.villageOrCity?.isEmpty ?? true) && (profile.district?.isEmpty ?? true))) {
         context.go(RouteNames.onboarding);
       } else if (profile.isFarmer) {
         context.go(RouteNames.farmerDashboard);

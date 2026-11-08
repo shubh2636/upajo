@@ -6,7 +6,8 @@ import '../theme/app_typography.dart';
 enum ButtonVariant { primary, secondary, outline, danger, terracotta }
 
 class AppButton extends StatelessWidget {
-  final String label;
+  final String? label;
+  final String? text;
   final VoidCallback? onPressed;
   final ButtonVariant variant;
   final bool isLoading;
@@ -16,14 +17,15 @@ class AppButton extends StatelessWidget {
 
   const AppButton({
     super.key,
-    required this.label,
+    this.label,
+    this.text,
     required this.onPressed,
     this.variant = ButtonVariant.primary,
     this.isLoading = false,
     this.icon,
     this.width,
     this.height = AppTheme.minTouchTargetLarge,
-  });
+  }) : assert(label != null || text != null, 'Either label or text must be provided');
 
   @override
   Widget build(BuildContext context) {
@@ -90,7 +92,7 @@ class AppButton extends StatelessWidget {
                     const SizedBox(width: 8.0),
                   ],
                   Text(
-                    label,
+                    label ?? text ?? '',
                     style: AppTypography.buttonLarge.copyWith(
                       color: foregroundColor,
                     ),

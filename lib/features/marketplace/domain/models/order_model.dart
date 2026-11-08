@@ -50,6 +50,7 @@ class OrderModel {
   final String status;
   final DateTime createdAt;
   final List<OrderItemModel> items;
+  final String paymentMethod;
 
   // Joined metadata
   final String? consumerName;
@@ -70,6 +71,7 @@ class OrderModel {
     required this.status,
     required this.createdAt,
     this.items = const [],
+    this.paymentMethod = 'cod',
     this.consumerName,
     this.consumerPhone,
     this.farmerName,
@@ -78,6 +80,7 @@ class OrderModel {
 
   bool get isPickup => deliveryMode == 'pickup';
   bool get isDelivered => status == 'delivered';
+  String get paymentMode => paymentMethod;
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
     final rawItems = json['order_items'] ?? json['items'];
@@ -106,6 +109,7 @@ class OrderModel {
           ? DateTime.parse(json['created_at'] as String)
           : DateTime.now(),
       items: itemsList,
+      paymentMethod: json['payment_method'] as String? ?? 'cod',
       consumerName: consumer?['full_name'] as String?,
       consumerPhone: consumer?['phone'] as String?,
       farmerName: farmer?['full_name'] as String?,

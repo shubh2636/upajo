@@ -4,6 +4,7 @@ import '../theme/app_colors.dart';
 class AppCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry? padding;
+  final EdgeInsetsGeometry? margin;
   final Color? backgroundColor;
   final Color? borderColor;
   final double borderWidth;
@@ -15,6 +16,7 @@ class AppCard extends StatelessWidget {
     super.key,
     required this.child,
     this.padding = const EdgeInsets.all(16.0),
+    this.margin,
     this.backgroundColor,
     this.borderColor,
     this.borderWidth = 1.2,
@@ -49,8 +51,9 @@ class AppCard extends StatelessWidget {
       child: child,
     );
 
+    Widget effectiveCard = card;
     if (onTap != null) {
-      return Material(
+      effectiveCard = Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
@@ -60,7 +63,14 @@ class AppCard extends StatelessWidget {
       );
     }
 
-    return card;
+    if (margin != null) {
+      return Padding(
+        padding: margin!,
+        child: effectiveCard,
+      );
+    }
+
+    return effectiveCard;
   }
 }
 

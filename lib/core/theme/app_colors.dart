@@ -74,6 +74,17 @@ class AppColors {
   static const Color error700 = clay700;
   static const Color info = Color(0xFF2E5E8A);
 
+  // Modern UI theme aliases
+  static const Color primary = primary500;
+  static const Color primaryDark = primary600;
+  static const Color background = soil50;
+  static const Color surface = Colors.white;
+  static const Color outline = soil200;
+  static const Color onSurface = soil800;
+  static const Color onSurfaceVariant = soil600;
+  static const Color textPrimary = soil800;
+  static const Color textSecondary = soil600;
+
   // Terracotta aliases for clay
   static const Color terracotta50 = clay50;
   static const Color terracotta200 = clay200;

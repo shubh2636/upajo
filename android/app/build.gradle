@@ -48,7 +48,7 @@ android {
 
     defaultConfig {
         applicationId "com.upajo.app"
-        minSdk 23
+        minSdkVersion flutter.minSdkVersion
         targetSdk 34
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName

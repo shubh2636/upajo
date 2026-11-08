@@ -51,4 +51,8 @@ python -m unittest test_step7_ml_and_feedback.py
 # 6. Admin Web Portal Compilation
 cd admin_web && npm run build
 # Output: ✓ Generating static pages (19/19) -> Compiled successfully
+
+# 7. Android Application Package (APK) Generation
+flutter build apk --flavor dev --debug
+# Output: Built build\app\outputs\flutter-apk\app-dev-debug.apk (203.9 MB) -> Copied to upajo-dev.apk
 ```

@@ -91,5 +91,12 @@ class AppTypography {
     fontWeight: FontWeight.w800,
     color: AppColors.primary500,
   );
+
+  // Material 3 semantic typographic aliases
+  static const TextStyle headlineLarge = displaySmall;
+  static const TextStyle titleMedium = headlineSmall;
+  static const TextStyle titleSmall = bodyLarge;
+  static const TextStyle labelLarge = buttonLarge;
+  static const TextStyle labelSmall = bodySmall;
 }
 
