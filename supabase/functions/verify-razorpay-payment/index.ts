@@ -14,6 +14,14 @@ serve(async (req) => {
   }
 
   try {
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Missing authorization header" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { order_id, razorpay_order_id, razorpay_payment_id, razorpay_signature } = await req.json();
 
     if (!order_id || !razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
@@ -85,7 +93,7 @@ serve(async (req) => {
     // 4. Fetch order details
     const { data: order, error: orderError } = await supabase
       .from("orders")
-      .select("id, total_amount, status")
+      .select("id, consumer_id, total_amount, status")
       .eq("id", order_id)
       .single();
 
@@ -94,6 +102,31 @@ serve(async (req) => {
         status: 404,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // Verify caller ownership (Prevent IDOR payment verification)
+    const token = authHeader.replace("Bearer ", "").trim();
+    const { data: { user } } = await supabase.auth.getUser(token);
+    if (!user) {
+      return new Response(JSON.stringify({ error: "Invalid user session" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (user.id !== order.consumer_id) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (profile?.role !== "admin") {
+        return new Response(JSON.stringify({ error: "Forbidden: You are not authorized to verify payment for this order" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     // 5. Execute Atomic Stock Deduction via Database Stored Procedure (Row-level lock)

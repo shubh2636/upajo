@@ -31,10 +31,15 @@ class CropAdvisorRepositoryImpl implements CropAdvisorRepository {
   Future<CropRecommendation> getRecommendation(CropInputParams params) async {
     // 1. Attempt ML microservice request if available
     try {
+      final session = _supabase.auth.currentSession;
+      final headers = {
+        'Content-Type': 'application/json',
+        if (session != null) 'Authorization': 'Bearer ${session.accessToken}',
+      };
       final response = await _httpClient
           .post(
             Uri.parse('$_mlServiceUrl/api/v1/crop-advisor/recommend'),
-            headers: {'Content-Type': 'application/json'},
+            headers: headers,
             body: json.encode(params.toJson()),
           )
           .timeout(const Duration(seconds: 4));

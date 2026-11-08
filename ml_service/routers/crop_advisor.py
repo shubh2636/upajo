@@ -3,12 +3,15 @@ import json
 import uuid
 from datetime import datetime, timedelta
 from typing import List, Optional
-from fastapi import APIRouter, HTTPException, Query
-from pydantic import BaseModel, Field
+from fastapi import APIRouter, HTTPException, Depends, Query, status
+from pydantic import BaseModel, Field, ConfigDict
+
+from security import verify_supabase_jwt_or_api_key, enforce_rate_limit
 
 router = APIRouter(prefix="/api/v1/crop-advisor", tags=["Crop Advisor"])
 
 SEED_FILE_PATH = os.path.join(os.path.dirname(__file__), "..", "seed_crops.json")
+
 
 def _load_crops():
     if not os.path.exists(SEED_FILE_PATH):
@@ -17,15 +20,19 @@ def _load_crops():
         data = json.load(f)
         return data.get("crops", [])
 
+
 class CropAdvisoryRequest(BaseModel):
-    soil_type: str = Field(..., example="black_soil", description="black_soil, sandy_loam, alluvial, red_soil, clay_loam")
-    land_area_acres: float = Field(..., gt=0, example=2.5, description="Total land area in acres")
-    season: str = Field(..., example="rabi", description="kharif, rabi, zaid")
-    water_source: str = Field(..., example="tube_well", description="tube_well, canal, rainfed, drip_sprinkler")
-    district: Optional[str] = Field("सीहोर", example="सीहोर")
-    state: Optional[str] = Field("मध्य प्रदेश", example="मध्य प्रदेश")
-    latitude: Optional[float] = Field(23.2032)
-    longitude: Optional[float] = Field(77.0844)
+    model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
+
+    soil_type: str = Field(..., max_length=50, example="black_soil", description="black_soil, sandy_loam, alluvial, red_soil, clay_loam")
+    land_area_acres: float = Field(..., gt=0.0, le=10000.0, example=2.5, description="Total land area in acres")
+    season: str = Field(..., max_length=20, example="rabi", description="kharif, rabi, zaid")
+    water_source: str = Field(..., max_length=50, example="tube_well", description="tube_well, canal, rainfed, drip_sprinkler")
+    district: Optional[str] = Field("सीहोर", max_length=100, example="सीहोर")
+    state: Optional[str] = Field("मध्य प्रदेश", max_length=100, example="मध्य प्रदेश")
+    latitude: Optional[float] = Field(23.2032, ge=-90.0, le=90.0)
+    longitude: Optional[float] = Field(77.0844, ge=-180.0, le=180.0)
+
 
 class CalendarTaskResponse(BaseModel):
     id: str
@@ -37,6 +44,7 @@ class CalendarTaskResponse(BaseModel):
     description_hi: str
     description_en: str
     is_completed: bool = False
+
 
 class CropRecommendationResponse(BaseModel):
     crop_id: str
@@ -51,8 +59,12 @@ class CropRecommendationResponse(BaseModel):
     summary_hi: str
     calendar_schedule: List[CalendarTaskResponse]
 
+
 @router.post("/recommend", response_model=CropRecommendationResponse)
-def get_crop_recommendation(req: CropAdvisoryRequest):
+def get_crop_recommendation(
+    req: CropAdvisoryRequest,
+    auth_user: dict = Depends(verify_supabase_jwt_or_api_key),
+):
     """
     Evaluates farmer's soil, season, irrigation, and agro-climatic parameters
     against ICAR compendium database to recommend optimal crop, variety, yield range,
@@ -146,8 +158,9 @@ def get_crop_recommendation(req: CropAdvisoryRequest):
         calendar_schedule=tasks_out,
     )
 
+
 @router.get("/seed-data")
-def get_seed_data():
+def get_seed_data(auth_user: dict = Depends(verify_supabase_jwt_or_api_key)):
     """
     Returns full ICAR seed data catalog and expansion documentation for SAUs / KVKs.
     """
@@ -155,4 +168,3 @@ def get_seed_data():
         raise HTTPException(status_code=404, detail="Seed data file not found")
     with open(SEED_FILE_PATH, "r", encoding="utf-8") as f:
         return json.load(f)
-

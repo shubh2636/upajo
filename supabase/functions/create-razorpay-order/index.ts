@@ -41,7 +41,17 @@ serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // 1. Fetch order and joined items from the database (Authoritative Source of Truth)
+    // 1. Verify caller identity and authorization
+    const token = authHeader.replace("Bearer ", "").trim();
+    const { data: { user }, error: userAuthError } = await supabase.auth.getUser(token);
+    if (userAuthError || !user) {
+      return new Response(JSON.stringify({ error: "Invalid or expired user session" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // 2. Fetch order and joined items from the database (Authoritative Source of Truth)
     const { data: order, error: orderError } = await supabase
       .from("orders")
       .select("id, consumer_id, delivery_mode, subtotal_amount, delivery_fee, total_amount, status, order_items(id, product_id, pack_size_kg, quantity, price_per_pack, total_price)")
@@ -53,6 +63,22 @@ serve(async (req) => {
         status: 404,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // Prevent IDOR: Caller must be the consumer who owns the order (or admin)
+    if (user.id !== order.consumer_id) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (profile?.role !== "admin") {
+        return new Response(JSON.stringify({ error: "Forbidden: You cannot initiate payment for another user's order" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     if (order.status !== "pending_payment") {

@@ -1,20 +1,26 @@
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel, Field
+from fastapi import APIRouter, HTTPException, Depends, status
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Dict, Any, List, Optional
 import math
 
+from security import verify_supabase_jwt_or_api_key
+
 router = APIRouter(prefix="/api/v1/analytics", tags=["Yield Prediction ML Service"])
 
+
 class YieldPredictionRequest(BaseModel):
-    crop_name: str = Field(..., example="Wheat (शरबती)")
-    soil_type: str = Field(default="black_soil", example="black_soil")
-    land_area_acres: float = Field(..., gt=0, example=3.5)
-    irrigation_type: str = Field(default="canal_tube_well", example="drip_irrigation")
-    rainfall_mm: float = Field(default=450.0, example=520.0)
-    fertilizer_n_kg_per_acre: float = Field(default=50.0, example=45.0)
-    fertilizer_p_kg_per_acre: float = Field(default=25.0, example=20.0)
-    fertilizer_k_kg_per_acre: float = Field(default=15.0, example=15.0)
+    model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
+
+    crop_name: str = Field(..., max_length=100, example="Wheat (शरबती)")
+    soil_type: str = Field(default="black_soil", max_length=50, example="black_soil")
+    land_area_acres: float = Field(..., gt=0.0, le=10000.0, example=3.5)
+    irrigation_type: str = Field(default="canal_tube_well", max_length=50, example="drip_irrigation")
+    rainfall_mm: float = Field(default=450.0, ge=0.0, le=10000.0, example=520.0)
+    fertilizer_n_kg_per_acre: float = Field(default=50.0, ge=0.0, le=500.0, example=45.0)
+    fertilizer_p_kg_per_acre: float = Field(default=25.0, ge=0.0, le=500.0, example=20.0)
+    fertilizer_k_kg_per_acre: float = Field(default=15.0, ge=0.0, le=500.0, example=15.0)
     organic_farming: bool = Field(default=False)
+
 
 # Agronomic Baseline Yields (Quintals per Acre) calibrated against ICAR & APY historical data
 BASELINES_PER_ACRE: Dict[str, Dict[str, Any]] = {
@@ -55,8 +61,12 @@ BASELINES_PER_ACRE: Dict[str, Dict[str, Any]] = {
     },
 }
 
+
 @router.post("/yield-prediction")
-def predict_crop_yield(req: YieldPredictionRequest):
+def predict_crop_yield(
+    req: YieldPredictionRequest,
+    auth_user: dict = Depends(verify_supabase_jwt_or_api_key),
+):
     """
     ML/Agronomic yield estimation engine for farmers.
     Estimates total harvest yield in quintals, confidence intervals, gross revenue potential,
@@ -129,7 +139,7 @@ def predict_crop_yield(req: YieldPredictionRequest):
         "confidence_interval": {
             "min_quintals": min_yield,
             "max_quintals": max_yield,
-            "confidence_level": "90%"
+            "confidence_level": "90%",
         },
         "district_benchmark_per_acre_quintal": district_avg,
         "performance_vs_district_avg_pct": perf_pct,
@@ -142,4 +152,3 @@ def predict_crop_yield(req: YieldPredictionRequest):
         ],
         "recommendations_hindi": recommendations,
     }
-

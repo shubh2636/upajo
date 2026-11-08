@@ -1,7 +1,9 @@
-from fastapi import APIRouter, Query, HTTPException
+from fastapi import APIRouter, Query, HTTPException, Depends
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta
 import random
+
+from security import verify_supabase_jwt_or_api_key
 
 router = APIRouter(prefix="/api/v1/mandi", tags=["Mandi Prices & Price Suggestion"])
 
@@ -169,6 +171,7 @@ def get_price_suggestion(
     crop: str = Query(..., description="Crop code, e.g. wheat, soybean, chana, potato"),
     is_organic: bool = Query(False, description="Whether the crop has NPOP organic certification"),
     grade: str = Query("A", description="Quality grade: A (Premium), B (Standard), C (Fair)"),
+    auth_user: dict = Depends(verify_supabase_jwt_or_api_key),
 ):
     """
     Calculates fair farmer direct-to-consumer pricing vs traditional APMC Mandi commission agent deductions.

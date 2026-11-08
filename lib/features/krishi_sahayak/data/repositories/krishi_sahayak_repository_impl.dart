@@ -49,10 +49,16 @@ class KrishiSahayakRepositoryImpl implements KrishiSahayakRepository {
             .toList(),
       };
 
+      final session = _supabase.auth.currentSession;
+      final headers = {
+        'Content-Type': 'application/json',
+        if (session != null) 'Authorization': 'Bearer ${session.accessToken}',
+      };
+
       final response = await _httpClient
           .post(
             Uri.parse('$_mlServiceUrl/api/v1/krishi-sahayak/chat'),
-            headers: {'Content-Type': 'application/json'},
+            headers: headers,
             body: json.encode(payload),
           )
           .timeout(const Duration(seconds: 12));

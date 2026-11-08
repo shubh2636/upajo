@@ -70,6 +70,10 @@ class DiseaseDetectionRepositoryImpl implements DiseaseDetectionRepository {
         'POST',
         Uri.parse('$_mlServiceUrl/api/v1/disease/predict'),
       );
+      final session = _supabase.auth.currentSession;
+      if (session != null) {
+        request.headers['Authorization'] = 'Bearer ${session.accessToken}';
+      }
       request.files.add(
         await http.MultipartFile.fromPath('file', compressed.path),
       );

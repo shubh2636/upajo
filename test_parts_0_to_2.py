@@ -19,6 +19,7 @@ from typing import Dict, Any
 
 # Ensure ml_service is in sys.path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "ml_service"))
+os.environ.setdefault("ML_SERVICE_API_KEY", "upajo_internal_ml_secret_key")
 
 class TestPart0Foundation(unittest.TestCase):
     """PART 0: Foundation Architecture, DB Schema, i18n, and Design System"""
@@ -383,7 +384,7 @@ class TestPart2CropAdvisorAndWeather(unittest.TestCase):
         self.assertEqual(h_resp.json()["status"], "healthy")
 
         # 2. Seed data
-        s_resp = client.get("/api/v1/crop-advisor/seed-data")
+        s_resp = client.get("/api/v1/crop-advisor/seed-data", headers={"X-API-KEY": os.getenv("ML_SERVICE_API_KEY", "upajo_internal_ml_secret_key")})
         self.assertEqual(s_resp.status_code, 200)
         self.assertIn("crops", s_resp.json())
 
@@ -395,7 +396,7 @@ class TestPart2CropAdvisorAndWeather(unittest.TestCase):
             "water_source": "tube_well",
             "district": "सीहोर"
         }
-        r_resp = client.post("/api/v1/crop-advisor/recommend", json=payload)
+        r_resp = client.post("/api/v1/crop-advisor/recommend", json=payload, headers={"X-API-KEY": os.getenv("ML_SERVICE_API_KEY", "upajo_internal_ml_secret_key")})
         self.assertEqual(r_resp.status_code, 200)
         r_data = r_resp.json()
         self.assertEqual(r_data["total_expected_yield"], 54.0)
@@ -518,14 +519,14 @@ class TestPart3DiseaseAndKrishiSahayak(unittest.TestCase):
         from main import app
 
         client = TestClient(app)
-        # Pass a mock black 1x1 image payload
+        # Valid 1x1 PNG image bytes
         dummy_png = (
-            b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06"
-            b"\x00\x00\x00\x1f\x15c4\x00\x00\x00\nIDATx\x9cc\x00\x01\x00\x00\x05\x00\x01\r"
-            b"\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82"
+            b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x02"
+            b"\x00\x00\x00\x90wS\xde\x00\x00\x00\x0cIDATx\x9cc```\x00\x00\x00\x04\x00\x01"
+            b"\xf6\x178U\x00\x00\x00\x00IEND\xaeB`\x82"
         )
         files = {"file": ("leaf.png", dummy_png, "image/png")}
-        resp = client.post("/api/v1/disease/predict", files=files)
+        resp = client.post("/api/v1/disease/predict", files=files, headers={"X-API-KEY": os.getenv("ML_SERVICE_API_KEY", "upajo_internal_ml_secret_key")})
         self.assertEqual(resp.status_code, 200)
         res_data = resp.json()
         self.assertIn("disease_name_hi", res_data)
@@ -564,7 +565,7 @@ class TestPart5LogisticsMandiAnalytics(unittest.TestCase):
         from starlette.testclient import TestClient
 
         client = TestClient(app)
-        resp = client.get("/api/v1/mandi/price-suggestion?crop=wheat&grade=A&is_organic=false")
+        resp = client.get("/api/v1/mandi/price-suggestion?crop=wheat&grade=A&is_organic=false", headers={"X-API-KEY": os.getenv("ML_SERVICE_API_KEY", "upajo_internal_ml_secret_key")})
         self.assertEqual(resp.status_code, 200)
         data = resp.json()
 
@@ -643,7 +644,7 @@ class TestPart5LogisticsMandiAnalytics(unittest.TestCase):
             "fertilizer_k_kg_per_acre": 15.0,
             "organic_farming": False
         }
-        resp = client.post("/api/v1/analytics/yield-prediction", json=payload)
+        resp = client.post("/api/v1/analytics/yield-prediction", json=payload, headers={"X-API-KEY": os.getenv("ML_SERVICE_API_KEY", "upajo_internal_ml_secret_key")})
         self.assertEqual(resp.status_code, 200)
         data = resp.json()
 
