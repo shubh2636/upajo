@@ -437,7 +437,7 @@ CREATE INDEX IF NOT EXISTS idx_store_items_type ON public.store_items(item_type,
 CREATE INDEX IF NOT EXISTS idx_notifications_user ON public.notifications(user_id, is_read);
 
 -- ------------------------------------------------------------------------------
--- 21. AUTOMATIC UPDATED_AT TRIGGER
+-- 21. AUTOMATIC UPDATED_AT TRIGGER & SECURITY GUARDS
 -- ------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.handle_updated_at()
 RETURNS TRIGGER AS $$
@@ -445,7 +445,7 @@ BEGIN
   NEW.updated_at = NOW();
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql SET search_path = public, pg_temp;
 
 DROP TRIGGER IF EXISTS trg_profiles_updated ON public.profiles;
 CREATE TRIGGER trg_profiles_updated BEFORE UPDATE ON public.profiles FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
@@ -466,7 +466,250 @@ DROP TRIGGER IF EXISTS trg_machinery_updated ON public.machinery;
 CREATE TRIGGER trg_machinery_updated BEFORE UPDATE ON public.machinery FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
 
 -- ------------------------------------------------------------------------------
--- 22. ROW LEVEL SECURITY (RLS) POLICIES
+-- 22. SECURITY DEFINER HELPER FUNCTIONS (Protected search_path)
+-- ------------------------------------------------------------------------------
+-- Helper Function: Check Admin with fixed search_path
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM public.profiles
+    WHERE id = auth.uid() AND role = 'admin'
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
+
+-- Anti-Privilege Escalation Trigger on Profiles
+CREATE OR REPLACE FUNCTION public.protect_profile_privileges()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- Prevent privilege escalation on role, verified_by_admin, and kyc_status unless performed by admin
+  IF (NEW.role IS DISTINCT FROM OLD.role OR
+      NEW.kyc_status IS DISTINCT FROM OLD.kyc_status OR
+      NEW.verified_by_admin IS DISTINCT FROM OLD.verified_by_admin) THEN
+    IF NOT public.is_admin() THEN
+      RAISE EXCEPTION 'Privilege escalation rejected: only admins can alter role, kyc_status, or verification flags.';
+    END IF;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
+
+DROP TRIGGER IF EXISTS trg_protect_profile_privileges ON public.profiles;
+CREATE TRIGGER trg_protect_profile_privileges
+  BEFORE UPDATE ON public.profiles
+  FOR EACH ROW EXECUTE FUNCTION public.protect_profile_privileges();
+
+-- Anti-Tampering & State Machine Trigger on Orders
+CREATE OR REPLACE FUNCTION public.protect_order_integrity_and_transitions()
+RETURNS TRIGGER AS $$
+DECLARE
+  v_is_adm boolean;
+BEGIN
+  v_is_adm := public.is_admin();
+
+  -- Non-admins cannot alter immutable financial, client, or order identifiers
+  IF NOT v_is_adm THEN
+    IF NEW.consumer_id IS DISTINCT FROM OLD.consumer_id THEN
+      RAISE EXCEPTION 'Cannot tamper with order consumer_id';
+    END IF;
+    IF NEW.farmer_id IS DISTINCT FROM OLD.farmer_id THEN
+      RAISE EXCEPTION 'Cannot tamper with order farmer_id';
+    END IF;
+    IF NEW.subtotal_amount IS DISTINCT FROM OLD.subtotal_amount THEN
+      RAISE EXCEPTION 'Cannot tamper with order subtotal_amount';
+    END IF;
+    IF NEW.delivery_fee IS DISTINCT FROM OLD.delivery_fee THEN
+      RAISE EXCEPTION 'Cannot tamper with order delivery_fee';
+    END IF;
+    IF NEW.total_amount IS DISTINCT FROM OLD.total_amount THEN
+      RAISE EXCEPTION 'Cannot tamper with order total_amount';
+    END IF;
+    IF NEW.order_number IS DISTINCT FROM OLD.order_number THEN
+      RAISE EXCEPTION 'Cannot tamper with order order_number';
+    END IF;
+  END IF;
+
+  -- Validate state machine transitions
+  IF NEW.status IS DISTINCT FROM OLD.status THEN
+    IF OLD.status = 'delivered' THEN
+      RAISE EXCEPTION 'Invalid status transition: delivered order is in terminal state';
+    END IF;
+    IF OLD.status = 'cancelled' THEN
+      RAISE EXCEPTION 'Invalid status transition: cancelled order is in terminal state';
+    END IF;
+
+    IF OLD.status = 'pending_payment' THEN
+      IF NEW.status NOT IN ('confirmed', 'cancelled') THEN
+        RAISE EXCEPTION 'Invalid status transition from pending_payment to %', NEW.status;
+      END IF;
+      -- Consumer cannot mark paid directly without verified server payment
+      IF NEW.status = 'confirmed' AND auth.uid() = OLD.consumer_id AND NOT v_is_adm THEN
+        RAISE EXCEPTION 'Consumers cannot directly mark orders confirmed without server payment verification';
+      END IF;
+    ELSIF OLD.status = 'confirmed' THEN
+      IF NEW.status NOT IN ('harvesting_packed', 'cancelled') THEN
+        RAISE EXCEPTION 'Invalid status transition from confirmed to %', NEW.status;
+      END IF;
+      IF NEW.status = 'harvesting_packed' AND auth.uid() != OLD.farmer_id AND NOT v_is_adm THEN
+        RAISE EXCEPTION 'Only the assigned farmer can mark order as harvesting_packed';
+      END IF;
+    ELSIF OLD.status = 'harvesting_packed' THEN
+      IF NEW.status NOT IN ('out_for_delivery', 'ready_for_pickup', 'cancelled') THEN
+        RAISE EXCEPTION 'Invalid status transition from harvesting_packed to %', NEW.status;
+      END IF;
+      IF auth.uid() != OLD.farmer_id AND NOT v_is_adm THEN
+        RAISE EXCEPTION 'Only the assigned farmer can dispatch order';
+      END IF;
+    ELSIF OLD.status IN ('out_for_delivery', 'ready_for_pickup') THEN
+      IF NEW.status NOT IN ('delivered', 'cancelled') THEN
+        RAISE EXCEPTION 'Invalid status transition from % to %', OLD.status, NEW.status;
+      END IF;
+      IF NEW.status = 'delivered' AND auth.uid() = OLD.consumer_id AND NOT v_is_adm THEN
+        RAISE EXCEPTION 'Consumers cannot mark orders as delivered directly';
+      END IF;
+    END IF;
+  END IF;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
+
+DROP TRIGGER IF EXISTS trg_orders_protect_integrity ON public.orders;
+CREATE TRIGGER trg_orders_protect_integrity
+  BEFORE UPDATE ON public.orders
+  FOR EACH ROW EXECUTE FUNCTION public.protect_order_integrity_and_transitions();
+
+-- Anti-Tampering & State Machine Trigger on Rentals
+CREATE OR REPLACE FUNCTION public.protect_rental_integrity_and_transitions()
+RETURNS TRIGGER AS $$
+DECLARE
+  v_is_adm boolean;
+BEGIN
+  v_is_adm := public.is_admin();
+
+  IF NOT v_is_adm THEN
+    IF NEW.machinery_id IS DISTINCT FROM OLD.machinery_id THEN
+      RAISE EXCEPTION 'Cannot tamper with rental machinery_id';
+    END IF;
+    IF NEW.renter_id IS DISTINCT FROM OLD.renter_id THEN
+      RAISE EXCEPTION 'Cannot tamper with rental renter_id';
+    END IF;
+    IF NEW.owner_id IS DISTINCT FROM OLD.owner_id THEN
+      RAISE EXCEPTION 'Cannot tamper with rental owner_id';
+    END IF;
+    IF NEW.total_amount IS DISTINCT FROM OLD.total_amount THEN
+      RAISE EXCEPTION 'Cannot tamper with rental total_amount';
+    END IF;
+    IF NEW.deposit_amount IS DISTINCT FROM OLD.deposit_amount THEN
+      RAISE EXCEPTION 'Cannot tamper with rental deposit_amount';
+    END IF;
+    IF NEW.start_date IS DISTINCT FROM OLD.start_date THEN
+      RAISE EXCEPTION 'Cannot tamper with rental start_date';
+    END IF;
+    IF NEW.end_date IS DISTINCT FROM OLD.end_date THEN
+      RAISE EXCEPTION 'Cannot tamper with rental end_date';
+    END IF;
+  END IF;
+
+  IF NEW.status IS DISTINCT FROM OLD.status THEN
+    IF OLD.status = 'completed' THEN
+      RAISE EXCEPTION 'Invalid status transition: completed rental is in terminal state';
+    END IF;
+    IF OLD.status = 'cancelled' THEN
+      RAISE EXCEPTION 'Invalid status transition: cancelled rental is in terminal state';
+    END IF;
+
+    IF OLD.status = 'pending' THEN
+      IF NEW.status NOT IN ('approved', 'cancelled') THEN
+        RAISE EXCEPTION 'Invalid status transition from pending to %', NEW.status;
+      END IF;
+      IF NEW.status = 'approved' AND auth.uid() != OLD.owner_id AND NOT v_is_adm THEN
+        RAISE EXCEPTION 'Only machinery owner can approve rental';
+      END IF;
+    ELSIF OLD.status = 'approved' THEN
+      IF NEW.status NOT IN ('active', 'cancelled') THEN
+        RAISE EXCEPTION 'Invalid status transition from approved to %', NEW.status;
+      END IF;
+      IF NEW.status = 'active' AND auth.uid() != OLD.owner_id AND NOT v_is_adm THEN
+        RAISE EXCEPTION 'Only machinery owner can mark rental as active upon handover';
+      END IF;
+    ELSIF OLD.status = 'active' THEN
+      IF NEW.status NOT IN ('completed') THEN
+        RAISE EXCEPTION 'Invalid status transition: active rental can only transition to completed';
+      END IF;
+      IF NEW.status = 'completed' AND auth.uid() != OLD.owner_id AND NOT v_is_adm THEN
+        RAISE EXCEPTION 'Only machinery owner can mark rental completed upon return inspection';
+      END IF;
+    END IF;
+  END IF;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
+
+DROP TRIGGER IF EXISTS trg_rentals_protect_integrity ON public.rentals;
+CREATE TRIGGER trg_rentals_protect_integrity
+  BEFORE UPDATE ON public.rentals
+  FOR EACH ROW EXECUTE FUNCTION public.protect_rental_integrity_and_transitions();
+
+-- Order Item Insertion Guard (Only allow inserts while order is pending_payment)
+CREATE OR REPLACE FUNCTION public.check_order_item_insertion()
+RETURNS TRIGGER AS $$
+DECLARE
+  v_status order_status;
+BEGIN
+  SELECT status INTO v_status FROM public.orders WHERE id = NEW.order_id;
+  IF v_status IS NULL THEN
+    RAISE EXCEPTION 'Target order does not exist';
+  END IF;
+  IF v_status != 'pending_payment' THEN
+    RAISE EXCEPTION 'Cannot add items to order with status %; only pending_payment permitted', v_status;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
+
+DROP TRIGGER IF EXISTS trg_order_items_insertion ON public.order_items;
+CREATE TRIGGER trg_order_items_insertion
+  BEFORE INSERT ON public.order_items
+  FOR EACH ROW EXECUTE FUNCTION public.check_order_item_insertion();
+
+-- ------------------------------------------------------------------------------
+-- 23. SENSITIVE DATA VIEWS & DB CONSTRAINTS
+-- ------------------------------------------------------------------------------
+-- Public farmer directory view (Sanitizes bank_account, IFSC, Aadhaar, KCC, and UPI VPAs)
+CREATE OR REPLACE VIEW public.public_farmer_profiles WITH (security_invoker = false) AS
+  SELECT
+    farmer_id,
+    farm_name,
+    total_acres,
+    soil_type,
+    primary_crops,
+    bio_hi,
+    bio_en,
+    created_at
+  FROM public.farmer_profiles;
+
+-- Add database integrity constraints
+DO $$ BEGIN
+  ALTER TABLE public.orders ADD CONSTRAINT chk_orders_total_sum CHECK (total_amount = subtotal_amount + delivery_fee);
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+  ALTER TABLE public.order_items ADD CONSTRAINT chk_order_items_total CHECK (total_price = quantity * price_per_pack);
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+  ALTER TABLE public.rentals ADD CONSTRAINT chk_rentals_dates CHECK (end_date >= start_date);
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+  ALTER TABLE public.ratings ADD CONSTRAINT chk_ratings_not_self CHECK (consumer_id != farmer_id);
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+-- ------------------------------------------------------------------------------
+-- 24. ROW LEVEL SECURITY (RLS) POLICIES (Least Privilege)
 -- ------------------------------------------------------------------------------
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.farmer_profiles ENABLE ROW LEVEL SECURITY;
@@ -489,55 +732,77 @@ ALTER TABLE public.rentals ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.store_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 
--- Helper Function: Check Admin
-CREATE OR REPLACE FUNCTION public.is_admin()
-RETURNS BOOLEAN AS $$
-BEGIN
-  RETURN EXISTS (
-    SELECT 1 FROM public.profiles
-    WHERE id = auth.uid() AND role = 'admin'
-  );
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
 -- PROFILES
+-- Sensitive user PII (phone, address, coordinates) readable ONLY by owner, admin,
+-- or active counterparties (farmers with listings, or direct order/rental counterparty)
 DROP POLICY IF EXISTS "Profiles viewable by authenticated users" ON public.profiles;
-CREATE POLICY "Profiles viewable by authenticated users"
-  ON public.profiles FOR SELECT TO authenticated USING (true);
+DROP POLICY IF EXISTS "Profiles select policy" ON public.profiles;
+CREATE POLICY "Profiles select policy"
+  ON public.profiles FOR SELECT TO authenticated
+  USING (
+    auth.uid() = id
+    OR public.is_admin()
+    OR role = 'farmer'
+    OR EXISTS (
+      SELECT 1 FROM public.orders o
+      WHERE (o.consumer_id = auth.uid() AND o.farmer_id = profiles.id)
+         OR (o.farmer_id = auth.uid() AND o.consumer_id = profiles.id)
+    )
+    OR EXISTS (
+      SELECT 1 FROM public.rentals r
+      WHERE (r.renter_id = auth.uid() AND r.owner_id = profiles.id)
+         OR (r.owner_id = auth.uid() AND r.renter_id = profiles.id)
+    )
+  );
 
 DROP POLICY IF EXISTS "Users can insert own profile" ON public.profiles;
 CREATE POLICY "Users can insert own profile"
-  ON public.profiles FOR INSERT TO authenticated WITH CHECK (auth.uid() = id);
+  ON public.profiles FOR INSERT TO authenticated
+  WITH CHECK (auth.uid() = id);
 
 DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
-CREATE POLICY "Users can update own profile"
-  ON public.profiles FOR UPDATE TO authenticated USING (auth.uid() = id);
-
 DROP POLICY IF EXISTS "Admins can update any profile" ON public.profiles;
-CREATE POLICY "Admins can update any profile"
-  ON public.profiles FOR ALL TO authenticated USING (public.is_admin());
+DROP POLICY IF EXISTS "Users and admins update profiles" ON public.profiles;
+CREATE POLICY "Users and admins update profiles"
+  ON public.profiles FOR UPDATE TO authenticated
+  USING (auth.uid() = id OR public.is_admin())
+  WITH CHECK (auth.uid() = id OR public.is_admin());
 
--- FARMER PROFILES
+-- FARMER PROFILES (CRITICAL: Contains Bank Details, IFSC, Aadhaar last4, KCC, UPI)
+-- Only owner farmer and admins can SELECT/UPDATE directly from farmer_profiles
 DROP POLICY IF EXISTS "Farmer profiles public view" ON public.farmer_profiles;
-CREATE POLICY "Farmer profiles public view"
-  ON public.farmer_profiles FOR SELECT TO authenticated USING (true);
+DROP POLICY IF EXISTS "Farmer profiles owner and admin select" ON public.farmer_profiles;
+CREATE POLICY "Farmer profiles owner and admin select"
+  ON public.farmer_profiles FOR SELECT TO authenticated
+  USING (auth.uid() = farmer_id OR public.is_admin());
 
 DROP POLICY IF EXISTS "Farmers can insert own farmer profile" ON public.farmer_profiles;
 CREATE POLICY "Farmers can insert own farmer profile"
-  ON public.farmer_profiles FOR INSERT TO authenticated WITH CHECK (auth.uid() = farmer_id);
+  ON public.farmer_profiles FOR INSERT TO authenticated
+  WITH CHECK (auth.uid() = farmer_id);
 
 DROP POLICY IF EXISTS "Farmers can update own farmer profile" ON public.farmer_profiles;
 CREATE POLICY "Farmers can update own farmer profile"
-  ON public.farmer_profiles FOR UPDATE TO authenticated USING (auth.uid() = farmer_id);
+  ON public.farmer_profiles FOR UPDATE TO authenticated
+  USING (auth.uid() = farmer_id OR public.is_admin())
+  WITH CHECK (auth.uid() = farmer_id OR public.is_admin());
+
+DROP POLICY IF EXISTS "Farmers can delete own farmer profile" ON public.farmer_profiles;
+CREATE POLICY "Farmers can delete own farmer profile"
+  ON public.farmer_profiles FOR DELETE TO authenticated
+  USING (auth.uid() = farmer_id OR public.is_admin());
 
 -- CATEGORIES
 DROP POLICY IF EXISTS "Categories viewable by everyone" ON public.categories;
 CREATE POLICY "Categories viewable by everyone"
-  ON public.categories FOR SELECT TO public USING (true);
+  ON public.categories FOR SELECT TO public
+  USING (true);
 
 DROP POLICY IF EXISTS "Admins manage categories" ON public.categories;
 CREATE POLICY "Admins manage categories"
-  ON public.categories FOR ALL TO authenticated USING (public.is_admin());
+  ON public.categories FOR ALL TO authenticated
+  USING (public.is_admin())
+  WITH CHECK (public.is_admin());
 
 -- PRODUCTS
 DROP POLICY IF EXISTS "Products viewable by anyone" ON public.products;
@@ -547,51 +812,74 @@ CREATE POLICY "Products viewable by anyone"
 
 DROP POLICY IF EXISTS "Farmers insert products" ON public.products;
 CREATE POLICY "Farmers insert products"
-  ON public.products FOR INSERT TO authenticated WITH CHECK (
+  ON public.products FOR INSERT TO authenticated
+  WITH CHECK (
     auth.uid() = farmer_id AND
     EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'farmer')
   );
 
 DROP POLICY IF EXISTS "Farmers update own products" ON public.products;
 CREATE POLICY "Farmers update own products"
-  ON public.products FOR UPDATE TO authenticated USING (auth.uid() = farmer_id);
+  ON public.products FOR UPDATE TO authenticated
+  USING (auth.uid() = farmer_id OR public.is_admin())
+  WITH CHECK (auth.uid() = farmer_id OR public.is_admin());
 
 DROP POLICY IF EXISTS "Farmers delete own products" ON public.products;
 CREATE POLICY "Farmers delete own products"
-  ON public.products FOR DELETE TO authenticated USING (auth.uid() = farmer_id);
+  ON public.products FOR DELETE TO authenticated
+  USING (auth.uid() = farmer_id OR public.is_admin());
 
 -- PACK OPTIONS
 DROP POLICY IF EXISTS "Pack options viewable by anyone" ON public.pack_options;
 CREATE POLICY "Pack options viewable by anyone"
-  ON public.pack_options FOR SELECT TO public USING (true);
+  ON public.pack_options FOR SELECT TO public
+  USING (true);
 
 DROP POLICY IF EXISTS "Farmers manage pack options" ON public.pack_options;
 CREATE POLICY "Farmers manage pack options"
-  ON public.pack_options FOR ALL TO authenticated USING (
+  ON public.pack_options FOR ALL TO authenticated
+  USING (
     EXISTS (SELECT 1 FROM public.products p WHERE p.id = pack_options.product_id AND p.farmer_id = auth.uid())
+    OR public.is_admin()
+  )
+  WITH CHECK (
+    EXISTS (SELECT 1 FROM public.products p WHERE p.id = pack_options.product_id AND p.farmer_id = auth.uid())
+    OR public.is_admin()
   );
 
 -- ORDERS
 DROP POLICY IF EXISTS "Orders viewable by parties and admin" ON public.orders;
 CREATE POLICY "Orders viewable by parties and admin"
-  ON public.orders FOR SELECT TO authenticated USING (
+  ON public.orders FOR SELECT TO authenticated
+  USING (
     auth.uid() = consumer_id OR auth.uid() = farmer_id OR public.is_admin()
   );
 
 DROP POLICY IF EXISTS "Consumers can create orders" ON public.orders;
 CREATE POLICY "Consumers can create orders"
-  ON public.orders FOR INSERT TO authenticated WITH CHECK (auth.uid() = consumer_id);
+  ON public.orders FOR INSERT TO authenticated
+  WITH CHECK (auth.uid() = consumer_id);
 
 DROP POLICY IF EXISTS "Order status update by parties" ON public.orders;
 CREATE POLICY "Order status update by parties"
-  ON public.orders FOR UPDATE TO authenticated USING (
+  ON public.orders FOR UPDATE TO authenticated
+  USING (
+    auth.uid() = consumer_id OR auth.uid() = farmer_id OR public.is_admin()
+  )
+  WITH CHECK (
     auth.uid() = consumer_id OR auth.uid() = farmer_id OR public.is_admin()
   );
+
+DROP POLICY IF EXISTS "Admins can delete orders" ON public.orders;
+CREATE POLICY "Admins can delete orders"
+  ON public.orders FOR DELETE TO authenticated
+  USING (public.is_admin());
 
 -- ORDER ITEMS
 DROP POLICY IF EXISTS "Order items viewable by participants" ON public.order_items;
 CREATE POLICY "Order items viewable by participants"
-  ON public.order_items FOR SELECT TO authenticated USING (
+  ON public.order_items FOR SELECT TO authenticated
+  USING (
     EXISTS (
       SELECT 1 FROM public.orders o
       WHERE o.id = order_items.order_id
@@ -601,17 +889,27 @@ CREATE POLICY "Order items viewable by participants"
 
 DROP POLICY IF EXISTS "Consumers can insert order items" ON public.order_items;
 CREATE POLICY "Consumers can insert order items"
-  ON public.order_items FOR INSERT TO authenticated WITH CHECK (
+  ON public.order_items FOR INSERT TO authenticated
+  WITH CHECK (
     EXISTS (
       SELECT 1 FROM public.orders o
-      WHERE o.id = order_items.order_id AND o.consumer_id = auth.uid()
+      WHERE o.id = order_items.order_id
+      AND o.consumer_id = auth.uid()
+      AND o.status = 'pending_payment'
     )
   );
 
--- PAYMENTS
+DROP POLICY IF EXISTS "Admins manage order items" ON public.order_items;
+CREATE POLICY "Admins manage order items"
+  ON public.order_items FOR ALL TO authenticated
+  USING (public.is_admin())
+  WITH CHECK (public.is_admin());
+
+-- PAYMENTS (Client restricted: only service_role / admin can insert or update)
 DROP POLICY IF EXISTS "Payments viewable by parties and admin" ON public.payments;
 CREATE POLICY "Payments viewable by parties and admin"
-  ON public.payments FOR SELECT TO authenticated USING (
+  ON public.payments FOR SELECT TO authenticated
+  USING (
     EXISTS (
       SELECT 1 FROM public.orders o
       WHERE o.id = payments.order_id
@@ -619,25 +917,51 @@ CREATE POLICY "Payments viewable by parties and admin"
     )
   );
 
+DROP POLICY IF EXISTS "Payments insert restricted to admin or service role" ON public.payments;
+CREATE POLICY "Payments insert restricted to admin or service role"
+  ON public.payments FOR INSERT TO authenticated
+  WITH CHECK (public.is_admin());
+
+DROP POLICY IF EXISTS "Payments update restricted to admin or service role" ON public.payments;
+CREATE POLICY "Payments update restricted to admin or service role"
+  ON public.payments FOR UPDATE TO authenticated
+  USING (public.is_admin())
+  WITH CHECK (public.is_admin());
+
 -- RATINGS
 DROP POLICY IF EXISTS "Ratings viewable by everyone" ON public.ratings;
 CREATE POLICY "Ratings viewable by everyone"
-  ON public.ratings FOR SELECT TO public USING (true);
+  ON public.ratings FOR SELECT TO public
+  USING (true);
 
 DROP POLICY IF EXISTS "Consumers can write ratings" ON public.ratings;
 CREATE POLICY "Consumers can write ratings"
-  ON public.ratings FOR INSERT TO authenticated WITH CHECK (
+  ON public.ratings FOR INSERT TO authenticated
+  WITH CHECK (
     auth.uid() = consumer_id AND
+    consumer_id != farmer_id AND
     EXISTS (
       SELECT 1 FROM public.orders o
       WHERE o.id = ratings.order_id AND o.consumer_id = auth.uid() AND o.status = 'delivered'
     )
   );
 
+DROP POLICY IF EXISTS "Consumers can update own ratings" ON public.ratings;
+CREATE POLICY "Consumers can update own ratings"
+  ON public.ratings FOR UPDATE TO authenticated
+  USING (auth.uid() = consumer_id OR public.is_admin())
+  WITH CHECK (auth.uid() = consumer_id OR public.is_admin());
+
+DROP POLICY IF EXISTS "Consumers can delete own ratings" ON public.ratings;
+CREATE POLICY "Consumers can delete own ratings"
+  ON public.ratings FOR DELETE TO authenticated
+  USING (auth.uid() = consumer_id OR public.is_admin());
+
 -- DELIVERY
 DROP POLICY IF EXISTS "Delivery viewable by order participants" ON public.delivery;
 CREATE POLICY "Delivery viewable by order participants"
-  ON public.delivery FOR SELECT TO authenticated USING (
+  ON public.delivery FOR SELECT TO authenticated
+  USING (
     EXISTS (
       SELECT 1 FROM public.orders o
       WHERE o.id = delivery.order_id
@@ -645,75 +969,259 @@ CREATE POLICY "Delivery viewable by order participants"
     )
   );
 
+DROP POLICY IF EXISTS "Delivery insert by order farmer or admin" ON public.delivery;
+CREATE POLICY "Delivery insert by order farmer or admin"
+  ON public.delivery FOR INSERT TO authenticated
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.orders o
+      WHERE o.id = delivery.order_id AND (o.farmer_id = auth.uid() OR public.is_admin())
+    )
+  );
+
+DROP POLICY IF EXISTS "Delivery status update by farmer or admin" ON public.delivery;
+CREATE POLICY "Delivery status update by farmer or admin"
+  ON public.delivery FOR UPDATE TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.orders o
+      WHERE o.id = delivery.order_id AND (o.farmer_id = auth.uid() OR public.is_admin())
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.orders o
+      WHERE o.id = delivery.order_id AND (o.farmer_id = auth.uid() OR public.is_admin())
+    )
+  );
+
 -- CROPS (Master Knowledge)
 DROP POLICY IF EXISTS "Crops viewable by everyone" ON public.crops;
 CREATE POLICY "Crops viewable by everyone"
-  ON public.crops FOR SELECT TO public USING (true);
+  ON public.crops FOR SELECT TO public
+  USING (true);
 
--- CROP PLANS & TASKS
+DROP POLICY IF EXISTS "Admins manage master crops" ON public.crops;
+CREATE POLICY "Admins manage master crops"
+  ON public.crops FOR ALL TO authenticated
+  USING (public.is_admin())
+  WITH CHECK (public.is_admin());
+
+-- CROP PLANS
 DROP POLICY IF EXISTS "Farmers view own crop plans" ON public.crop_plans;
-CREATE POLICY "Farmers view own crop plans"
-  ON public.crop_plans FOR ALL TO authenticated USING (auth.uid() = farmer_id);
+DROP POLICY IF EXISTS "Farmers select own crop plans" ON public.crop_plans;
+CREATE POLICY "Farmers select own crop plans"
+  ON public.crop_plans FOR SELECT TO authenticated
+  USING (auth.uid() = farmer_id OR public.is_admin());
 
+DROP POLICY IF EXISTS "Farmers insert own crop plans" ON public.crop_plans;
+CREATE POLICY "Farmers insert own crop plans"
+  ON public.crop_plans FOR INSERT TO authenticated
+  WITH CHECK (auth.uid() = farmer_id);
+
+DROP POLICY IF EXISTS "Farmers update own crop plans" ON public.crop_plans;
+CREATE POLICY "Farmers update own crop plans"
+  ON public.crop_plans FOR UPDATE TO authenticated
+  USING (auth.uid() = farmer_id OR public.is_admin())
+  WITH CHECK (auth.uid() = farmer_id OR public.is_admin());
+
+DROP POLICY IF EXISTS "Farmers delete own crop plans" ON public.crop_plans;
+CREATE POLICY "Farmers delete own crop plans"
+  ON public.crop_plans FOR DELETE TO authenticated
+  USING (auth.uid() = farmer_id OR public.is_admin());
+
+-- TASKS
 DROP POLICY IF EXISTS "Farmers view own tasks" ON public.tasks;
-CREATE POLICY "Farmers view own tasks"
-  ON public.tasks FOR ALL TO authenticated USING (auth.uid() = farmer_id);
+DROP POLICY IF EXISTS "Farmers select own tasks" ON public.tasks;
+CREATE POLICY "Farmers select own tasks"
+  ON public.tasks FOR SELECT TO authenticated
+  USING (auth.uid() = farmer_id OR public.is_admin());
+
+DROP POLICY IF EXISTS "Farmers insert own tasks" ON public.tasks;
+CREATE POLICY "Farmers insert own tasks"
+  ON public.tasks FOR INSERT TO authenticated
+  WITH CHECK (
+    auth.uid() = farmer_id AND
+    EXISTS (
+      SELECT 1 FROM public.crop_plans cp
+      WHERE cp.id = tasks.crop_plan_id AND cp.farmer_id = auth.uid()
+    )
+  );
+
+DROP POLICY IF EXISTS "Farmers update own tasks" ON public.tasks;
+CREATE POLICY "Farmers update own tasks"
+  ON public.tasks FOR UPDATE TO authenticated
+  USING (auth.uid() = farmer_id OR public.is_admin())
+  WITH CHECK (auth.uid() = farmer_id OR public.is_admin());
+
+DROP POLICY IF EXISTS "Farmers delete own tasks" ON public.tasks;
+CREATE POLICY "Farmers delete own tasks"
+  ON public.tasks FOR DELETE TO authenticated
+  USING (auth.uid() = farmer_id OR public.is_admin());
 
 -- DISEASE SCANS
 DROP POLICY IF EXISTS "Farmers view own disease scans" ON public.disease_scans;
-CREATE POLICY "Farmers view own disease scans"
-  ON public.disease_scans FOR ALL TO authenticated USING (auth.uid() = farmer_id);
+DROP POLICY IF EXISTS "Farmers select own disease scans" ON public.disease_scans;
+CREATE POLICY "Farmers select own disease scans"
+  ON public.disease_scans FOR SELECT TO authenticated
+  USING (auth.uid() = farmer_id OR public.is_admin());
 
--- CHAT SESSIONS & MESSAGES
+DROP POLICY IF EXISTS "Farmers insert own disease scans" ON public.disease_scans;
+CREATE POLICY "Farmers insert own disease scans"
+  ON public.disease_scans FOR INSERT TO authenticated
+  WITH CHECK (auth.uid() = farmer_id);
+
+DROP POLICY IF EXISTS "Farmers update own disease scans" ON public.disease_scans;
+CREATE POLICY "Farmers update own disease scans"
+  ON public.disease_scans FOR UPDATE TO authenticated
+  USING (auth.uid() = farmer_id OR public.is_admin())
+  WITH CHECK (auth.uid() = farmer_id OR public.is_admin());
+
+DROP POLICY IF EXISTS "Farmers delete own disease scans" ON public.disease_scans;
+CREATE POLICY "Farmers delete own disease scans"
+  ON public.disease_scans FOR DELETE TO authenticated
+  USING (auth.uid() = farmer_id OR public.is_admin());
+
+-- CHAT SESSIONS
 DROP POLICY IF EXISTS "Farmers view own chat sessions" ON public.chat_sessions;
-CREATE POLICY "Farmers view own chat sessions"
-  ON public.chat_sessions FOR ALL TO authenticated USING (auth.uid() = farmer_id);
+DROP POLICY IF EXISTS "Farmers select own chat sessions" ON public.chat_sessions;
+CREATE POLICY "Farmers select own chat sessions"
+  ON public.chat_sessions FOR SELECT TO authenticated
+  USING (auth.uid() = farmer_id OR public.is_admin());
 
+DROP POLICY IF EXISTS "Farmers insert own chat sessions" ON public.chat_sessions;
+CREATE POLICY "Farmers insert own chat sessions"
+  ON public.chat_sessions FOR INSERT TO authenticated
+  WITH CHECK (auth.uid() = farmer_id);
+
+DROP POLICY IF EXISTS "Farmers update own chat sessions" ON public.chat_sessions;
+CREATE POLICY "Farmers update own chat sessions"
+  ON public.chat_sessions FOR UPDATE TO authenticated
+  USING (auth.uid() = farmer_id OR public.is_admin())
+  WITH CHECK (auth.uid() = farmer_id OR public.is_admin());
+
+DROP POLICY IF EXISTS "Farmers delete own chat sessions" ON public.chat_sessions;
+CREATE POLICY "Farmers delete own chat sessions"
+  ON public.chat_sessions FOR DELETE TO authenticated
+  USING (auth.uid() = farmer_id OR public.is_admin());
+
+-- CHAT MESSAGES
 DROP POLICY IF EXISTS "Farmers view own chat messages" ON public.chat_messages;
-CREATE POLICY "Farmers view own chat messages"
-  ON public.chat_messages FOR ALL TO authenticated USING (auth.uid() = farmer_id);
+DROP POLICY IF EXISTS "Farmers select own chat messages" ON public.chat_messages;
+CREATE POLICY "Farmers select own chat messages"
+  ON public.chat_messages FOR SELECT TO authenticated
+  USING (auth.uid() = farmer_id OR public.is_admin());
 
--- MACHINERY & RENTALS
+DROP POLICY IF EXISTS "Farmers insert own chat messages" ON public.chat_messages;
+CREATE POLICY "Farmers insert own chat messages"
+  ON public.chat_messages FOR INSERT TO authenticated
+  WITH CHECK (
+    auth.uid() = farmer_id AND
+    EXISTS (
+      SELECT 1 FROM public.chat_sessions s
+      WHERE s.id = chat_messages.session_id AND s.farmer_id = auth.uid()
+    )
+  );
+
+DROP POLICY IF EXISTS "Farmers update own chat messages" ON public.chat_messages;
+CREATE POLICY "Farmers update own chat messages"
+  ON public.chat_messages FOR UPDATE TO authenticated
+  USING (auth.uid() = farmer_id OR public.is_admin())
+  WITH CHECK (auth.uid() = farmer_id OR public.is_admin());
+
+DROP POLICY IF EXISTS "Farmers delete own chat messages" ON public.chat_messages;
+CREATE POLICY "Farmers delete own chat messages"
+  ON public.chat_messages FOR DELETE TO authenticated
+  USING (auth.uid() = farmer_id OR public.is_admin());
+
+-- MACHINERY
 DROP POLICY IF EXISTS "Machinery viewable by everyone" ON public.machinery;
 CREATE POLICY "Machinery viewable by everyone"
-  ON public.machinery FOR SELECT TO public USING (is_available = true OR auth.uid() = owner_id);
+  ON public.machinery FOR SELECT TO public
+  USING (is_available = true OR auth.uid() = owner_id OR public.is_admin());
 
 DROP POLICY IF EXISTS "Farmers manage own machinery" ON public.machinery;
-CREATE POLICY "Farmers manage own machinery"
-  ON public.machinery FOR ALL TO authenticated USING (auth.uid() = owner_id);
+DROP POLICY IF EXISTS "Farmers insert own machinery" ON public.machinery;
+CREATE POLICY "Farmers insert own machinery"
+  ON public.machinery FOR INSERT TO authenticated
+  WITH CHECK (auth.uid() = owner_id);
 
+DROP POLICY IF EXISTS "Farmers update own machinery" ON public.machinery;
+CREATE POLICY "Farmers update own machinery"
+  ON public.machinery FOR UPDATE TO authenticated
+  USING (auth.uid() = owner_id OR public.is_admin())
+  WITH CHECK (auth.uid() = owner_id OR public.is_admin());
+
+DROP POLICY IF EXISTS "Farmers delete own machinery" ON public.machinery;
+CREATE POLICY "Farmers delete own machinery"
+  ON public.machinery FOR DELETE TO authenticated
+  USING (auth.uid() = owner_id OR public.is_admin());
+
+-- RENTALS
 DROP POLICY IF EXISTS "Rentals viewable by renter and owner" ON public.rentals;
 CREATE POLICY "Rentals viewable by renter and owner"
-  ON public.rentals FOR SELECT TO authenticated USING (
+  ON public.rentals FOR SELECT TO authenticated
+  USING (
     auth.uid() = renter_id OR auth.uid() = owner_id OR public.is_admin()
   );
 
 DROP POLICY IF EXISTS "Users can create rental requests" ON public.rentals;
 CREATE POLICY "Users can create rental requests"
-  ON public.rentals FOR INSERT TO authenticated WITH CHECK (auth.uid() = renter_id);
+  ON public.rentals FOR INSERT TO authenticated
+  WITH CHECK (auth.uid() = renter_id AND renter_id != owner_id);
 
 DROP POLICY IF EXISTS "Parties can update rental status" ON public.rentals;
 CREATE POLICY "Parties can update rental status"
-  ON public.rentals FOR UPDATE TO authenticated USING (
+  ON public.rentals FOR UPDATE TO authenticated
+  USING (
+    auth.uid() = renter_id OR auth.uid() = owner_id OR public.is_admin()
+  )
+  WITH CHECK (
     auth.uid() = renter_id OR auth.uid() = owner_id OR public.is_admin()
   );
+
+DROP POLICY IF EXISTS "Admins manage rentals" ON public.rentals;
+CREATE POLICY "Admins manage rentals"
+  ON public.rentals FOR DELETE TO authenticated
+  USING (public.is_admin());
 
 -- STORE ITEMS
 DROP POLICY IF EXISTS "Store items viewable by everyone" ON public.store_items;
 CREATE POLICY "Store items viewable by everyone"
-  ON public.store_items FOR SELECT TO public USING (is_active = true OR public.is_admin());
+  ON public.store_items FOR SELECT TO public
+  USING (is_active = true OR public.is_admin());
 
 DROP POLICY IF EXISTS "Admins manage store items" ON public.store_items;
 CREATE POLICY "Admins manage store items"
-  ON public.store_items FOR ALL TO authenticated USING (public.is_admin());
+  ON public.store_items FOR ALL TO authenticated
+  USING (public.is_admin())
+  WITH CHECK (public.is_admin());
 
 -- NOTIFICATIONS
 DROP POLICY IF EXISTS "Users view own notifications" ON public.notifications;
-CREATE POLICY "Users view own notifications"
-  ON public.notifications FOR ALL TO authenticated USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users select own notifications" ON public.notifications;
+CREATE POLICY "Users select own notifications"
+  ON public.notifications FOR SELECT TO authenticated
+  USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users update own notifications" ON public.notifications;
+CREATE POLICY "Users update own notifications"
+  ON public.notifications FOR UPDATE TO authenticated
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Notifications insert restricted to admin or system" ON public.notifications;
+CREATE POLICY "Notifications insert restricted to admin or system"
+  ON public.notifications FOR INSERT TO authenticated
+  WITH CHECK (public.is_admin());
+
+DROP POLICY IF EXISTS "Users delete own notifications" ON public.notifications;
+CREATE POLICY "Users delete own notifications"
+  ON public.notifications FOR DELETE TO authenticated
+  USING (auth.uid() = user_id OR public.is_admin());
 
 -- ------------------------------------------------------------------------------
--- 23. STORAGE BUCKETS
+-- 25. STORAGE BUCKET POLICIES (Tenant Folder Isolation)
 -- ------------------------------------------------------------------------------
 INSERT INTO storage.buckets (id, name, public) VALUES
   ('product-images', 'product-images', true),
@@ -722,9 +1230,51 @@ INSERT INTO storage.buckets (id, name, public) VALUES
   ('kyc-docs', 'kyc-docs', false)
 ON CONFLICT (id) DO NOTHING;
 
-CREATE POLICY "Public view product images" ON storage.objects FOR SELECT TO public
+DROP POLICY IF EXISTS "Public view product images" ON storage.objects;
+DROP POLICY IF EXISTS "Farmers upload images" ON storage.objects;
+DROP POLICY IF EXISTS "Public read for public buckets" ON storage.objects;
+DROP POLICY IF EXISTS "Authenticated read for private buckets" ON storage.objects;
+DROP POLICY IF EXISTS "Authenticated users isolated upload" ON storage.objects;
+DROP POLICY IF EXISTS "Authenticated users isolated update" ON storage.objects;
+DROP POLICY IF EXISTS "Authenticated users isolated delete" ON storage.objects;
+
+-- Public read for product and machinery images
+CREATE POLICY "Public read for public buckets"
+  ON storage.objects FOR SELECT TO public
   USING (bucket_id IN ('product-images', 'machinery-images'));
 
-CREATE POLICY "Farmers upload images" ON storage.objects FOR INSERT TO authenticated
-  WITH CHECK (bucket_id IN ('product-images', 'disease-scans', 'machinery-images', 'kyc-docs'));
+-- Private read for disease-scans and kyc-docs (Strictly owner or admin)
+CREATE POLICY "Authenticated read for private buckets"
+  ON storage.objects FOR SELECT TO authenticated
+  USING (
+    bucket_id IN ('product-images', 'machinery-images')
+    OR (
+      bucket_id IN ('disease-scans', 'kyc-docs')
+      AND ((storage.foldername(name))[1] = auth.uid()::text OR public.is_admin())
+    )
+  );
 
+-- Upload policy: Users can only upload into a subfolder matching their own auth.uid()
+CREATE POLICY "Authenticated users isolated upload"
+  ON storage.objects FOR INSERT TO authenticated
+  WITH CHECK (
+    bucket_id IN ('product-images', 'disease-scans', 'machinery-images', 'kyc-docs')
+    AND (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+-- Update policy: Users can only modify objects in their own folder
+CREATE POLICY "Authenticated users isolated update"
+  ON storage.objects FOR UPDATE TO authenticated
+  USING (
+    (storage.foldername(name))[1] = auth.uid()::text OR public.is_admin()
+  )
+  WITH CHECK (
+    (storage.foldername(name))[1] = auth.uid()::text OR public.is_admin()
+  );
+
+-- Delete policy: Users can only delete objects in their own folder
+CREATE POLICY "Authenticated users isolated delete"
+  ON storage.objects FOR DELETE TO authenticated
+  USING (
+    (storage.foldername(name))[1] = auth.uid()::text OR public.is_admin()
+  );
