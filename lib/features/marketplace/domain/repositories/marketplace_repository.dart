@@ -54,5 +54,14 @@ abstract class MarketplaceRepository {
     required String status,
     required bool verifiedByAdmin,
   });
+
+  Future<Map<String, dynamic>> createRazorpayOrder({required String orderId});
+
+  Future<bool> verifyRazorpayPayment({
+    required String orderId,
+    required String razorpayOrderId,
+    required String razorpayPaymentId,
+    required String razorpaySignature,
+  });
 }
 

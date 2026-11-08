@@ -131,7 +131,26 @@ class CartController extends StateNotifier<CartState> {
       return null;
     }
   }
+
+  Future<Map<String, dynamic>> createRazorpayOrder(String orderId) async {
+    return _repository.createRazorpayOrder(orderId: orderId);
+  }
+
+  Future<bool> verifyPayment({
+    required String orderId,
+    required String razorpayOrderId,
+    required String razorpayPaymentId,
+    required String razorpaySignature,
+  }) async {
+    return _repository.verifyRazorpayPayment(
+      orderId: orderId,
+      razorpayOrderId: razorpayOrderId,
+      razorpayPaymentId: razorpayPaymentId,
+      razorpaySignature: razorpaySignature,
+    );
+  }
 }
+
 
 final cartControllerProvider = StateNotifierProvider<CartController, CartState>((ref) {
   final repo = ref.watch(marketplaceRepositoryProvider);

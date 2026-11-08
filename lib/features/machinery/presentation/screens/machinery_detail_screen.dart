@@ -332,7 +332,7 @@ class _MachineryDetailScreenState extends ConsumerState<MachineryDetailScreen> {
                   const SizedBox(height: 10.0),
                   _breakdownRow('दैनिक दर (₹${widget.machine.dailyRate.toInt()} × $_totalDays दिन)', '₹${_totalRent.toInt()}'),
                   const SizedBox(height: 6.0),
-                  _breakdownRow('वापसी योग्य जमानत राशि (Security Deposit)', '₹${widget.machine.securityDeposit.toInt()}'),
+                  _breakdownRow('जमानत रिकॉर्ड (Security Deposit Record)', '₹${widget.machine.securityDeposit.toInt()}'),
                   const Divider(height: 20.0, color: AppColors.wheat300),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -343,7 +343,7 @@ class _MachineryDetailScreenState extends ConsumerState<MachineryDetailScreen> {
                   ),
                   const SizedBox(height: 8.0),
                   const Text(
-                    '* जमानत राशि यंत्र सही सलामत लौटाने पर तुरंत आपके खाते में वापस कर दी जाएगी।',
+                    '* जमानत राशि एक प्रत्यक्ष सुरक्षा रिकॉर्ड है, जो यंत्र की सकुशल वापसी और मालिक द्वारा भौतिक निरीक्षण व सत्यापन के बाद लौटाई जाएगी (Refundable post-inspection by owner).',
                     style: TextStyle(fontSize: 11.0, color: AppColors.soil600),
                   ),
                 ],

@@ -172,7 +172,7 @@ def get_price_suggestion(
 ):
     """
     Calculates fair farmer direct-to-consumer pricing vs traditional APMC Mandi commission agent deductions.
-    Empowers farmers to price packs (10kg, 20kg, 50kg) transparently with 30-45% higher realization.
+    Provides data-driven estimate based on Agmarknet benchmark rates and APMC commission formulas.
     """
     crop_lower = crop.lower()
     
@@ -217,7 +217,9 @@ def get_price_suggestion(
             "pack_50kg_inr": pack_50kg,
         },
         "farmer_profit_increase_pct": farmer_profit_increase_pct,
-        "rationale_hindi": f"पारंपरिक मंडी में आढ़तिया व तुलाई कटौतियों के बाद आपको केवल ₹{traditional_net_received_per_kg}/kg मिलते। उपजो पर सीधे ग्राहक को ₹{suggested_direct_per_kg}/kg में बेचकर आप {farmer_profit_increase_pct}% अधिक मुनाफा कमाएंगे।",
+        "is_estimate": True,
+        "disclaimer": "अनुमानित दर: वास्तविक आय स्थानीय मांग, गुणवत्ता एवं परिवहन पर निर्भर करेगी (Estimated realization depends on local conditions)",
+        "rationale_hindi": f"पारंपरिक मंडी में आढ़तिया व तुलाई कटौतियों के बाद आपको अनुमानित ₹{traditional_net_received_per_kg}/kg मिलते। उपजो पर सीधे ग्राहक को ₹{suggested_direct_per_kg}/kg में बेचकर आप लगभग {farmer_profit_increase_pct}% अधिक मुनाफा (अनुमानित दर) प्राप्त कर सकते हैं।",
         "msp_benchmark_quintal": MSP_BENCHMARKS.get(crop_lower, 2275.0),
     }
 

@@ -675,9 +675,76 @@ CREATE TRIGGER trg_order_items_insertion
   BEFORE INSERT ON public.order_items
   FOR EACH ROW EXECUTE FUNCTION public.check_order_item_insertion();
 
+-- Atomic Stock Deduction with Row-Level Lock (FOR UPDATE)
+CREATE OR REPLACE FUNCTION public.deduct_order_stock(p_order_id UUID)
+RETURNS VOID AS $$
+DECLARE
+  v_item RECORD;
+  v_product RECORD;
+  v_needed_kg NUMERIC;
+BEGIN
+  -- Iterate through order items in product_id sorted order to avoid deadlocks
+  FOR v_item IN
+    SELECT product_id, pack_size_kg, quantity
+    FROM public.order_items
+    WHERE order_id = p_order_id
+    ORDER BY product_id
+  LOOP
+    v_needed_kg := (v_item.pack_size_kg * v_item.quantity)::NUMERIC;
+
+    -- Lock the product row FOR UPDATE to serialize concurrent orders
+    SELECT id, stock_kg INTO v_product
+    FROM public.products
+    WHERE id = v_item.product_id
+    FOR UPDATE;
+
+    IF NOT FOUND THEN
+      RAISE EXCEPTION 'Product % not found during stock deduction', v_item.product_id;
+    END IF;
+
+    IF v_product.stock_kg < v_needed_kg THEN
+      RAISE EXCEPTION 'Insufficient stock for product %: requested % kg, available % kg',
+        v_item.product_id, v_needed_kg, v_product.stock_kg;
+    END IF;
+
+    UPDATE public.products
+    SET stock_kg = stock_kg - v_needed_kg,
+        updated_at = NOW()
+    WHERE id = v_item.product_id;
+  END LOOP;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
+
+-- Restore Stock on Order Cancellation
+CREATE OR REPLACE FUNCTION public.restore_order_stock(p_order_id UUID)
+RETURNS VOID AS $$
+DECLARE
+  v_item RECORD;
+  v_needed_kg NUMERIC;
+BEGIN
+  FOR v_item IN
+    SELECT product_id, pack_size_kg, quantity
+    FROM public.order_items
+    WHERE order_id = p_order_id
+    ORDER BY product_id
+  LOOP
+    v_needed_kg := (v_item.pack_size_kg * v_item.quantity)::NUMERIC;
+    UPDATE public.products
+    SET stock_kg = stock_kg + v_needed_kg,
+        updated_at = NOW()
+    WHERE id = v_item.product_id;
+  END LOOP;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
+
 -- ------------------------------------------------------------------------------
 -- 23. SENSITIVE DATA VIEWS & DB CONSTRAINTS
 -- ------------------------------------------------------------------------------
+-- Unique index for idempotent payment deduplication (prevents replay attacks)
+CREATE UNIQUE INDEX IF NOT EXISTS idx_payments_razorpay_payment_id
+  ON public.payments(razorpay_payment_id)
+  WHERE razorpay_payment_id IS NOT NULL;
+
 -- Public farmer directory view (Sanitizes bank_account, IFSC, Aadhaar, KCC, and UPI VPAs)
 CREATE OR REPLACE VIEW public.public_farmer_profiles WITH (security_invoker = false) AS
   SELECT

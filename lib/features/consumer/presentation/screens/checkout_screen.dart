@@ -30,6 +30,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
   String _paymentMethod = 'upi_razorpay'; // 'upi_razorpay' or 'cod'
   late Razorpay _razorpay;
+  OrderModel? _pendingOrder;
   bool _isProcessing = false;
 
   @override
@@ -64,7 +65,48 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   }
 
   void _handlePaymentSuccess(PaymentSuccessResponse response) async {
-    _executeOrderCreation(paymentId: response.paymentId);
+    if (_pendingOrder == null) return;
+    setState(() => _isProcessing = true);
+
+    try {
+      // Cryptographically verify signature on server edge function
+      final isVerified = await ref.read(cartControllerProvider.notifier).verifyPayment(
+            orderId: _pendingOrder!.id,
+            razorpayOrderId: response.orderId ?? '',
+            razorpayPaymentId: response.paymentId ?? '',
+            razorpaySignature: response.signature ?? '',
+          );
+
+      if (mounted) {
+        setState(() => _isProcessing = false);
+        if (isVerified) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('भुगतान सत्यापित एवं ऑर्डर कन्फर्म! (Payment Verified & Confirmed)'),
+              backgroundColor: AppColors.primary500,
+            ),
+          );
+          context.go(RouteNames.orderDetail.replaceFirst(':id', _pendingOrder!.id), extra: _pendingOrder);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('भुगतान सत्यापन विफल: अमान्य हस्ताक्षर (Signature Verification Failed)'),
+              backgroundColor: AppColors.clay500,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isProcessing = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('भुगतान सत्यापन त्रुटि: $e'),
+            backgroundColor: AppColors.clay500,
+          ),
+        );
+      }
+    }
   }
 
   void _handlePaymentError(PaymentFailureResponse response) {
@@ -78,7 +120,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   }
 
   void _handleExternalWallet(ExternalWalletResponse response) {
-    _executeOrderCreation(paymentId: response.walletName);
+    setState(() => _isProcessing = false);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('वॉलेट चयन: ${response.walletName}')),
+    );
   }
 
   void _onPlaceOrder() async {
@@ -87,40 +132,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     final cartState = ref.read(cartControllerProvider);
     if (cartState.items.isEmpty) return;
 
-    if (_paymentMethod == 'upi_razorpay') {
-      setState(() => _isProcessing = true);
-      final totalInPaise = (cartState.total * 100).toInt();
-
-      var options = {
-        'key': EnvConfig.razorpayKeyId,
-        'amount': totalInPaise,
-        'name': 'उपजो (Upajo)',
-        'description': 'खेत से सीधी ताज़ी फसल का भुगतान',
-        'prefill': {
-          'contact': _phoneController.text.trim(),
-          'name': _nameController.text.trim(),
-        },
-        'external': {
-          'wallets': ['paytm']
-        }
-      };
-
-      try {
-        _razorpay.open(options);
-      } catch (e) {
-        // Fallback for emulator / direct checkout
-        _executeOrderCreation();
-      }
-    } else {
-      // Cash on Delivery
-      _executeOrderCreation();
-    }
-  }
-
-  void _executeOrderCreation({String? paymentId}) async {
-    setState(() => _isProcessing = true);
     final user = ref.read(authControllerProvider).userProfile;
     if (user == null) return;
+
+    setState(() => _isProcessing = true);
 
     final addressPayload = {
       'full_name': _nameController.text.trim(),
@@ -130,28 +145,66 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       'district': _districtController.text.trim(),
       'pin_code': _pinCodeController.text.trim(),
       'payment_method': _paymentMethod,
-      'payment_id': paymentId,
     };
 
+    // 1. Create order in pending_payment state
     final order = await ref.read(cartControllerProvider.notifier).placeOrder(
           consumerId: user.id,
           deliveryAddress: addressPayload,
         );
 
-    if (mounted) {
-      setState(() => _isProcessing = false);
-      if (order != null) {
+    if (order == null) {
+      if (mounted) {
+        setState(() => _isProcessing = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('ऑर्डर बनाने में त्रुटि हुई।')),
+        );
+      }
+      return;
+    }
+
+    _pendingOrder = order;
+
+    if (_paymentMethod == 'upi_razorpay') {
+      try {
+        // 2. Fetch server-computed Razorpay order amount from Edge Function
+        final rzpOrder = await ref.read(cartControllerProvider.notifier).createRazorpayOrder(order.id);
+
+        final options = {
+          'key': rzpOrder['key_id'] ?? EnvConfig.razorpayKeyId,
+          'amount': rzpOrder['amount'], // Authoritative server-calculated paise
+          'name': 'उपजो (Upajo)',
+          'description': 'खेत से सीधी ताज़ी फसल का भुगतान',
+          'order_id': rzpOrder['razorpay_order_id'],
+          'prefill': {
+            'contact': _phoneController.text.trim(),
+            'name': _nameController.text.trim(),
+          },
+        };
+
+        _razorpay.open(options);
+      } catch (e) {
+        if (mounted) {
+          setState(() => _isProcessing = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('भुगतान गेटवे त्रुटि: $e'),
+              backgroundColor: AppColors.clay500,
+            ),
+          );
+        }
+      }
+    } else {
+      // Cash on Delivery
+      if (mounted) {
+        setState(() => _isProcessing = false);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('बधाई! आपका ऑर्डर सफलतापूर्वक दर्ज हो गया है (Order Confirmed)'),
+            content: Text('बधाई! आपका सीओडी ऑर्डर दर्ज हो गया है (Order Confirmed - COD)'),
             backgroundColor: AppColors.primary500,
           ),
         );
         context.go(RouteNames.orderDetail.replaceFirst(':id', order.id), extra: order);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('ऑर्डर बनाने में त्रुटि हुई।')),
-        );
       }
     }
   }

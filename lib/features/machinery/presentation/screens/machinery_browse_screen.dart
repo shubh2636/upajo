@@ -299,7 +299,7 @@ class _MachineryBrowseScreenState extends ConsumerState<MachineryBrowseScreen> {
                           ],
                         ),
                         Text(
-                          'जमानत: ₹${machine.securityDeposit.toInt()} (वापसी योग्य)',
+                          'जमानत रिकॉर्ड: ₹${machine.securityDeposit.toInt()}',
                           style: const TextStyle(fontSize: 11.0, color: AppColors.wheat800, fontWeight: FontWeight.bold),
                         ),
                       ],

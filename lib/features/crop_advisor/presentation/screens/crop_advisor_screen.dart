@@ -505,7 +505,7 @@ class _CropAdvisorScreenState extends ConsumerState<CropAdvisorScreen> {
                     const Icon(Icons.verified_rounded, color: AppColors.primary600, size: 16.0),
                     const SizedBox(width: 4.0),
                     Text(
-                      '${(rec.confidenceScore * 100).toInt()}% ICAR वैज्ञानिक सटीकता',
+                      '${(rec.confidenceScore * 100).toInt()}% मॉडल अनुमान (Estimate)',
                       style: const TextStyle(color: AppColors.primary700, fontSize: 11.5, fontWeight: FontWeight.bold),
                     ),
                   ],

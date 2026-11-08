@@ -193,12 +193,12 @@ class _StoreCatalogScreenState extends ConsumerState<StoreCatalogScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '100% सरकारी व ICAR प्रमाणित इनपुट',
+                  'गुणवत्ता जांचे गए कृषि इनपुट (Quality Inspected Inputs)',
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5, color: AppColors.soil900),
                 ),
                 SizedBox(height: 2.0),
                 Text(
-                  'राष्ट्रीय बीज निगम (NSC) व IFFCO द्वारा सीधे लैब-परीक्षित शुद्ध बीज व बायो-उर्वरक। घर पर डिलीवरी उपलब्ध।',
+                  'विश्वसनीय ब्रांड्स से उच्च गुणवत्ता वाले बीज व बायो-उर्वरक। पारदर्शी मूल्य निर्धारण (अनुमानित दरें)।',
                   style: TextStyle(fontSize: 11.5, color: AppColors.soil700, height: 1.3),
                 ),
               ],

@@ -377,7 +377,7 @@ class _FarmerDashboardScreenState extends ConsumerState<FarmerDashboardScreen> {
                           ),
                           const SizedBox(height: 2.0),
                           const Text(
-                            '100% सरकारी प्रमाणित',
+                            'सत्यापित इनपुट भंडार',
                             style: TextStyle(fontSize: 11.0, color: AppColors.primary700, fontWeight: FontWeight.bold),
                           ),
                         ],

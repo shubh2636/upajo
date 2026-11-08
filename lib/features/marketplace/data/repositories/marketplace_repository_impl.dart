@@ -169,7 +169,7 @@ class MarketplaceRepositoryImpl implements MarketplaceRepository {
             'subtotal_amount': subtotalAmount,
             'delivery_fee': deliveryFee,
             'total_amount': totalAmount,
-            'status': 'confirmed',
+            'status': 'pending_payment',
           })
           .select()
           .single();
@@ -296,5 +296,50 @@ class MarketplaceRepositoryImpl implements MarketplaceRepository {
       throw ServerException('किसान सत्यापन में त्रुटि: $e');
     }
   }
+
+  @override
+  Future<Map<String, dynamic>> createRazorpayOrder({required String orderId}) async {
+    try {
+      final res = await _client.functions.invoke(
+        'create-razorpay-order',
+        body: {'order_id': orderId},
+      );
+      if (res.status != 200 || res.data == null) {
+        final err = res.data is Map ? res.data['error'] : 'Unknown error';
+        throw ServerException('भुगतान ऑर्डर बनाने में विफल: $err');
+      }
+      return Map<String, dynamic>.from(res.data as Map);
+    } catch (e) {
+      throw ServerException('सर्वर पेमेंट इनिशियलाइज़ेशन त्रुटि: $e');
+    }
+  }
+
+  @override
+  Future<bool> verifyRazorpayPayment({
+    required String orderId,
+    required String razorpayOrderId,
+    required String razorpayPaymentId,
+    required String razorpaySignature,
+  }) async {
+    try {
+      final res = await _client.functions.invoke(
+        'verify-razorpay-payment',
+        body: {
+          'order_id': orderId,
+          'razorpay_order_id': razorpayOrderId,
+          'razorpay_payment_id': razorpayPaymentId,
+          'razorpay_signature': razorpaySignature,
+        },
+      );
+      if (res.status != 200 || res.data == null || res.data['success'] != true) {
+        final err = res.data is Map ? res.data['error'] : 'Verification failed';
+        throw ServerException('भुगतान सत्यापन विफल: $err');
+      }
+      return true;
+    } catch (e) {
+      throw ServerException('भुगतान सत्यापन त्रुटि: $e');
+    }
+  }
 }
+
 
