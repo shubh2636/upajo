@@ -1,12 +1,12 @@
 services:
-  # Upajo FastAPI ML & AI Microservice on Render
+  # Upajo FastAPI ML & AI Microservice on Render (Production Paid Tier - Zero Spin-Down)
   - type: web
     name: upajo-ml-service
     env: python
-    region: singapore # Closest low-latency region to India
-    plan: free # Can be upgraded to starter/standard in production
+    region: singapore # Closest low-latency region to Central/North India (MP/UP/Maharashtra)
+    plan: starter # Paid tier ensures continuous 24x7 availability without cold start latency
     buildCommand: "pip install -r ml_service/requirements.txt"
-    startCommand: "cd ml_service && uvicorn main:app --host 0.0.0.0 --port $PORT"
+    startCommand: "cd ml_service && uvicorn main:app --host 0.0.0.0 --port $PORT --workers 2 --proxy-headers"
     healthCheckPath: /health
     autoDeploy: true
     envVars:
@@ -16,6 +16,11 @@ services:
         value: production
       - key: ML_SERVICE_API_KEY
         generateValue: true
-      - key: CLAUDE_API_KEY
+      - key: GEMINI_API_KEY
         sync: false # Set in Render Dashboard secrets
-
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: SUPABASE_JWT_SECRET
+        sync: false

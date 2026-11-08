@@ -1,11 +1,33 @@
+import os
+import math
+import logging
+from typing import Dict, Any, List, Optional
 from fastapi import APIRouter, HTTPException, Depends, status
 from pydantic import BaseModel, Field, ConfigDict
-from typing import Dict, Any, List, Optional
-import math
+import pandas as pd
+import numpy as np
 
 from security import verify_supabase_jwt_or_api_key
 
+logger = logging.getLogger("upajo.yield_prediction")
 router = APIRouter(prefix="/api/v1/analytics", tags=["Yield Prediction ML Service"])
+
+MODELS_DIR = os.path.join(os.path.dirname(__file__), "..", "training")
+YIELD_QUANTILE_PATH = os.path.join(MODELS_DIR, "yield_quantile_models.joblib")
+
+_QUANTILE_MODELS = None
+
+
+def _get_quantile_models():
+    global _QUANTILE_MODELS
+    if _QUANTILE_MODELS is None and os.path.exists(YIELD_QUANTILE_PATH):
+        try:
+            import joblib
+            _QUANTILE_MODELS = joblib.load(YIELD_QUANTILE_PATH)
+            logger.info("Loaded Quantile Yield Regression models for yield_prediction router.")
+        except Exception as e:
+            logger.error(f"Failed to load quantile yield models in yield_prediction: {e}")
+    return _QUANTILE_MODELS
 
 
 class YieldPredictionRequest(BaseModel):
@@ -69,8 +91,8 @@ def predict_crop_yield(
 ):
     """
     ML/Agronomic yield estimation engine for farmers.
-    Estimates total harvest yield in quintals, confidence intervals, gross revenue potential,
-    and localized advice to maximize harvest.
+    Estimates total harvest yield in quintals using 10th/50th/90th percentile Quantile Regression,
+    revenue potential, and agronomic management advice.
     """
     crop_key = "wheat"
     for k in BASELINES_PER_ACRE.keys():
@@ -103,13 +125,51 @@ def predict_crop_yield(
         fert_balance = min(req.fertilizer_n_kg_per_acre / 50.0, 1.15)
         fert_mult = 0.9 + (fert_balance * 0.15)
 
-    # Estimated yield per acre
+    # Estimated yield per acre (Agronomic baseline)
     yield_per_acre = round(base_yield * soil_mult * irrigation_mult * rain_mult * fert_mult, 1)
-    total_yield = round(yield_per_acre * req.land_area_acres, 1)
 
-    # 90% confidence interval (+/- 8%)
-    min_yield = round(total_yield * 0.92, 1)
-    max_yield = round(total_yield * 1.08, 1)
+    # Try quantile ML models for data-driven 10th-50th-90th percentiles
+    quantile_models = _get_quantile_models()
+    canonical_water = "tube_well"
+    if "rain" in req.irrigation_type.lower():
+        canonical_water = "rainfed"
+    elif "drip" in req.irrigation_type.lower() or "sprinkler" in req.irrigation_type.lower():
+        canonical_water = "drip_sprinkler"
+    elif "canal" in req.irrigation_type.lower():
+        canonical_water = "canal"
+
+    min_yield_per_acre = round(yield_per_acre * 0.85, 1)
+    median_yield_per_acre = yield_per_acre
+    max_yield_per_acre = round(yield_per_acre * 1.15, 1)
+    method_used = "agronomic_calibrated_baseline"
+
+    if quantile_models and "q_10" in quantile_models:
+        try:
+            feat = pd.DataFrame([{
+                "soil_n": req.fertilizer_n_kg_per_acre * 4.0,
+                "soil_p": req.fertilizer_p_kg_per_acre,
+                "soil_k": req.fertilizer_k_kg_per_acre * 10.0,
+                "soil_ph": 7.2,
+                "seasonal_rainfall_mm": req.rainfall_mm,
+                "mean_temperature_c": 24.0,
+                "soil_type": req.soil_type,
+                "water_source": canonical_water,
+            }])
+            q10 = float(quantile_models["q_10"].predict(feat)[0])
+            q50 = float(quantile_models["q_50"].predict(feat)[0])
+            q90 = float(quantile_models["q_90"].predict(feat)[0])
+            if q10 > 1.0 and q90 > q10:
+                min_yield_per_acre = round(q10, 1)
+                median_yield_per_acre = round(q50, 1)
+                max_yield_per_acre = round(q90, 1)
+                yield_per_acre = median_yield_per_acre
+                method_used = "quantile_gradient_boosting_regression"
+        except Exception as e:
+            logger.warning(f"Quantile model estimation fallback: {e}")
+
+    total_yield = round(yield_per_acre * req.land_area_acres, 1)
+    min_total = round(min_yield_per_acre * req.land_area_acres, 1)
+    max_total = round(max_yield_per_acre * req.land_area_acres, 1)
 
     district_avg = profile["district_avg_q_acre"]
     perf_pct = round(((yield_per_acre - district_avg) / district_avg) * 100, 1)
@@ -136,10 +196,17 @@ def predict_crop_yield(
         "land_area_acres": req.land_area_acres,
         "predicted_yield_per_acre_quintal": yield_per_acre,
         "total_predicted_yield_quintal": total_yield,
+        "quantile_bounds": {
+            "p10_adverse_weather_quintals": min_total,
+            "p50_median_expected_quintals": total_yield,
+            "p90_optimal_bumper_quintals": max_total,
+            "confidence_interval_coverage": "80% (10th to 90th percentile)",
+            "estimation_method": method_used,
+        },
         "confidence_interval": {
-            "min_quintals": min_yield,
-            "max_quintals": max_yield,
-            "confidence_level": "90%",
+            "min_quintals": min_total,
+            "max_quintals": max_total,
+            "confidence_level": "80% Quantile Bounds",
         },
         "district_benchmark_per_acre_quintal": district_avg,
         "performance_vs_district_avg_pct": perf_pct,

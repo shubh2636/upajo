@@ -29,5 +29,8 @@ class EnvConfig {
 
   static String get openMeteoBaseUrl =>
       dotenv.env['OPEN_METEO_BASE_URL'] ?? 'https://api.open-meteo.com/v1/forecast';
+
+  static String get mapTileUrl =>
+      dotenv.env['MAP_TILE_URL'] ?? 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 }
 

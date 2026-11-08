@@ -21,6 +21,7 @@ class MyProductsScreen extends ConsumerStatefulWidget {
 class _MyProductsScreenState extends ConsumerState<MyProductsScreen> {
   List<ProductModel> _products = [];
   bool _isLoading = true;
+  String? _updatingId;
 
   @override
   void initState() {
@@ -43,6 +44,78 @@ class _MyProductsScreenState extends ConsumerState<MyProductsScreen> {
     }
   }
 
+  Future<void> _toggleProductStatus(ProductModel product) async {
+    setState(() => _updatingId = product.id);
+    final repo = ref.read(marketplaceRepositoryProvider);
+    try {
+      final updated = product.copyWith(isActive: !product.isActive);
+      await repo.updateProduct(updated);
+      await _loadProducts();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              updated.isActive
+                  ? 'फसल बिक्री के लिए पुनः सक्रिय की गई (Product Resumed)'
+                  : 'फसल की बिक्री रोक दी गई है (Product Paused)',
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('त्रुटि: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _updatingId = null);
+    }
+  }
+
+  Future<void> _deleteProduct(ProductModel product) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('फसल हटाएं? (Delete Produce)'),
+        content: Text('क्या आप वाकई "${product.titleHi}" को अपनी सूची से हटाना चाहते हैं?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('रद्द करें'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.clay500),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('हटाएं', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    setState(() => _updatingId = product.id);
+    final repo = ref.read(marketplaceRepositoryProvider);
+    try {
+      await repo.deleteProduct(product.id);
+      await _loadProducts();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('फसल सफलतापूर्वक हटाई गई (Product Deleted)')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('हटाने में त्रुटि: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _updatingId = null);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -61,7 +134,7 @@ class _MyProductsScreenState extends ConsumerState<MyProductsScreen> {
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator(color: AppColors.primary500))
           : _products.isEmpty
               ? Center(
                   child: Padding(
@@ -93,49 +166,101 @@ class _MyProductsScreenState extends ConsumerState<MyProductsScreen> {
                   separatorBuilder: (_, __) => const SizedBox(height: 14.0),
                   itemBuilder: (context, index) {
                     final p = _products[index];
+                    final isUpdating = _updatingId == p.id;
+
                     return AppCard(
                       padding: const EdgeInsets.all(14.0),
-                      child: Row(
+                      child: Column(
                         children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(12.0),
-                            child: Image.network(
-                              p.images.isNotEmpty ? p.images.first : '',
-                              width: 80.0,
-                              height: 80.0,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => Container(
-                                width: 80.0,
-                                height: 80.0,
-                                color: AppColors.soil100,
-                                child: const Icon(Icons.grass_rounded, color: AppColors.soil400),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(12.0),
+                                child: Image.network(
+                                  p.images.isNotEmpty ? p.images.first : '',
+                                  width: 80.0,
+                                  height: 80.0,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => Container(
+                                    width: 80.0,
+                                    height: 80.0,
+                                    color: AppColors.soil100,
+                                    child: const Icon(Icons.grass_rounded, color: AppColors.soil400),
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
-                          const SizedBox(width: 14.0),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
+                              const SizedBox(width: 14.0),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Expanded(
-                                      child: Text(p.titleHi, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15.5)),
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            p.titleHi,
+                                            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15.5),
+                                          ),
+                                        ),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 3.0),
+                                          decoration: BoxDecoration(
+                                            color: p.isActive ? AppColors.primary100 : AppColors.soil200,
+                                            borderRadius: BorderRadius.circular(6.0),
+                                          ),
+                                          child: Text(
+                                            p.isActive ? 'सक्रिय' : 'रुकी हुई',
+                                            style: TextStyle(
+                                              fontSize: 11.0,
+                                              fontWeight: FontWeight.bold,
+                                              color: p.isActive ? AppColors.primary800 : AppColors.soil700,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                    if (p.isOrganic)
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 2.0),
-                                        decoration: BoxDecoration(color: AppColors.primary100, borderRadius: BorderRadius.circular(4.0)),
-                                        child: const Text('जैविक', style: TextStyle(fontSize: 10.0, fontWeight: FontWeight.bold, color: AppColors.primary800)),
-                                      ),
+                                    const SizedBox(height: 4.0),
+                                    Text('₹${p.pricePerKg.toStringAsFixed(0)} / किलो', style: AppTypography.priceMedium),
+                                    const SizedBox(height: 4.0),
+                                    Text(
+                                      'स्टॉक: ${p.stockKg} किग्रा • पैक: ${p.packSizesKg.join(', ')} kg',
+                                      style: const TextStyle(fontSize: 12.0, color: AppColors.soil600),
+                                    ),
                                   ],
                                 ),
-                                const SizedBox(height: 4.0),
-                                Text('₹${p.pricePerKg.toStringAsFixed(0)} / किलो', style: AppTypography.priceMedium),
-                                const SizedBox(height: 4.0),
-                                Text('स्टॉक: ${p.stockKg} किग्रा • पैक: ${p.packSizesKg.join(', ')} kg', style: const TextStyle(fontSize: 12.0, color: AppColors.soil600)),
-                              ],
-                            ),
+                              ),
+                            ],
+                          ),
+                          const Divider(height: 20.0),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              TextButton.icon(
+                                onPressed: isUpdating ? null : () => _toggleProductStatus(p),
+                                icon: Icon(
+                                  p.isActive ? Icons.pause_circle_outline_rounded : Icons.play_circle_outline_rounded,
+                                  size: 18.0,
+                                  color: p.isActive ? AppColors.wheat700 : AppColors.primary600,
+                                ),
+                                label: Text(
+                                  p.isActive ? 'रोकें (Pause)' : 'सक्रिय करें (Resume)',
+                                  style: TextStyle(
+                                    color: p.isActive ? AppColors.wheat700 : AppColors.primary600,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8.0),
+                              TextButton.icon(
+                                onPressed: isUpdating ? null : () => _deleteProduct(p),
+                                icon: const Icon(Icons.delete_outline_rounded, size: 18.0, color: AppColors.clay500),
+                                label: const Text(
+                                  'हटाएं (Delete)',
+                                  style: TextStyle(color: AppColors.clay500, fontWeight: FontWeight.w600),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -145,4 +270,3 @@ class _MyProductsScreenState extends ConsumerState<MyProductsScreen> {
     );
   }
 }
-

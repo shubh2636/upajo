@@ -39,7 +39,7 @@ jobs:
       - name: Install Python ML Dependencies
         run: |
           pip install --upgrade pip
-          pip install -r ml_service/requirements.txt
+          pip install -r ml_service/requirements.txt pytest httpx
 
       - name: Install Flutter Packages
         run: flutter pub get
@@ -48,7 +48,7 @@ jobs:
         run: flutter analyze
 
   # ==============================================================================
-  # 2. Automated Test Execution (36 Unit/Integration/RLS Tests)
+  # 2. Automated Test Execution (Flutter, Backend, ML, Admin Web)
   # ==============================================================================
   test_suite:
     name: Run Automated Tests
@@ -70,16 +70,36 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
       - name: Install Dependencies
         run: |
           flutter pub get
-          pip install -r ml_service/requirements.txt requests
+          pip install -r ml_service/requirements.txt requests pytest httpx
+          cd admin_web && npm install && cd ..
 
       - name: Run Flutter Unit & Widget Tests
         run: flutter test test/
 
-      - name: Run System, RLS & ML Microservice Tests
+      - name: Run Comprehensive System & Agronomy Tests
         run: python test_parts_0_to_2.py
+
+      - name: Run Backend Security Tests
+        run: python -m pytest test_step6_backend_security.py
+
+      - name: Run ML & Feedback Retraining Tests
+        run: python -m unittest test_step7_ml_and_feedback.py
+
+      - name: Run Database & RLS Security Validation
+        run: python supabase/tests/run_rls_security_validation.py
+
+      - name: Build Next.js Admin Web Portal
+        run: |
+          cd admin_web
+          npm run build
 
   # ==============================================================================
   # 3. Build Production Android App Bundle (.aab)
@@ -176,4 +196,3 @@ jobs:
           supabase functions deploy create-razorpay-order --project-ref $PROJECT_ID
           supabase functions deploy verify-razorpay-payment --project-ref $PROJECT_ID
           supabase functions deploy send-push-notification --project-ref $PROJECT_ID
-

@@ -89,7 +89,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                           decoration: BoxDecoration(color: AppColors.primary100, borderRadius: BorderRadius.circular(6.0)),
-                          child: const Text('100% जैविक (Organic)', style: TextStyle(color: AppColors.primary800, fontSize: 11.0, fontWeight: FontWeight.bold)),
+                          child: const Text('प्रमाणित जैविक (Certified Organic)', style: TextStyle(color: AppColors.primary800, fontSize: 11.0, fontWeight: FontWeight.bold)),
                         ),
                     ],
                   ),

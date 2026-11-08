@@ -144,6 +144,15 @@ class MarketplaceRepositoryImpl implements MarketplaceRepository {
   }
 
   @override
+  Future<void> deleteProduct(String productId) async {
+    try {
+      await _client.from('products').delete().eq('id', productId);
+    } catch (e) {
+      throw ServerException('उपज हटाने में त्रुटि: $e');
+    }
+  }
+
+  @override
   Future<OrderModel> createOrder({
     required String consumerId,
     required String farmerId,

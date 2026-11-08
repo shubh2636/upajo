@@ -128,13 +128,56 @@ class _FarmerEarningsScreenState extends ConsumerState<FarmerEarningsScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 4.0),
                     decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(8.0)),
-                    child: const Text('0% कमीशन — पूरा पैसा किसान के खाते में', style: TextStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.bold)),
+                    child: const Text('प्रारंभिक प्रचार अवधि: 0% प्लेटफ़ॉर्म शुल्क (0% Promotional Platform Fee)', style: TextStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),
             ),
 
             const SizedBox(height: 16.0),
+
+            // Honest Fee Breakdown Card
+            AppCard(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('पारदर्शी शुल्क विवरणी (Fee Breakdown)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5)),
+                  const SizedBox(height: 10.0),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('सकल बिक्री (Gross Sales):', style: TextStyle(color: AppColors.soil700, fontSize: 13.0)),
+                      Text('₹${_totalSettled.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.w700)),
+                    ],
+                  ),
+                  const SizedBox(height: 6.0),
+                  const Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('प्लेटफ़ॉर्म शुल्क (Platform Fee - Promo):', style: TextStyle(color: AppColors.soil700, fontSize: 13.0)),
+                      Text('₹0.00 (0%)', style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.primary600)),
+                    ],
+                  ),
+                  const SizedBox(height: 6.0),
+                  const Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('भुगतान गेटवे शुल्क (PG Charges):', style: TextStyle(color: AppColors.soil700, fontSize: 13.0)),
+                      Text('₹0.00 (उपजो द्वारा वहन)', style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.primary600)),
+                    ],
+                  ),
+                  const Divider(height: 16.0),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('शुद्ध किसान भुगतान (Net Payout):', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14.0)),
+                      Text('₹${_totalSettled.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.w900, color: AppColors.primary600, fontSize: 15.0)),
+                    ],
+                  ),
+                ],
+              ),
+            ),
 
             // Pending Settlement Card
             AppCard(

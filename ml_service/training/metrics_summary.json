@@ -1,0 +1,38 @@
+{
+  "evaluation_protocol": "Spatial Held-Out District Split (40 Train / 12 Held-Out MP Districts)",
+  "held_out_districts": [
+    "Hoshangabad",
+    "Harda",
+    "Mandsaur",
+    "Neemuch",
+    "Ratlam",
+    "Betul",
+    "Chhindwara",
+    "Rewa",
+    "Satna",
+    "Tikamgarh",
+    "Morena",
+    "Bhind"
+  ],
+  "models": {
+    "baseline_icar_engine": {
+      "accuracy": 0.6140350877192983,
+      "macro_f1": 0.2529591129867504
+    },
+    "gradient_boosting_champion": {
+      "accuracy": 0.8428213390619406,
+      "macro_f1": 0.6895009489738064,
+      "top3_accuracy": 0.9942713927676333
+    },
+    "simple_neural_net": {
+      "accuracy": 0.8141783029001074,
+      "macro_f1": 0.6859866328012094
+    }
+  },
+  "quantile_yield_regression": {
+    "coverage_10th_to_90th_pct": 0.7722878625134264,
+    "median_absolute_error_q_acre": 1.9072180080903607
+  },
+  "model_version": "v2.0.0-xgb-champion",
+  "training_date": "2026-02-15"
+}

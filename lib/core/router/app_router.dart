@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'route_names.dart';
+import '../../core/network/supabase_client.dart';
 import '../../features/auth/presentation/splash_screen.dart';
 import '../../features/auth/presentation/language_select_screen.dart';
+import '../../features/auth/presentation/screens/welcome_screen.dart';
+import '../../features/auth/presentation/screens/signup_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
+import '../../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../../features/auth/presentation/screens/verify_otp_screen.dart';
 import '../../features/auth/presentation/screens/role_selection_screen.dart';
 import '../../features/auth/presentation/screens/onboarding_screen.dart';
@@ -12,6 +16,7 @@ import '../../features/farmer/presentation/screens/add_product_screen.dart';
 import '../../features/farmer/presentation/screens/farmer_orders_screen.dart';
 import '../../features/farmer/presentation/screens/farmer_earnings_screen.dart';
 import '../../features/farmer/presentation/screens/my_products_screen.dart';
+import '../../features/farmer/presentation/screens/farmer_kyc_screen.dart';
 import '../../features/consumer/presentation/screens/consumer_home_screen.dart';
 import '../../features/consumer/presentation/screens/product_detail_screen.dart';
 import '../../features/consumer/presentation/screens/cart_screen.dart';
@@ -40,6 +45,26 @@ final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 final GoRouter appRouter = GoRouter(
   navigatorKey: rootNavigatorKey,
   initialLocation: RouteNames.splash,
+  redirect: (BuildContext context, GoRouterState state) {
+    final publicRoutes = [
+      RouteNames.splash,
+      RouteNames.languageSelect,
+      RouteNames.welcome,
+      RouteNames.login,
+      RouteNames.signup,
+      RouteNames.forgotPassword,
+      RouteNames.verifyOtp,
+    ];
+
+    final loc = state.matchedLocation;
+    final isAuth = SupabaseService.isAuthenticated;
+
+    // Protect non-public routes from unauthenticated access
+    if (!isAuth && !publicRoutes.contains(loc)) {
+      return RouteNames.welcome;
+    }
+    return null;
+  },
   routes: [
     GoRoute(
       path: RouteNames.splash,
@@ -50,8 +75,20 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) => const LanguageSelectScreen(),
     ),
     GoRoute(
+      path: RouteNames.welcome,
+      builder: (context, state) => const WelcomeScreen(),
+    ),
+    GoRoute(
+      path: RouteNames.signup,
+      builder: (context, state) => const SignupScreen(),
+    ),
+    GoRoute(
       path: RouteNames.login,
       builder: (context, state) => const LoginScreen(),
+    ),
+    GoRoute(
+      path: RouteNames.forgotPassword,
+      builder: (context, state) => const ForgotPasswordScreen(),
     ),
     GoRoute(
       path: RouteNames.verifyOtp,
@@ -63,6 +100,10 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: RouteNames.onboarding,
+      builder: (context, state) => const OnboardingScreen(),
+    ),
+    GoRoute(
+      path: RouteNames.completeProfile,
       builder: (context, state) => const OnboardingScreen(),
     ),
 
@@ -86,6 +127,10 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: RouteNames.myProducts,
       builder: (context, state) => const MyProductsScreen(),
+    ),
+    GoRoute(
+      path: RouteNames.farmerKyc,
+      builder: (context, state) => const FarmerKycScreen(),
     ),
 
     // Consumer Routes

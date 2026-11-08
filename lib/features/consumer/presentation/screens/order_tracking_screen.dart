@@ -6,7 +6,9 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_card.dart';
+import '../../../analytics/data/services/invoice_pdf_generator.dart';
 import '../../../marketplace/domain/models/order_model.dart';
+import '../../../marketplace/presentation/controllers/marketplace_controller.dart';
 import 'order_rating_sheet.dart';
 
 class OrderTrackingScreen extends ConsumerWidget {
@@ -127,8 +129,15 @@ class OrderTrackingScreen extends ConsumerWidget {
                   IconButton(
                     icon: const Icon(Icons.phone_rounded, color: AppColors.primary600),
                     onPressed: () {
+                      final phone = order.farmerPhone;
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('किसान से संपर्क: ${order.farmerPhone ?? '+91 9876543210'}')),
+                        SnackBar(
+                          content: Text(
+                            phone != null && phone.isNotEmpty
+                                ? 'किसान से संपर्क: +91 $phone'
+                                : 'किसान का फ़ोन नंबर उपलब्ध नहीं है',
+                          ),
+                        ),
                       );
                     },
                   ),
@@ -138,6 +147,41 @@ class OrderTrackingScreen extends ConsumerWidget {
 
             const SizedBox(height: 18.0),
 
+            // Download Invoice Button
+            OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 14.0),
+                side: const BorderSide(color: AppColors.primary400),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+              ),
+              icon: const Icon(Icons.picture_as_pdf_rounded, color: AppColors.primary600),
+              label: const Text(
+                'डिजिटल इनवॉइस डाउनलोड (GST Invoice)',
+                style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.primary700),
+              ),
+              onPressed: () {
+                InvoicePdfGenerator.printOrShareInvoice(
+                  invoiceNumber: order.orderNumber,
+                  farmerName: order.farmerName ?? 'सत्यापित किसान',
+                  farmerVillage: 'खेत स्थान',
+                  farmerDistrict: 'मध्य प्रदेश',
+                  farmerPhone: order.farmerPhone ?? '',
+                  buyerName: order.deliveryAddress['full_name'] as String? ?? 'ग्राहक',
+                  buyerAddress: order.deliveryAddress['address_line'] as String? ?? '',
+                  buyerPhone: order.deliveryAddress['phone'] as String? ?? '',
+                  cropName: 'कृषि उपज',
+                  variety: 'ग्रेड-ए मानक',
+                  packSizeKg: 10,
+                  quantityPacks: 1,
+                  pricePerKg: order.subtotalAmount > 0 ? (order.subtotalAmount / 10) : 35.0,
+                  deliveryFee: order.deliveryFee,
+                  paymentMode: order.paymentMethod,
+                );
+              },
+            ),
+
+            const SizedBox(height: 14.0),
+
             // Live OSM Delivery Tracking (Part 5)
             if (!isPickup) ...[
               AppButton(
@@ -145,6 +189,50 @@ class OrderTrackingScreen extends ConsumerWidget {
                 variant: ButtonVariant.primary,
                 onPressed: () => context.push(RouteNames.liveTracking, extra: order.id),
                 icon: const Icon(Icons.navigation_rounded, size: 20.0, color: Colors.white),
+              ),
+              const SizedBox(height: 12.0),
+            ],
+
+            // Cancel Order Button (Available only if placed or confirmed)
+            if (order.status == 'placed' || order.status == 'confirmed') ...[
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.clay500,
+                  side: const BorderSide(color: AppColors.clay300),
+                  padding: const EdgeInsets.symmetric(vertical: 12.0),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+                ),
+                onPressed: () async {
+                  final confirm = await showDialog<bool>(
+                    context: context,
+                    builder: (ctx) => AlertDialog(
+                      title: const Text('ऑर्डर रद्द करें? (Cancel Order)'),
+                      content: const Text('क्या आप वाकई इस ऑर्डर को रद्द करना चाहते हैं?'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(ctx, false),
+                          child: const Text('नहीं'),
+                        ),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(backgroundColor: AppColors.clay500),
+                          onPressed: () => Navigator.pop(ctx, true),
+                          child: const Text('हां, रद्द करें', style: TextStyle(color: Colors.white)),
+                        ),
+                      ],
+                    ),
+                  );
+                  if (confirm == true) {
+                    await ref.read(marketplaceRepositoryProvider).updateOrderStatus(order.id, 'cancelled');
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('ऑर्डर सफलतापूर्वक रद्द कर दिया गया')),
+                      );
+                      context.pop();
+                    }
+                  }
+                },
+                icon: const Icon(Icons.cancel_outlined, size: 20.0),
+                label: const Text('ऑर्डर रद्द करें (Cancel Order)', style: TextStyle(fontWeight: FontWeight.w700)),
               ),
               const SizedBox(height: 12.0),
             ],

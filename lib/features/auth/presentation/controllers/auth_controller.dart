@@ -22,6 +22,8 @@ class AuthState {
     this.selectedRole = 'farmer',
   });
 
+  bool get isAuthenticated => userProfile != null;
+
   AuthState copyWith({
     UserProfile? userProfile,
     bool? isLoading,
@@ -49,18 +51,56 @@ class AuthController extends StateNotifier<AuthState> {
   Future<void> checkCurrentSession() async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {
-      final profile = await _repository.getCurrentProfile();
+      final profile = await _repository.restoreSession();
       state = state.copyWith(userProfile: profile, isLoading: false);
-    } catch (e) {
+    } catch (_) {
       state = state.copyWith(isLoading: false);
     }
   }
 
   void setSelectedRole(String role) {
-    // Only 'farmer' or 'consumer' can be selected by end users.
-    // 'admin' role cannot be assigned through user role selection.
     if (role == 'farmer' || role == 'consumer') {
       state = state.copyWith(selectedRole: role);
+    }
+  }
+
+  Future<bool> signUpWithPassword({
+    required String fullName,
+    required String phone,
+    required String password,
+    required String role,
+  }) async {
+    state = state.copyWith(isLoading: true, errorMessage: null, pendingPhone: phone);
+    try {
+      final profile = await _repository.signUpWithPassword(
+        fullName: fullName,
+        phone: phone,
+        password: password,
+        role: role,
+      );
+      state = state.copyWith(userProfile: profile, isLoading: false);
+      return true;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, errorMessage: e.toString());
+      return false;
+    }
+  }
+
+  Future<bool> signInWithPassword({
+    required String phone,
+    required String password,
+  }) async {
+    state = state.copyWith(isLoading: true, errorMessage: null, pendingPhone: phone);
+    try {
+      final profile = await _repository.signInWithPassword(
+        phone: phone,
+        password: password,
+      );
+      state = state.copyWith(userProfile: profile, isLoading: false);
+      return true;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, errorMessage: e.toString());
+      return false;
     }
   }
 
@@ -85,11 +125,55 @@ class AuthController extends StateNotifier<AuthState> {
       final profile = await _repository.verifyOtp(phone: phone, token: token);
       if (profile != null) {
         state = state.copyWith(userProfile: profile, isLoading: false);
-        return true; // Existing profile
+        return true; // Profile exists
       } else {
         state = state.copyWith(isLoading: false);
-        return null; // Needs onboarding
+        return null; // Onboarding required
       }
+    } catch (e) {
+      state = state.copyWith(isLoading: false, errorMessage: e.toString());
+      return false;
+    }
+  }
+
+  Future<bool> resetPassword({
+    required String phone,
+    required String otpToken,
+    required String newPassword,
+  }) async {
+    state = state.copyWith(isLoading: true, errorMessage: null);
+    try {
+      await _repository.resetPasswordWithOtp(
+        phone: phone,
+        otpToken: otpToken,
+        newPassword: newPassword,
+      );
+      state = state.copyWith(isLoading: false);
+      return true;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, errorMessage: e.toString());
+      return false;
+    }
+  }
+
+  Future<bool> completeProfileDetails({
+    required String villageOrCity,
+    required String district,
+    required String stateName,
+    required String pinCode,
+  }) async {
+    state = state.copyWith(isLoading: true, errorMessage: null);
+    try {
+      await _repository.completeProfile(
+        villageOrCity: villageOrCity,
+        district: district,
+        state: stateName,
+        pinCode: pinCode,
+      );
+      // Refresh current profile
+      final updated = await _repository.getCurrentProfile();
+      state = state.copyWith(userProfile: updated, isLoading: false);
+      return true;
     } catch (e) {
       state = state.copyWith(isLoading: false, errorMessage: e.toString());
       return false;
@@ -147,10 +231,14 @@ class AuthController extends StateNotifier<AuthState> {
     await _repository.signOut();
     state = const AuthState();
   }
+
+  Future<void> signOutAllDevices() async {
+    await _repository.signOutAllDevices();
+    state = const AuthState();
+  }
 }
 
 final authControllerProvider = StateNotifierProvider<AuthController, AuthState>((ref) {
   final repo = ref.watch(authRepositoryProvider);
   return AuthController(repo);
 });
-

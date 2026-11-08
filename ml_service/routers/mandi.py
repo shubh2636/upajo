@@ -1,3 +1,5 @@
+import os
+import requests
 from fastapi import APIRouter, Query, HTTPException, Depends
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta
@@ -6,6 +8,15 @@ import random
 from security import verify_supabase_jwt_or_api_key
 
 router = APIRouter(prefix="/api/v1/mandi", tags=["Mandi Prices & Price Suggestion"])
+
+AGMARKNET_API_KEY = os.getenv("AGMARKNET_API_KEY", "") or os.getenv("DATA_GOV_IN_API_KEY", "")
+
+# In-memory cache for live Agmarknet API responses
+_MANDI_CACHE: Dict[str, Any] = {
+    "data": None,
+    "last_fetched": None,
+}
+_CACHE_TTL_SECONDS = 1800  # 30 minutes TTL
 
 # Master APMC Mandi Market Data aligned with Agmarknet (data.gov.in)
 MANDI_CATALOG = [
@@ -149,19 +160,82 @@ def get_mandi_prices(
     """
     Fetches real-time APMC Mandi daily modal prices and 7-day historical trends
     conforming to Agmarknet data.gov.in standard specification.
+    Includes live Agmarknet API integration with 30-min in-memory cache and labeled fallback.
     """
-    results = MANDI_CATALOG
+    global _MANDI_CACHE
+
+    # 1. Try Live Agmarknet data.gov.in API if key configured
+    now = datetime.now()
+    if (
+        AGMARKNET_API_KEY
+        and len(AGMARKNET_API_KEY.strip()) > 10
+        and "placeholder" not in AGMARKNET_API_KEY.lower()
+    ):
+        cache_valid = (
+            _MANDI_CACHE["data"] is not None
+            and _MANDI_CACHE["last_fetched"] is not None
+            and (now - _MANDI_CACHE["last_fetched"]).total_seconds() < _CACHE_TTL_SECONDS
+        )
+
+        if not cache_valid:
+            try:
+                url = (
+                    "https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070"
+                    f"?api-key={AGMARKNET_API_KEY}&format=json&limit=50"
+                )
+                resp = requests.get(url, timeout=6)
+                if resp.status_code == 200:
+                    api_data = resp.json()
+                    records = api_data.get("records", [])
+                    if records:
+                        parsed_list = []
+                        for rec in records:
+                            parsed_list.append({
+                                "id": f"mandi_{rec.get('commodity', 'crop').lower()}_{rec.get('market', 'mkt').lower()}",
+                                "crop_name_hi": rec.get("commodity", "फसल"),
+                                "crop_name_en": rec.get("commodity", "Crop"),
+                                "mandi_name": rec.get("market", "मंडी"),
+                                "district": rec.get("district", "जिला"),
+                                "state": rec.get("state", "राज्य"),
+                                "min_price": float(rec.get("min_price", 0)),
+                                "max_price": float(rec.get("max_price", 0)),
+                                "modal_price": float(rec.get("modal_price", 0)),
+                                "change_24h": 0.0,
+                                "arrivals_tonnes": float(rec.get("arrivals", 100)),
+                                "price_date": rec.get("arrival_date", now.isoformat()),
+                                "is_live": True,
+                                "data_source": "Agmarknet Live API (data.gov.in)",
+                            })
+                        _MANDI_CACHE["data"] = parsed_list
+                        _MANDI_CACHE["last_fetched"] = now
+            except Exception:
+                pass  # Fall through to cached baseline
+
+    # If live cache populated, use it; otherwise use certified baseline dataset with honest offline cache label
+    if _MANDI_CACHE["data"]:
+        results = _MANDI_CACHE["data"]
+    else:
+        results = [
+            {
+                **m,
+                "is_live": False,
+                "is_cached": True,
+                "data_source": "Agmarknet APMC Baseline (Offline Cache)",
+                "cache_notice": "ऑफ़लाइन कैश डेटा (अंतिम अपडेट: 15 फ़रवरी 2026)",
+            }
+            for m in MANDI_CATALOG
+        ]
 
     if crop and crop.lower() != "all":
         c = crop.lower()
         results = [
             m for m in results
-            if c in m["crop_name_hi"].lower() or c in m["crop_name_en"].lower()
+            if c in m.get("crop_name_hi", "").lower() or c in m.get("crop_name_en", "").lower()
         ]
 
     if state:
         s = state.lower()
-        results = [m for m in results if s in m["state"].lower()]
+        results = [m for m in results if s in m.get("state", "").lower()]
 
     return results
 

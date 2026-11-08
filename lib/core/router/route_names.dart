@@ -3,10 +3,14 @@ class RouteNames {
 
   static const String splash = '/';
   static const String languageSelect = '/language-select';
+  static const String welcome = '/welcome';
+  static const String signup = '/signup';
   static const String login = '/login';
+  static const String forgotPassword = '/forgot-password';
   static const String verifyOtp = '/verify-otp';
   static const String roleSelect = '/role-select';
   static const String onboarding = '/onboarding';
+  static const String completeProfile = '/complete-profile';
 
   // Farmer Shell & Pages
   static const String farmerDashboard = '/farmer';
@@ -14,6 +18,7 @@ class RouteNames {
   static const String farmerOrders = '/farmer/orders';
   static const String farmerEarnings = '/farmer/earnings';
   static const String myProducts = '/farmer/my-products';
+  static const String farmerKyc = '/farmer/kyc';
 
   // Consumer Shell & Pages
   static const String consumerHome = '/consumer';

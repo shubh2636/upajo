@@ -119,22 +119,37 @@ class _FarmerDashboardScreenState extends ConsumerState<FarmerDashboardScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 4.0),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(12.0),
-                          ),
-                          child: const Text(
-                            '🌾 सत्यापित किसान साथी',
-                            style: TextStyle(
-                              fontSize: 12.0,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.wheat200,
+                        InkWell(
+                          onTap: () => context.push(RouteNames.farmerKyc),
+                          borderRadius: BorderRadius.circular(12.0),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 4.0),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(12.0),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  user?.kycStatus == 'verified' || user?.kycStatus == 'approved'
+                                      ? '🌾 सत्यापित किसान (KYC Verified)'
+                                      : user?.kycStatus == 'pending'
+                                          ? '⏳ KYC सत्यापन प्रक्रिया में'
+                                          : '⚠️ KYC पूर्ण करें',
+                                  style: const TextStyle(
+                                    fontSize: 12.0,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.wheat200,
+                                  ),
+                                ),
+                                const SizedBox(width: 4.0),
+                                const Icon(Icons.arrow_forward_ios_rounded, size: 10.0, color: Colors.white),
+                              ],
                             ),
                           ),
                         ),
-                        if (user?.verifiedByAdmin == true)
+                        if (user?.verifiedByAdmin == true || user?.kycStatus == 'verified')
                           const Icon(Icons.verified_rounded, color: AppColors.wheat300, size: 22.0),
                       ],
                     ),
@@ -547,7 +562,7 @@ class _FarmerDashboardScreenState extends ConsumerState<FarmerDashboardScreen> {
                           ],
                         ),
                         Text('₹${totalEarnings.toStringAsFixed(0)}', style: AppTypography.headlineMedium.copyWith(color: AppColors.primary700)),
-                        const Text('0% कमीशन — पूरा हक', style: TextStyle(fontSize: 11.0, color: AppColors.primary700, fontWeight: FontWeight.bold)),
+                        const Text('सीधे बैंक खाते में भुगतान', style: TextStyle(fontSize: 11.0, color: AppColors.primary700, fontWeight: FontWeight.bold)),
                       ],
                     ),
                   ),

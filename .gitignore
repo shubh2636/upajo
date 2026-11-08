@@ -75,3 +75,22 @@ firebase-adminsdk*.json
 # ML models large weights
 ml_service/*.onnx
 ml_service/*.h5
+
+# Node / Next.js
+node_modules/
+**/node_modules/
+.next/
+**/.next/
+out/
+**/out/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python / Pytest cache
+__pycache__/
+**/__pycache__/
+*.pyc
+.pytest_cache/
+**/.pytest_cache/
+

@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -21,11 +23,33 @@ class VerifyOtpScreen extends ConsumerStatefulWidget {
 class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
   final _otpController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  int _cooldownSeconds = 60;
+  Timer? _cooldownTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startCooldown();
+  }
 
   @override
   void dispose() {
     _otpController.dispose();
+    _cooldownTimer?.cancel();
     super.dispose();
+  }
+
+  void _startCooldown() {
+    setState(() => _cooldownSeconds = 60);
+    _cooldownTimer?.cancel();
+    _cooldownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_cooldownSeconds <= 1) {
+        timer.cancel();
+        if (mounted) setState(() => _cooldownSeconds = 0);
+      } else {
+        if (mounted) setState(() => _cooldownSeconds--);
+      }
+    });
   }
 
   void _onVerify() async {
@@ -37,17 +61,18 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
     if (!mounted) return;
 
     if (result == true) {
-      // Existing user profile found
       final profile = ref.read(authControllerProvider).userProfile;
-      if (profile?.isFarmer == true) {
+      if (profile == null || (profile.villageOrCity.isEmpty && profile.district.isEmpty)) {
+        context.go(RouteNames.onboarding);
+      } else if (profile.isFarmer) {
         context.go(RouteNames.farmerDashboard);
-      } else if (profile?.isAdmin == true) {
+      } else if (profile.isAdmin) {
         context.go(RouteNames.admin);
       } else {
         context.go(RouteNames.consumerHome);
       }
     } else if (result == null) {
-      // New user -> Role Selection
+      // New user without role selected
       context.go(RouteNames.roleSelect);
     } else {
       final err = ref.read(authControllerProvider).errorMessage;
@@ -60,10 +85,44 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
     }
   }
 
+  void _onResendOtp() async {
+    final phone = ref.read(authControllerProvider).pendingPhone;
+    if (phone == null || phone.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('मोबाइल नंबर उपलब्ध नहीं है, कृपया दोबारा लॉगिन करें'),
+          backgroundColor: AppColors.clay500,
+        ),
+      );
+      return;
+    }
+
+    final success = await ref.read(authControllerProvider.notifier).sendOtp(phone);
+    if (!mounted) return;
+
+    if (success) {
+      _startCooldown();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('नया ओटीपी सफलतापूर्वक भेजा गया (OTP Resent)'),
+          backgroundColor: AppColors.primary600,
+        ),
+      );
+    } else {
+      final err = ref.read(authControllerProvider).errorMessage;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(err ?? 'ओटीपी पुनः भेजने में त्रुटि हुई'),
+          backgroundColor: AppColors.clay500,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authControllerProvider);
-    final phone = authState.pendingPhone ?? '9876543210';
+    final phone = authState.pendingPhone ?? '';
 
     return Scaffold(
       backgroundColor: AppColors.soil50,
@@ -110,15 +169,17 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
                 ),
                 const SizedBox(height: 6.0),
                 Text(
-                  '${'auth.otp_subtitle'.tr()} +91 $phone',
+                  phone.isNotEmpty
+                      ? '${'auth.otp_subtitle'.tr()} +91 $phone'
+                      : 'auth.otp_subtitle'.tr(),
                   style: AppTypography.bodyMedium,
                   textAlign: TextAlign.center,
                 ),
 
                 const SizedBox(height: 24.0),
 
-                // Development test badge (omitted in production builds)
-                if (AuthRepositoryImpl.allowDemoAuth) ...[
+                // Non-production test banner (strictly disabled in release mode)
+                if (kDebugMode && AuthRepositoryImpl.allowDemoAuth) ...[
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 8.0),
                     decoration: BoxDecoration(
@@ -130,9 +191,9 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text(
-                          'डेमो टेस्ट कोड (Demo Code): 123456',
+                          'डेवलपमेंट टेस्ट कोड: 123456 (Debug Only)',
                           style: TextStyle(
-                            fontSize: 12.5,
+                            fontSize: 12.0,
                             fontWeight: FontWeight.w700,
                             color: AppColors.primary700,
                           ),
@@ -157,6 +218,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
                     children: [
                       AppTextField(
                         controller: _otpController,
+                        label: '6 अंकों का ओटीपी (6-Digit OTP)',
                         hintText: '• • • • • •',
                         keyboardType: TextInputType.number,
                         validator: (value) {
@@ -182,20 +244,33 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
 
                 Center(
                   child: TextButton.icon(
-                    onPressed: () {
-                      ref.read(authControllerProvider.notifier).sendOtp(phone);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('नया ओटीपी भेजा गया (OTP Resent)')),
-                      );
-                    },
+                    onPressed: _cooldownSeconds > 0 ? null : _onResendOtp,
                     icon: const Icon(Icons.refresh_rounded, size: 20.0, color: AppColors.primary500),
                     label: Text(
-                      'auth.resend_otp'.tr(),
+                      _cooldownSeconds > 0
+                          ? 'पुनः ओटीपी भेजें (${_cooldownSeconds}s)'
+                          : 'auth.resend_otp'.tr(),
                       style: AppTypography.buttonMedium.copyWith(
-                        color: AppColors.primary500,
+                        color: _cooldownSeconds > 0 ? AppColors.soil400 : AppColors.primary500,
                       ),
                     ),
                   ),
+                ),
+
+                const SizedBox(height: 16.0),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.security_rounded, size: 16.0, color: AppColors.primary500),
+                    const SizedBox(width: 6.0),
+                    Text(
+                      'अधिकतम 5 प्रयास • 15 मिनट सुरक्षा लॉक',
+                      style: AppTypography.bodySmall.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.soil600,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -205,4 +280,3 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
     );
   }
 }
-

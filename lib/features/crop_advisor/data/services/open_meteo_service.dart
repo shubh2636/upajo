@@ -151,6 +151,13 @@ class OpenMeteoService {
       ],
       alerts: const [
         FarmingAlert(
+          titleHi: 'मौसम सेवा अस्थायी रूप से ऑफ़लाइन है (Offline Forecast)',
+          titleEn: 'Weather Service Temporarily Offline',
+          severity: 'low',
+          recommendationHi: 'यह अंतिम सहेजा गया अनुमान है। लाइव मौसम व उपग्रह अलर्ट इंटरनेट कनेक्ट होते ही स्वतः लोड होंगे।',
+          recommendationEn: 'Displaying cached baseline forecast. Live satellite weather updates will resume when online.',
+        ),
+        FarmingAlert(
           titleHi: 'मौसम अनुकूल: छिड़काव के लिए उपयुक्त',
           titleEn: 'Favorable Weather',
           severity: 'low',

@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 import '../../domain/models/delivery_tracking_model.dart';
 import '../../domain/services/delivery_partner_adapter.dart';
@@ -43,8 +44,9 @@ class ManualSelfDeliveryAdapter implements DeliveryPartnerAdapter {
 
   @override
   Future<DeliveryTrackingModel> getLiveTracking(String trackingNumber) async {
-    // Simulates realistic continuous vehicle motion along Sehore -> Bhopal highway corridor
-    final randomOffset = (Random().nextDouble() - 0.5) * 0.005;
+    // Only in non-release / debug modes allow test simulated offset.
+    // In production flavor (kReleaseMode), simulated GPS motion is strictly disabled.
+    final randomOffset = (!kReleaseMode && kDebugMode) ? (Random().nextDouble() - 0.5) * 0.005 : 0.0;
     return DeliveryTrackingModel(
       id: 'active_tracking',
       orderId: 'order_current',

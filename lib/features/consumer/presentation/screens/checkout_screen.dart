@@ -10,6 +10,7 @@ import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/app_text_field.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
+import '../../../marketplace/domain/models/order_model.dart';
 import '../../../marketplace/presentation/controllers/cart_controller.dart';
 
 class CheckoutScreen extends ConsumerStatefulWidget {

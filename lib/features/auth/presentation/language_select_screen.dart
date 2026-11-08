@@ -211,7 +211,7 @@ class _LanguageSelectScreenState extends State<LanguageSelectScreen> {
               AppButton(
                 label: 'common.continue'.tr(),
                 onPressed: () {
-                  context.go(RouteNames.login);
+                  context.go(RouteNames.welcome);
                 },
                 icon: const Icon(Icons.arrow_forward_rounded, size: 22.0),
               ),

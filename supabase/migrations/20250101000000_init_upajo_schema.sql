@@ -479,16 +479,25 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
 
--- Anti-Privilege Escalation Trigger on Profiles
+-- Anti-Privilege Escalation Trigger on Profiles (Guards both INSERT and UPDATE)
 CREATE OR REPLACE FUNCTION public.protect_profile_privileges()
 RETURNS TRIGGER AS $$
 BEGIN
-  -- Prevent privilege escalation on role, verified_by_admin, and kyc_status unless performed by admin
-  IF (NEW.role IS DISTINCT FROM OLD.role OR
-      NEW.kyc_status IS DISTINCT FROM OLD.kyc_status OR
-      NEW.verified_by_admin IS DISTINCT FROM OLD.verified_by_admin) THEN
+  IF TG_OP = 'INSERT' THEN
+    IF NEW.role = 'admin' AND NOT public.is_admin() THEN
+      RAISE EXCEPTION 'Privilege escalation rejected: users cannot assign themselves the admin role.';
+    END IF;
     IF NOT public.is_admin() THEN
-      RAISE EXCEPTION 'Privilege escalation rejected: only admins can alter role, kyc_status, or verification flags.';
+      NEW.verified_by_admin := FALSE;
+      NEW.kyc_status := 'pending';
+    END IF;
+  ELSIF TG_OP = 'UPDATE' THEN
+    IF (NEW.role IS DISTINCT FROM OLD.role OR
+        NEW.kyc_status IS DISTINCT FROM OLD.kyc_status OR
+        NEW.verified_by_admin IS DISTINCT FROM OLD.verified_by_admin) THEN
+      IF NOT public.is_admin() THEN
+        RAISE EXCEPTION 'Privilege escalation rejected: only admins can alter role, kyc_status, or verification flags.';
+      END IF;
     END IF;
   END IF;
   RETURN NEW;
@@ -497,7 +506,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
 
 DROP TRIGGER IF EXISTS trg_protect_profile_privileges ON public.profiles;
 CREATE TRIGGER trg_protect_profile_privileges
-  BEFORE UPDATE ON public.profiles
+  BEFORE INSERT OR UPDATE ON public.profiles
   FOR EACH ROW EXECUTE FUNCTION public.protect_profile_privileges();
 
 -- Anti-Tampering & State Machine Trigger on Orders

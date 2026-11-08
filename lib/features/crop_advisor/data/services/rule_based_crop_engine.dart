@@ -60,7 +60,7 @@ class RuleBasedCropEngine {
       expectedYieldMaxQuintal: maxPerAcre,
       totalExpectedYieldQuintal: double.parse(totalExpected.toStringAsFixed(1)),
       confidenceScore: 0.94,
-      summaryHi: 'काली गहरी मिट्टी एवं 3-4 सिंचाई के लिए शरबती गेहूं सबसे अधिक लाभकारी है। बाजार में इसके दाने की चमक और मिठास के कारण 20-30% अधिक मूल्य मिलता है।',
+      summaryHi: 'काली गहरी मिट्टी एवं 3-4 सिंचाई के लिए शरबती गेहूं अत्यधिक उपयुक्त है। बाजार में इसके दाने की चमक और मिठास के कारण गुणवत्ता आधारित प्रीमियम दर प्राप्त हो सकती है।',
       calendarSchedule: [
         CropCalendarTask(
           id: _uuid.v4(),

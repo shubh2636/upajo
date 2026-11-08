@@ -21,6 +21,8 @@ abstract class MarketplaceRepository {
 
   Future<ProductModel> updateProduct(ProductModel product);
 
+  Future<void> deleteProduct(String productId);
+
   Future<OrderModel> createOrder({
     required String consumerId,
     required String farmerId,

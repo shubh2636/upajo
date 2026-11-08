@@ -341,7 +341,7 @@ class _ProductCard extends StatelessWidget {
                       children: [
                         Icon(Icons.eco_rounded, size: 14.0, color: Colors.white),
                         SizedBox(width: 4.0),
-                        Text('100% जैविक', style: TextStyle(color: Colors.white, fontSize: 11.0, fontWeight: FontWeight.bold)),
+                        Text('प्रमाणित जैविक', style: TextStyle(color: Colors.white, fontSize: 11.0, fontWeight: FontWeight.bold)),
                       ],
                     ),
                   ),

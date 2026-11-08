@@ -1,0 +1,13 @@
+{
+  "name": "upajo-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Upajo (उपजो) - Direct Farmer-to-Consumer Agricultural Platform",
+  "scripts": {
+    "build:admin": "npm --prefix admin_web run build",
+    "dev:admin": "npm --prefix admin_web run dev",
+    "lint:admin": "npm --prefix admin_web run lint",
+    "start:admin": "npm --prefix admin_web run start"
+  }
+}
+

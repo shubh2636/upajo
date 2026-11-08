@@ -135,7 +135,7 @@ class _FarmerAnalyticsScreenState extends ConsumerState<FarmerAnalyticsScreen> {
               const Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('कुल शुद्ध कमाई (0% कमीशन)', style: TextStyle(color: AppColors.wheat200, fontSize: 13.0, fontWeight: FontWeight.bold)),
+                  Text('कुल शुद्ध किसान भुगतान (Net Payout)', style: TextStyle(color: AppColors.wheat200, fontSize: 13.0, fontWeight: FontWeight.bold)),
                   Icon(Icons.verified_rounded, color: AppColors.wheat400, size: 20.0),
                 ],
               ),

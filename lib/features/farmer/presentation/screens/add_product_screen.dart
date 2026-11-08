@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:easy_localization/easy_localization.dart';
+import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_button.dart';
@@ -73,6 +74,44 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
     final user = ref.read(authControllerProvider).userProfile;
     if (user == null) return;
 
+    if (user.kycStatus != 'verified' && user.kycStatus != 'approved') {
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
+          title: const Row(
+            children: [
+              Icon(Icons.shield_outlined, color: AppColors.clay500),
+              SizedBox(width: 8.0),
+              Text('KYC सत्यापन आवश्यक है', style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          content: const Text(
+            'फसल प्रकाशित करने से पहले किसान KYC (पहचान पत्र व बैंक विवरण) पूर्ण होना अनिवार्य है ताकि खरीदारों को सत्यापित उपज मिल सके।',
+            style: TextStyle(fontSize: 13.5),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('बाद में'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary600,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+              ),
+              onPressed: () {
+                Navigator.pop(ctx);
+                context.push(RouteNames.farmerKyc);
+              },
+              child: const Text('KYC पूर्ण करें', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
     setState(() => _isSubmitting = true);
 
     try {
@@ -129,6 +168,9 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final user = ref.watch(authControllerProvider).userProfile;
+    final isKycVerified = user?.kycStatus == 'verified' || user?.kycStatus == 'approved';
+
     return Scaffold(
       backgroundColor: AppColors.soil50,
       appBar: AppBar(
@@ -142,6 +184,37 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              if (!isKycVerified) ...[
+                Container(
+                  padding: const EdgeInsets.all(14.0),
+                  decoration: BoxDecoration(
+                    color: AppColors.wheat100,
+                    borderRadius: BorderRadius.circular(12.0),
+                    border: Border.all(color: AppColors.wheat400),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.info_outline_rounded, color: AppColors.wheat800),
+                      const SizedBox(width: 10.0),
+                      Expanded(
+                        child: Text(
+                          'फसल प्रकाशित करने के लिए आपका KYC सत्यापन आवश्यक है।',
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.wheat900,
+                          ),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () => context.push(RouteNames.farmerKyc),
+                        child: const Text('सत्यापित करें', style: TextStyle(fontWeight: FontWeight.bold)),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16.0),
+              ],
               // Photo Upload Card
               AppCard(
                 padding: const EdgeInsets.all(16.0),
