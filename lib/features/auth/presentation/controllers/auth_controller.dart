@@ -57,7 +57,11 @@ class AuthController extends StateNotifier<AuthState> {
   }
 
   void setSelectedRole(String role) {
-    state = state.copyWith(selectedRole: role);
+    // Only 'farmer' or 'consumer' can be selected by end users.
+    // 'admin' role cannot be assigned through user role selection.
+    if (role == 'farmer' || role == 'consumer') {
+      state = state.copyWith(selectedRole: role);
+    }
   }
 
   Future<bool> sendOtp(String phone) async {

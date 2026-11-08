@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/models/user_profile.dart';
 import '../../domain/repositories/auth_repository.dart';
@@ -6,6 +7,18 @@ import '../../../../core/network/supabase_client.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final SupabaseClient _client;
+
+  /// Demo auth is STRICTLY disabled in release builds (impossible to enable in prod)
+  static const bool allowDemoAuth =
+      !kReleaseMode && bool.fromEnvironment('ALLOW_DEMO_AUTH', defaultValue: true);
+
+  // Rate Limiting & Lockout Parameters
+  static DateTime? _lastOtpRequestTime;
+  static int _failedOtpAttempts = 0;
+  static DateTime? _lockoutUntil;
+  static const int maxFailedAttempts = 5;
+  static const Duration lockoutDuration = Duration(minutes: 15);
+  static const Duration otpResendCooldown = Duration(seconds: 60);
 
   AuthRepositoryImpl({SupabaseClient? client})
       : _client = client ?? SupabaseService.client;
@@ -22,17 +35,41 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<void> sendOtp(String phone) async {
+    final now = DateTime.now();
+
+    // Check brute-force lockout
+    if (_lockoutUntil != null && now.isBefore(_lockoutUntil!)) {
+      final remainingMins = _lockoutUntil!.difference(now).inMinutes + 1;
+      throw ServerException(
+        'सुरक्षा कारणों से ओटीपी अनुरोध लॉक है। कृपया $remainingMins मिनट बाद पुनः प्रयास करें। (Account temporarily locked. Please wait $remainingMins minutes.)',
+      );
+    }
+
+    // Check resend cooldown
+    if (_lastOtpRequestTime != null && now.difference(_lastOtpRequestTime!) < otpResendCooldown) {
+      final waitSecs = otpResendCooldown.inSeconds - now.difference(_lastOtpRequestTime!).inSeconds;
+      throw ServerException(
+        'कृपया नया ओटीपी मांगने से पहले $waitSecs सेकंड प्रतीक्षा करें (Please wait $waitSecs seconds before resending OTP)',
+      );
+    }
+
     try {
       final formattedPhone = _formatIndianPhone(phone);
       await _client.auth.signInWithOtp(
         phone: formattedPhone,
         channel: OtpChannel.sms,
       );
-    } on AuthException {
+      _lastOtpRequestTime = DateTime.now();
+    } on AuthException catch (e) {
+      if (allowDemoAuth && (e.message.contains('sms_provider') || e.message.contains('Failed host lookup') || e.toString().contains('Failed host lookup'))) {
+        _lastOtpRequestTime = DateTime.now();
+        return; // Dev / offline test fallback
+      }
       rethrow;
     } catch (e) {
-      // In local dev without active SMS balance, allow graceful fallback
-      if (e.toString().contains('sms_provider') || e.toString().contains('Failed host lookup')) {
+      // In local dev without active SMS gateway balance, allow graceful fallback
+      if (allowDemoAuth && (e.toString().contains('sms_provider') || e.toString().contains('Failed host lookup'))) {
+        _lastOtpRequestTime = DateTime.now();
         return; // Dev bypass
       }
       throw ServerException(e.toString());
@@ -44,6 +81,16 @@ class AuthRepositoryImpl implements AuthRepository {
     required String phone,
     required String token,
   }) async {
+    final now = DateTime.now();
+
+    // Check brute-force lockout
+    if (_lockoutUntil != null && now.isBefore(_lockoutUntil!)) {
+      final remainingMins = _lockoutUntil!.difference(now).inMinutes + 1;
+      throw ServerException(
+        'गलत प्रयासों के कारण खाता $remainingMins मिनट के लिए लॉक है (Too many failed attempts. Locked for $remainingMins minutes)',
+      );
+    }
+
     try {
       final formattedPhone = _formatIndianPhone(phone);
 
@@ -56,22 +103,38 @@ class AuthRepositoryImpl implements AuthRepository {
           type: OtpType.sms,
         );
       } catch (authErr) {
-        // Dev bypass if token is standard test code '123456'
-        if (token == '123456') {
-          // Check if profile exists for this phone
+        // Dev bypass ONLY available in debug/development builds; impossible in release mode
+        if (allowDemoAuth && token == '123456') {
           final existing = await _client
               .from('profiles')
               .select('*')
               .eq('phone', phone.replaceAll(RegExp(r'[^0-9]'), ''))
               .maybeSingle();
 
+          _failedOtpAttempts = 0;
+          _lockoutUntil = null;
+
           if (existing != null) {
             return UserProfile.fromJson(existing);
           }
           return null; // Triggers onboarding
         }
+
+        // Increment failed attempts and trigger lockout if limit reached
+        _failedOtpAttempts++;
+        if (_failedOtpAttempts >= maxFailedAttempts) {
+          _lockoutUntil = DateTime.now().add(lockoutDuration);
+          throw ServerException(
+            '5 बार गलत ओटीपी दर्ज किया गया। सुरक्षा हेतु 15 मिनट के लिए लॉक किया गया है (5 failed attempts. Account locked for 15 minutes)',
+          );
+        }
+
         throw ServerException('अमान्य ओटीपी कोड (Invalid OTP)');
       }
+
+      // Successful verification: reset counters
+      _failedOtpAttempts = 0;
+      _lockoutUntil = null;
 
       final userId = res.user?.id;
       if (userId == null) return null;
@@ -119,6 +182,12 @@ class AuthRepositoryImpl implements AuthRepository {
       final currentAuthId = _client.auth.currentUser?.id ?? profile.id;
       final payload = profile.toJson();
       payload['id'] = currentAuthId;
+
+      // SECURITY: Strip privileged fields from client update payloads
+      // Role and admin verification can only be modified server-side by admins
+      payload.remove('role');
+      payload.remove('verified_by_admin');
+      payload.remove('kyc_status');
 
       final data = await _client
           .from('profiles')
@@ -175,7 +244,7 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<void> signOut() async {
     try {
-      await _client.auth.signOut();
+      await _client.auth.signOut(scope: SignOutScope.global);
     } catch (e) {
       throw ServerException(e.toString());
     }

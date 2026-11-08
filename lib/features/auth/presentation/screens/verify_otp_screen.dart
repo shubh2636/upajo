@@ -8,6 +8,7 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/app_text_field.dart';
+import '../../data/repositories/auth_repository_impl.dart';
 import '../controllers/auth_controller.dart';
 
 class VerifyOtpScreen extends ConsumerStatefulWidget {
@@ -116,36 +117,37 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
 
                 const SizedBox(height: 24.0),
 
-                // Development test badge
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 8.0),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary50,
-                    borderRadius: BorderRadius.circular(10.0),
-                    border: Border.all(color: AppColors.primary200),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'डेमो टेस्ट कोड (Demo Code): 123456',
-                        style: TextStyle(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.primary700,
+                // Development test badge (omitted in production builds)
+                if (AuthRepositoryImpl.allowDemoAuth) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 8.0),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary50,
+                      borderRadius: BorderRadius.circular(10.0),
+                      border: Border.all(color: AppColors.primary200),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'डेमो टेस्ट कोड (Demo Code): 123456',
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.primary700,
+                          ),
                         ),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          _otpController.text = '123456';
-                        },
-                        child: const Text('स्वतः भरें', style: TextStyle(fontWeight: FontWeight.w800)),
-                      ),
-                    ],
+                        TextButton(
+                          onPressed: () {
+                            _otpController.text = '123456';
+                          },
+                          child: const Text('स्वतः भरें', style: TextStyle(fontWeight: FontWeight.w800)),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-
-                const SizedBox(height: 16.0),
+                  const SizedBox(height: 16.0),
+                ],
 
                 AppCard(
                   padding: const EdgeInsets.all(20.0),
