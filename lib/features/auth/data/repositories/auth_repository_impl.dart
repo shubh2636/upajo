@@ -110,25 +110,50 @@ class AuthRepositoryImpl implements AuthRepository {
         // Dev bypass ONLY allowed in non-release builds when explicit demo flag is true
         if (allowDemoAuth && token.trim() == '123456') {
           final cleanPhone = formattedPhone.replaceAll(RegExp(r'[^0-9]'), '').substring(2);
-          final existing = await _client
-              .from('profiles')
-              .select('*')
-              .eq('phone', cleanPhone)
-              .maybeSingle();
+          try {
+            final existing = await _client
+                .from('profiles')
+                .select('*')
+                .eq('phone', cleanPhone)
+                .maybeSingle();
 
-          _failedLoginAttempts = 0;
-          _lockoutUntil = null;
+            _failedLoginAttempts = 0;
+            _lockoutUntil = null;
 
-          if (existing != null) {
-            final profile = UserProfile.fromJson(existing);
+            if (existing != null) {
+              final profile = UserProfile.fromJson(existing);
+              await _secureStorage.saveAuthSession(
+                accessToken: 'demo_dev_token',
+                refreshToken: 'demo_dev_refresh',
+                userId: profile.id,
+                phone: profile.phone,
+                role: profile.role,
+              );
+              return profile;
+            }
+          } catch (_) {
+            // Offline fallback in dev mode when Supabase is not reachable
+            final offlineProfile = UserProfile(
+              id: 'dev-demo-farmer-id',
+              role: 'farmer',
+              phone: cleanPhone,
+              fullName: 'डेमो किसान (Dev Mode)',
+              preferredLanguage: 'hi',
+              kycStatus: 'verified',
+              verifiedByAdmin: true,
+              villageOrCity: 'करनाल',
+              district: 'करनाल',
+              state: 'हरियाणा',
+              createdAt: DateTime.now(),
+            );
             await _secureStorage.saveAuthSession(
               accessToken: 'demo_dev_token',
               refreshToken: 'demo_dev_refresh',
-              userId: profile.id,
-              phone: profile.phone,
-              role: profile.role,
+              userId: offlineProfile.id,
+              phone: offlineProfile.phone,
+              role: offlineProfile.role,
             );
-            return profile;
+            return offlineProfile;
           }
           return null; // Onboarding required
         }
@@ -242,6 +267,33 @@ class AuthRepositoryImpl implements AuthRepository {
       }
       throw ServerException('पंजीकरण में त्रुटि: ${e.message}');
     } catch (e) {
+      // Graceful offline fallback in dev mode if network / Supabase is unreachable
+      if (allowDemoAuth &&
+          (e.toString().contains('SocketException') ||
+              e.toString().contains('ClientException') ||
+              e.toString().contains('Failed host lookup'))) {
+        final offlineProfile = UserProfile(
+          id: 'dev-user-${DateTime.now().millisecondsSinceEpoch}',
+          phone: raw10Digit,
+          fullName: fullName.trim(),
+          role: assignedRole,
+          preferredLanguage: 'hi',
+          kycStatus: 'pending',
+          verifiedByAdmin: false,
+          villageOrCity: 'करनाल',
+          district: 'करनाल',
+          state: 'हरियाणा',
+          createdAt: DateTime.now(),
+        );
+        await _secureStorage.saveAuthSession(
+          accessToken: 'dev_offline_access_token',
+          refreshToken: 'dev_offline_refresh_token',
+          userId: offlineProfile.id,
+          phone: offlineProfile.phone,
+          role: offlineProfile.role,
+        );
+        return offlineProfile;
+      }
       throw ServerException('पंजीकरण में त्रुटि: $e');
     }
   }
@@ -301,6 +353,34 @@ class AuthRepositoryImpl implements AuthRepository {
       throw ServerException('अमान्य फोन नंबर अथवा पासवर्ड (Invalid phone or password)');
     } catch (e) {
       if (e is ServerException) rethrow;
+      // Graceful offline fallback in dev mode if network / Supabase is unreachable
+      if (allowDemoAuth &&
+          (e.toString().contains('SocketException') ||
+              e.toString().contains('ClientException') ||
+              e.toString().contains('Failed host lookup'))) {
+        final raw10Digit = formattedPhone.replaceAll(RegExp(r'[^0-9]'), '').substring(2);
+        final offlineProfile = UserProfile(
+          id: 'dev-user-${DateTime.now().millisecondsSinceEpoch}',
+          phone: raw10Digit,
+          fullName: 'डेमो किसान (Offline)',
+          role: 'farmer',
+          preferredLanguage: 'hi',
+          kycStatus: 'verified',
+          verifiedByAdmin: true,
+          villageOrCity: 'करनाल',
+          district: 'करनाल',
+          state: 'हरियाणा',
+          createdAt: DateTime.now(),
+        );
+        await _secureStorage.saveAuthSession(
+          accessToken: 'dev_offline_access_token',
+          refreshToken: 'dev_offline_refresh_token',
+          userId: offlineProfile.id,
+          phone: offlineProfile.phone,
+          role: offlineProfile.role,
+        );
+        return offlineProfile;
+      }
       throw ServerException('लॉगिन में त्रुटि: $e');
     }
   }
