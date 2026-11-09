@@ -9,6 +9,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 import '../../domain/models/disease_scan_result.dart';
 import '../../domain/repositories/disease_detection_repository.dart';
+import '../../../../core/config/env_config.dart';
 
 class DiseaseDetectionRepositoryImpl implements DiseaseDetectionRepository {
   final SupabaseClient _supabase;
@@ -24,7 +25,7 @@ class DiseaseDetectionRepositoryImpl implements DiseaseDetectionRepository {
     String? mlServiceUrl,
   })  : _supabase = supabase ?? Supabase.instance.client,
         _httpClient = httpClient ?? http.Client(),
-        _mlServiceUrl = mlServiceUrl ?? 'http://10.0.2.2:8000';
+        _mlServiceUrl = mlServiceUrl ?? EnvConfig.apiBaseUrl;
 
   Future<void> _loadTreatmentDbIfNeeded() async {
     if (_treatmentDb != null) return;

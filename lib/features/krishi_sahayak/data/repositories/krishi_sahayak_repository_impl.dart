@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 import '../../domain/models/chat_message.dart';
 import '../../domain/repositories/krishi_sahayak_repository.dart';
+import '../../../../core/config/env_config.dart';
 
 class KrishiSahayakRepositoryImpl implements KrishiSahayakRepository {
   final SupabaseClient _supabase;
@@ -18,7 +19,7 @@ class KrishiSahayakRepositoryImpl implements KrishiSahayakRepository {
     String? mlServiceUrl,
   })  : _supabase = supabase ?? Supabase.instance.client,
         _httpClient = httpClient ?? http.Client(),
-        _mlServiceUrl = mlServiceUrl ?? 'http://10.0.2.2:8000';
+        _mlServiceUrl = mlServiceUrl ?? EnvConfig.apiBaseUrl;
 
   @override
   Future<ChatMessage> sendMessage({

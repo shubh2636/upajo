@@ -8,9 +8,16 @@ class SupabaseService {
   static SupabaseClient get client => Supabase.instance.client;
 
   static Future<void> initialize() async {
+    final url = EnvConfig.supabaseUrl;
+    final anonKey = EnvConfig.supabaseAnonKey;
+
+    if (anonKey.toLowerCase().contains('service_role')) {
+      throw StateError('CRITICAL SECURITY VIOLATION: Never initialize Supabase client with the service_role key!');
+    }
+
     await Supabase.initialize(
-      url: EnvConfig.supabaseUrl,
-      anonKey: EnvConfig.supabaseAnonKey,
+      url: url,
+      anonKey: anonKey,
       authOptions: FlutterAuthClientOptions(
         authFlowType: AuthFlowType.pkce,
         localStorage: SecureLocalStorage(),

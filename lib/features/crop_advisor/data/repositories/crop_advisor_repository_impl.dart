@@ -7,6 +7,7 @@ import '../../domain/models/crop_input_params.dart';
 import '../../domain/models/crop_recommendation.dart';
 import '../../domain/models/weather_data.dart';
 import '../../domain/repositories/crop_advisor_repository.dart';
+import '../../../../core/config/env_config.dart';
 import '../services/open_meteo_service.dart';
 import '../services/rule_based_crop_engine.dart';
 
@@ -25,7 +26,7 @@ class CropAdvisorRepositoryImpl implements CropAdvisorRepository {
   })  : _supabase = supabase ?? Supabase.instance.client,
         _weatherService = weatherService ?? OpenMeteoService(),
         _httpClient = httpClient ?? http.Client(),
-        _mlServiceUrl = mlServiceUrl ?? 'http://10.0.2.2:8000'; // Default Android emulator host for FastAPI
+        _mlServiceUrl = mlServiceUrl ?? EnvConfig.apiBaseUrl;
 
   @override
   Future<CropRecommendation> getRecommendation(CropInputParams params) async {

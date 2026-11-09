@@ -11,15 +11,11 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
 
-  // Load environment variables (.env.example as template)
-  await EnvConfig.initialize();
+  // Load environment variables (fails loudly if missing or placeholder)
+  await EnvConfig.initialize(failLoudly: true);
 
   // Initialize Supabase Client
-  try {
-    await SupabaseService.initialize();
-  } catch (e) {
-    debugPrint('Supabase initialization warning (using local offline mode): $e');
-  }
+  await SupabaseService.initialize();
 
   runApp(
     EasyLocalization(

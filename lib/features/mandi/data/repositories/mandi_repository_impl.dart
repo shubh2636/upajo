@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/models/mandi_price_model.dart';
 import '../../domain/repositories/mandi_repository.dart';
+import '../../../../core/config/env_config.dart';
 
 class MandiRepositoryImpl implements MandiRepository {
   final SupabaseClient _supabase;
@@ -18,7 +19,7 @@ class MandiRepositoryImpl implements MandiRepository {
     String? mlServiceUrl,
   })  : _supabase = supabase ?? Supabase.instance.client,
         _httpClient = httpClient ?? http.Client(),
-        _mlServiceUrl = mlServiceUrl ?? 'http://10.0.2.2:8000';
+        _mlServiceUrl = mlServiceUrl ?? EnvConfig.apiBaseUrl;
 
   @override
   Future<List<MandiPriceModel>> getMandiPrices({String? crop, String? state}) async {
