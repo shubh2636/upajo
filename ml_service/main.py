@@ -3,7 +3,9 @@ import logging
 from typing import Optional, List
 from fastapi import FastAPI, HTTPException, Header, Depends, Request, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.exceptions import RequestValidationError
 
 from security import (
@@ -24,7 +26,14 @@ app = FastAPI(
     title="Upajo ML & AI Farming Service",
     description="Hardened microservice providing AI crop advisory, plant disease detection, Krishi Sahayak chat, Agmarknet Mandi rates, and crop yield forecasting.",
     version="1.0.0",
+    docs_url=None,
+    redoc_url=None,
 )
+
+# Mount local static assets for completely offline Swagger UI
+static_dir = os.path.join(os.path.dirname(__file__), "static")
+if os.path.exists(static_dir):
+    app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
 # CORS Allow-list Configuration (Strict: No wildcard "*" with credentials)
 raw_origins = os.getenv("ALLOWED_ORIGINS", "")
@@ -135,6 +144,87 @@ def health_check():
             "/api/v1/analytics/yield-prediction",
         ],
     }
+
+
+# Offline-Capable Swagger UI Documentation
+@app.get("/docs", include_in_schema=False)
+async def custom_swagger_ui_html():
+    return get_swagger_ui_html(
+        openapi_url="/openapi.json",
+        title="Upajo (उपजो) ML & AI Farming Service - API Docs",
+        swagger_js_url="/static/swagger-ui-bundle.js",
+        swagger_css_url="/static/swagger-ui.css",
+    )
+
+
+# Visual HTML Dashboard at Root (Zero JavaScript Required)
+@app.get("/", response_class=HTMLResponse, include_in_schema=False)
+async def root_dashboard():
+    return """
+    <!DOCTYPE html>
+    <html lang="hi">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>उपजो (Upajo) - Backend ML & AI Service</title>
+        <style>
+            * { box-sizing: border-box; margin: 0; padding: 0; }
+            body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #FAF7F0; color: #2E1F14; padding: 32px 16px; }
+            .container { max-width: 800px; margin: 0 auto; }
+            .header { background: #25603A; color: white; padding: 24px; border-radius: 16px; margin-bottom: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+            .badge { display: inline-block; background: #4ADE80; color: #07140B; font-weight: bold; font-size: 12px; padding: 4px 10px; border-radius: 999px; margin-bottom: 8px; }
+            h1 { font-size: 26px; margin-bottom: 6px; }
+            p { font-size: 15px; opacity: 0.95; line-height: 1.5; }
+            .card { background: white; border: 1.5px solid #E2D7C3; border-radius: 14px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+            .card h2 { font-size: 18px; margin-bottom: 12px; color: #1B492C; display: flex; align-items: center; gap: 8px; }
+            .endpoint { background: #F2ECE1; padding: 10px 14px; border-radius: 8px; font-family: monospace; font-size: 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+            .method { font-weight: bold; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
+            .post { background: #BBF7D0; color: #143721; }
+            .get { background: #FEF08A; color: #663F05; }
+            .btn { display: inline-block; background: #D8972C; color: #180F08; font-weight: bold; text-decoration: none; padding: 12px 24px; border-radius: 10px; margin-top: 8px; margin-right: 8px; }
+            .btn:hover { background: #B3781A; }
+            .btn-outline { background: white; border: 2px solid #25603A; color: #25603A; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <span class="badge">● LIVE & HEALTHY</span>
+                <h1>उपजो (Upajo) Backend ML & AI Service</h1>
+                <p>भारतीय किसानों के लिए आर्टिफिशियल इंटेलिजेंस, फसल परामर्श, मंडी भाव और पादप रोग पहचान सेवा।</p>
+                <div style="margin-top: 16px;">
+                    <a href="/docs" class="btn">🚀 Interactive Swagger API Docs (/docs)</a>
+                    <a href="/health" class="btn btn-outline">❤️ Check Health JSON (/health)</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>🌾 Active AI/ML Microservice Endpoints</h2>
+                <div class="endpoint">
+                    <span><strong>फसल सलाहकार AI (Crop Advisory)</strong>: /api/v1/crop-advisor/recommend</span>
+                    <span class="method post">POST</span>
+                </div>
+                <div class="endpoint">
+                    <span><strong>पादप रोग पहचान (Disease Scan)</strong>: /api/v1/disease/predict</span>
+                    <span class="method post">POST</span>
+                </div>
+                <div class="endpoint">
+                    <span><strong>कृषि सहायक AI चैट (Krishi Sahayak Chat)</strong>: /api/v1/krishi-sahayak/chat</span>
+                    <span class="method post">POST</span>
+                </div>
+                <div class="endpoint">
+                    <span><strong>एगमार्कनेट मंडी भाव (Mandi Rates)</strong>: /api/v1/mandi/prices</span>
+                    <span class="method get">GET</span>
+                </div>
+                <div class="endpoint">
+                    <span><strong>उपज पूर्वानुमान (Yield Forecast)</strong>: /api/v1/analytics/yield-prediction</span>
+                    <span class="method post">POST</span>
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
 
 
 # Mount Feature Routers
