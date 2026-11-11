@@ -130,14 +130,14 @@ jobs:
         run: flutter pub get
 
       - name: Decode Android Keystore
-        if: env.ANDROID_KEYSTORE_BASE64 != ''
+        if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         run: |
           echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/upload-keystore.jks
 
       - name: Create key.properties
-        if: env.KEY_ALIAS != ''
+        if: ${{ secrets.KEY_ALIAS != '' }}
         env:
           STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
@@ -178,7 +178,7 @@ jobs:
           version: latest
 
       - name: Deploy Database Migrations to Supabase Prod
-        if: env.SUPABASE_ACCESS_TOKEN != ''
+        if: ${{ secrets.SUPABASE_ACCESS_TOKEN != '' }}
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
@@ -188,7 +188,7 @@ jobs:
           supabase db push
 
       - name: Deploy Edge Functions
-        if: env.SUPABASE_ACCESS_TOKEN != ''
+        if: ${{ secrets.SUPABASE_ACCESS_TOKEN != '' }}
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
