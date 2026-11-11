@@ -26,7 +26,7 @@ class CartScreen extends ConsumerWidget {
           if (cartState.items.isNotEmpty)
             TextButton(
               onPressed: () => cartNotifier.clearCart(),
-              child: const Text('खाली करें', style: TextStyle(color: AppColors.clay500, fontWeight: FontWeight.bold)),
+              child: Text('consumer.clear_cart'.tr(), style: const TextStyle(color: AppColors.clay500, fontWeight: FontWeight.bold)),
             ),
         ],
       ),
@@ -39,12 +39,12 @@ class CartScreen extends ConsumerWidget {
                   children: [
                     const Icon(Icons.shopping_bag_outlined, size: 64.0, color: AppColors.soil400),
                     const SizedBox(height: 16.0),
-                    Text('आपकी टोकरी खाली है', style: AppTypography.headlineMedium),
+                    Text('consumer.empty_cart_title'.tr(), style: AppTypography.headlineMedium),
                     const SizedBox(height: 6.0),
-                    const Text('खेत से सीधी ताज़ी उपज खरीदने के लिए बाज़ार देखें', style: TextStyle(color: AppColors.soil600)),
+                    Text('consumer.empty_cart_desc'.tr(), style: const TextStyle(color: AppColors.soil600)),
                     const SizedBox(height: 24.0),
                     AppButton(
-                      label: 'फसलें देखें (Browse Marketplace)',
+                      label: 'consumer.browse_market_btn'.tr(),
                       onPressed: () => context.go(RouteNames.consumerHome),
                       width: 250.0,
                     ),
@@ -86,7 +86,7 @@ class CartScreen extends ConsumerWidget {
                                 children: [
                                   Text(item.product.titleHi, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14.5)),
                                   const SizedBox(height: 2.0),
-                                  Text('${item.packSizeKg} किग्रा बोरी (₹${item.pricePerPack.toStringAsFixed(0)} / बोरी)', style: const TextStyle(fontSize: 12.0, color: AppColors.soil600)),
+                                  Text('${item.packSizeKg} ${'common.kg'.tr()} (₹${item.pricePerPack.toStringAsFixed(0)} / ${'common.unit'.tr()})', style: const TextStyle(fontSize: 12.0, color: AppColors.soil600)),
                                   const SizedBox(height: 6.0),
                                   Text('₹${item.totalPrice.toStringAsFixed(0)}', style: AppTypography.headlineSmall.copyWith(color: AppColors.primary600)),
                                 ],
@@ -124,14 +124,14 @@ class CartScreen extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('प्राप्ति का तरीका (Delivery Mode):', style: AppTypography.headlineSmall),
+                        Text('consumer.delivery_mode_label'.tr(), style: AppTypography.headlineSmall),
                         const SizedBox(height: 12.0),
 
                         RadioListTile<String>(
                           value: 'pickup',
                           groupValue: cartState.deliveryMode,
-                          title: const Text('खेत से स्वयं उठाना (Farm Pickup)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.0)),
-                          subtitle: const Text('सीधे किसान के खेत या घर से उठाएं — कोई डिलीवरी शुल्क नहीं (₹0)', style: TextStyle(fontSize: 11.5)),
+                          title: Text('consumer.farmgate_pickup'.tr(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.0)),
+                          subtitle: Text('consumer.pickup_subtitle'.tr(), style: const TextStyle(fontSize: 11.5)),
                           activeColor: AppColors.primary500,
                           contentPadding: EdgeInsets.zero,
                           onChanged: (val) => cartNotifier.setDeliveryMode(val!),
@@ -141,8 +141,8 @@ class CartScreen extends ConsumerWidget {
                         RadioListTile<String>(
                           value: 'self_delivery',
                           groupValue: cartState.deliveryMode,
-                          title: const Text('घर पर डिलीवरी (Doorstep Delivery)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.0)),
-                          subtitle: const Text('किसान या स्थानीय पार्टनर द्वारा आपके पते पर डिलीवरी (₹150 शुल्क)', style: TextStyle(fontSize: 11.5)),
+                          title: Text('consumer.home_delivery'.tr(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.0)),
+                          subtitle: Text('consumer.delivery_subtitle'.tr(), style: const TextStyle(fontSize: 11.5)),
                           activeColor: AppColors.primary500,
                           contentPadding: EdgeInsets.zero,
                           onChanged: (val) => cartNotifier.setDeliveryMode(val!),
@@ -159,13 +159,13 @@ class CartScreen extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('मूल्य विवरण (Bill Summary)', style: AppTypography.headlineSmall),
+                        Text('consumer.bill_summary'.tr(), style: AppTypography.headlineSmall),
                         const SizedBox(height: 12.0),
 
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text('उपज का कुल मूल्य (Subtotal)', style: TextStyle(fontSize: 13.5, color: AppColors.soil700)),
+                            Text('consumer.subtotal'.tr(), style: const TextStyle(fontSize: 13.5, color: AppColors.soil700)),
                             Text('₹${cartState.subtotal.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.0)),
                           ],
                         ),
@@ -174,9 +174,9 @@ class CartScreen extends ConsumerWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text('डिलीवरी शुल्क (Delivery Fee)', style: TextStyle(fontSize: 13.5, color: AppColors.soil700)),
+                            Text('consumer.delivery_fee'.tr(), style: const TextStyle(fontSize: 13.5, color: AppColors.soil700)),
                             Text(
-                              cartState.deliveryFee == 0 ? 'मुफ़्त (₹0)' : '₹${cartState.deliveryFee.toStringAsFixed(0)}',
+                              cartState.deliveryFee == 0 ? 'consumer.free_delivery'.tr() : '₹${cartState.deliveryFee.toStringAsFixed(0)}',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 14.0,
@@ -190,7 +190,7 @@ class CartScreen extends ConsumerWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text('कुल देय राशि (Total)', style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.w900)),
+                            Text('consumer.total_payable'.tr(), style: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.w900)),
                             Text('₹${cartState.total.toStringAsFixed(0)}', style: AppTypography.headlineMedium.copyWith(color: AppColors.primary600)),
                           ],
                         ),
@@ -201,7 +201,7 @@ class CartScreen extends ConsumerWidget {
                   const SizedBox(height: 24.0),
 
                   AppButton(
-                    label: 'ऑर्डर करें (Proceed to Checkout)',
+                    label: 'consumer.proceed_to_checkout'.tr(),
                     onPressed: () => context.push(RouteNames.checkout),
                     icon: const Icon(Icons.arrow_forward_rounded, size: 20.0),
                   ),

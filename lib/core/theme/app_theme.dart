@@ -12,6 +12,8 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
+      fontFamily: 'NotoSansDevanagari',
+      fontFamilyFallback: const ['NotoSansDevanagari', 'Roboto', 'sans-serif'],
       primaryColor: AppColors.primary500,
       scaffoldBackgroundColor: AppColors.soil50,
       colorScheme: const ColorScheme.light(
@@ -130,6 +132,8 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
+      fontFamily: 'NotoSansDevanagari',
+      fontFamilyFallback: const ['NotoSansDevanagari', 'Roboto', 'sans-serif'],
       primaryColor: AppColors.primary400,
       scaffoldBackgroundColor: AppColors.darkBackground,
       colorScheme: const ColorScheme.dark(

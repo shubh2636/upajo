@@ -71,6 +71,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  shared_preferences: ^2.2.0
   flutter_lints: ^4.0.0
   riverpod_generator: ^2.4.0
   build_runner: ^2.4.11
@@ -80,9 +81,18 @@ flutter:
   uses-material-design: true
 
   assets:
+    - .env
     - .env.example
     - assets/translations/
     - assets/icons/
     - assets/images/
     - assets/models/
+    - assets/fonts/
+
+  fonts:
+    - family: NotoSansDevanagari
+      fonts:
+        - asset: assets/fonts/NotoSansDevanagari-Regular.ttf
+        - asset: assets/fonts/NotoSansDevanagari-Bold.ttf
+          weight: 700
 

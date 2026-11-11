@@ -2,13 +2,14 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/network/supabase_client.dart';
 import '../../../../core/security/screen_security.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/app_text_field.dart';
+import '../../../../core/widgets/language_switcher_button.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
 
 class FarmerKycScreen extends ConsumerStatefulWidget {
@@ -27,9 +28,8 @@ class _FarmerKycScreenState extends ConsumerState<FarmerKycScreen> {
   final _ifscController = TextEditingController();
   final _upiController = TextEditingController();
 
-  String _soilType = 'काली मिट्टी (Black Soil)';
+  String _soilType = 'black_soil';
   File? _idDocFile;
-  String? _uploadedDocUrl;
   bool _isLoading = true;
   bool _isSaving = false;
 
@@ -68,7 +68,7 @@ class _FarmerKycScreenState extends ConsumerState<FarmerKycScreen> {
           setState(() {
             _farmNameController.text = (data['farm_name'] as String?) ?? '';
             _acresController.text = (data['total_acres'] != null) ? data['total_acres'].toString() : '2.5';
-            _soilType = (data['soil_type'] as String?) ?? 'काली मिट्टी (Black Soil)';
+            _soilType = (data['soil_type'] as String?) ?? 'black_soil';
             _holderController.text = (data['bank_account_holder_name'] as String?) ?? user.fullName;
             _accountController.text = (data['bank_account_number'] as String?) ?? '';
             _ifscController.text = (data['bank_ifsc'] as String?) ?? '';
@@ -98,15 +98,12 @@ class _FarmerKycScreenState extends ConsumerState<FarmerKycScreen> {
     setState(() => _isSaving = true);
 
     try {
-      // 1. Upload ID document to PRIVATE bucket kyc-docs if selected
       if (_idDocFile != null) {
         final ext = _idDocFile!.path.split('.').last;
         final docPath = '${user.id}/id_document_${DateTime.now().millisecondsSinceEpoch}.$ext';
         await SupabaseService.client.storage.from('kyc-docs').upload(docPath, _idDocFile!);
-        _uploadedDocUrl = docPath;
       }
 
-      // 2. Upsert farmer_profiles
       await SupabaseService.client.from('farmer_profiles').upsert({
         'farmer_id': user.id,
         'farm_name': _farmNameController.text.trim(),
@@ -119,15 +116,14 @@ class _FarmerKycScreenState extends ConsumerState<FarmerKycScreen> {
         'updated_at': DateTime.now().toIso8601String(),
       });
 
-      // 3. Mark profile kyc_status as pending
       await SupabaseService.client.from('profiles').update({
         'kyc_status': 'pending',
       }).eq('id', user.id);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('KYC दस्तावेज़ सफलतापूर्वक जमा किए गए! सत्यापन प्रगति पर है।'),
+          SnackBar(
+            content: Text('farmer.kyc_submitted_success'.tr()),
             backgroundColor: AppColors.primary600,
           ),
         );
@@ -137,7 +133,7 @@ class _FarmerKycScreenState extends ConsumerState<FarmerKycScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('त्रुटि: $e'),
+            content: Text('common.error'.tr()),
             backgroundColor: AppColors.clay500,
           ),
         );
@@ -155,8 +151,14 @@ class _FarmerKycScreenState extends ConsumerState<FarmerKycScreen> {
     return Scaffold(
       backgroundColor: AppColors.soil50,
       appBar: AppBar(
-        title: const Text('किसान KYC सत्यापन (KYC-Lite)', style: TextStyle(fontWeight: FontWeight.w800)),
+        title: Text('farmer.kyc_title'.tr(), style: const TextStyle(fontWeight: FontWeight.w800)),
         backgroundColor: Colors.white,
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 12.0),
+            child: LanguageSwitcherButton(),
+          ),
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: AppColors.primary500))
@@ -202,19 +204,15 @@ class _FarmerKycScreenState extends ConsumerState<FarmerKycScreen> {
                               children: [
                                 Text(
                                   kycStatus == 'verified' || kycStatus == 'approved'
-                                      ? 'KYC स्वीकृत (Verified Farmer)'
+                                      ? 'farmer.kyc_status_verified'.tr()
                                       : kycStatus == 'rejected'
-                                          ? 'KYC अस्वीकृत (Rejected)'
-                                          : 'KYC समीक्षाधीन (Pending Approval)',
+                                          ? 'common.rejected'.tr()
+                                          : 'farmer.kyc_status_pending'.tr(),
                                   style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15.0),
                                 ),
                                 const SizedBox(height: 2.0),
                                 Text(
-                                  kycStatus == 'verified' || kycStatus == 'approved'
-                                      ? 'आप असीमित फसलें सीधे ग्राहकों को बेच सकते हैं।'
-                                      : kycStatus == 'rejected'
-                                          ? 'कृपया सही पहचान पत्र व बैंक विवरण पुनः दर्ज करें।'
-                                          : 'दस्तावेज़ जमा हो चुके हैं, 24 घंटे में सत्यापन हो जाएगा।',
+                                  'farmer.kyc_subtitle'.tr(),
                                   style: const TextStyle(fontSize: 12.0, color: AppColors.soil700),
                                 ),
                               ],
@@ -231,34 +229,35 @@ class _FarmerKycScreenState extends ConsumerState<FarmerKycScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('खेत व भूमि विवरण (Farm Info)', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16.0)),
+                          Text('auth.farm_details'.tr(), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16.0)),
                           const SizedBox(height: 14.0),
                           AppTextField(
                             controller: _farmNameController,
-                            label: 'खेत या फार्म का नाम (Farm Name)',
-                            hintText: 'उदा. राम गोपाल फार्म',
-                            validator: (v) => (v == null || v.isEmpty) ? 'खेत का नाम भरें' : null,
+                            label: 'auth.farm_name'.tr(),
+                            hintText: 'auth.farm_name_hint'.tr(),
+                            validator: (v) => (v == null || v.isEmpty) ? 'auth.required_field'.tr() : null,
                           ),
                           const SizedBox(height: 12.0),
                           AppTextField(
                             controller: _acresController,
-                            label: 'कुल भूमि (एकड़ में / Total Acres)',
-                            hintText: 'उदा. 3.5',
+                            label: 'auth.total_acres'.tr(),
+                            hintText: 'auth.total_acres_hint'.tr(),
                             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                            validator: (v) => (v == null || v.isEmpty) ? 'भूमि का क्षेत्रफल भरें' : null,
+                            validator: (v) => (v == null || v.isEmpty) ? 'auth.required_field'.tr() : null,
                           ),
                           const SizedBox(height: 12.0),
                           DropdownButtonFormField<String>(
                             value: _soilType,
-                            decoration: const InputDecoration(
-                              labelText: 'मिट्टी का प्रकार (Soil Type)',
-                              border: OutlineInputBorder(),
+                            decoration: InputDecoration(
+                              labelText: 'farmer.soil_type'.tr(),
+                              border: const OutlineInputBorder(),
                             ),
-                            items: const [
-                              DropdownMenuItem(value: 'काली मिट्टी (Black Soil)', child: Text('काली मिट्टी (Black Soil)')),
-                              DropdownMenuItem(value: 'जलोढ़ मिट्टी (Alluvial)', child: Text('जलोढ़ मिट्टी (Alluvial)')),
-                              DropdownMenuItem(value: 'लाल-पीली मिट्टी (Red/Yellow)', child: Text('लाल-पीली मिट्टी (Red/Yellow)')),
-                              DropdownMenuItem(value: 'दोमट मिट्टी (Loamy Soil)', child: Text('दोमट मिट्टी (Loamy Soil)')),
+                            items: [
+                              DropdownMenuItem(value: 'black_soil', child: Text('farmer.soil_black'.tr())),
+                              DropdownMenuItem(value: 'alluvial', child: Text('farmer.soil_alluvial'.tr())),
+                              DropdownMenuItem(value: 'sandy_loam', child: Text('farmer.soil_sandy_loam'.tr())),
+                              DropdownMenuItem(value: 'red_soil', child: Text('farmer.soil_red'.tr())),
+                              DropdownMenuItem(value: 'clay_loam', child: Text('farmer.soil_clay_loam'.tr())),
                             ],
                             onChanged: (v) => setState(() => _soilType = v!),
                           ),
@@ -273,9 +272,9 @@ class _FarmerKycScreenState extends ConsumerState<FarmerKycScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('पहचान पत्र अपलोड (Aadhaar / KCC)', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16.0)),
+                          Text('farmer.upload_id_doc'.tr(), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16.0)),
                           const SizedBox(height: 6.0),
-                          const Text('दस्तावेज़ पूर्णतः सुरक्षित व निजी Supabase बकेट में संग्रहीत होगा।', style: TextStyle(fontSize: 12.0, color: AppColors.soil600)),
+                          Text('auth.secure_auth_note'.tr(), style: const TextStyle(fontSize: 12.0, color: AppColors.soil600)),
                           const SizedBox(height: 14.0),
                           if (_idDocFile != null)
                             Container(
@@ -293,13 +292,13 @@ class _FarmerKycScreenState extends ConsumerState<FarmerKycScreen> {
                                 side: const BorderSide(color: AppColors.primary400, width: 1.5),
                               ),
                               icon: const Icon(Icons.upload_file_rounded, color: AppColors.primary600),
-                              label: const Text('आधार कार्ड / किसान क्रेडिट कार्ड फोटो चुनें', style: TextStyle(fontWeight: FontWeight.w700)),
+                              label: Text('farmer.choose_file'.tr(), style: const TextStyle(fontWeight: FontWeight.w700)),
                             ),
                           if (_idDocFile != null)
                             TextButton.icon(
                               onPressed: _pickDocument,
                               icon: const Icon(Icons.change_circle_rounded, size: 18.0),
-                              label: const Text('दस्तावेज़ बदलें'),
+                              label: Text('farmer.choose_file'.tr()),
                             ),
                         ],
                       ),
@@ -312,31 +311,31 @@ class _FarmerKycScreenState extends ConsumerState<FarmerKycScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('भुगतान खाता (Payout Bank & UPI)', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16.0)),
+                          Text('farmer.bank_details_title'.tr(), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16.0)),
                           const SizedBox(height: 14.0),
                           AppTextField(
                             controller: _holderController,
-                            label: 'खाताधारक का नाम (Account Holder Name)',
-                            hintText: 'बैंक पासबुक अनुसार नाम',
-                            validator: (v) => (v == null || v.isEmpty) ? 'नाम भरें' : null,
+                            label: 'farmer.account_holder_name'.tr(),
+                            hintText: 'auth.full_name_hint'.tr(),
+                            validator: (v) => (v == null || v.isEmpty) ? 'auth.required_field'.tr() : null,
                           ),
                           const SizedBox(height: 12.0),
                           AppTextField(
                             controller: _accountController,
-                            label: 'बैंक खाता संख्या (Account Number)',
-                            hintText: 'उदा. 919293949596',
+                            label: 'farmer.bank_acc'.tr(),
+                            hintText: '919293949596',
                             keyboardType: TextInputType.number,
-                            validator: (v) => (v == null || v.isEmpty) ? 'खाता संख्या भरें' : null,
+                            validator: (v) => (v == null || v.isEmpty) ? 'auth.required_field'.tr() : null,
                           ),
                           const SizedBox(height: 12.0),
                           AppTextField(
                             controller: _ifscController,
-                            label: 'बैंक IFSC कोड',
-                            hintText: 'उदा. SBIN0001234',
+                            label: 'farmer.ifsc_code'.tr(),
+                            hintText: 'SBIN0001234',
                             textCapitalization: TextCapitalization.characters,
                             validator: (v) {
                               if (v == null || v.length != 11) {
-                                return 'मान्य 11 अक्षरों का IFSC भरें';
+                                return 'errors.required_field'.tr();
                               }
                               return null;
                             },
@@ -344,8 +343,8 @@ class _FarmerKycScreenState extends ConsumerState<FarmerKycScreen> {
                           const SizedBox(height: 12.0),
                           AppTextField(
                             controller: _upiController,
-                            label: 'UPI आईडी / VPA (वैकल्पिक)',
-                            hintText: 'उदा. 9876543210@upi',
+                            label: 'farmer.upi_id'.tr(),
+                            hintText: '9876543210@upi',
                           ),
                         ],
                       ),
@@ -354,7 +353,7 @@ class _FarmerKycScreenState extends ConsumerState<FarmerKycScreen> {
 
                     // Submit Button
                     AppButton(
-                      label: 'KYC विवरण जमा करें (Submit KYC)',
+                      label: 'common.submit'.tr(),
                       onPressed: _onSubmitKyc,
                       isLoading: _isSaving,
                       icon: const Icon(Icons.check_circle_rounded, size: 22.0),

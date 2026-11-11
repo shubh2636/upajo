@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 320" width="1024" height="320">
+  <defs>
+    <linearGradient id="wmSproutGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#1B492C"/>
+      <stop offset="100%" stop-color="#25603A"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Left Icon Mark (scaled to 240x240 inside 40,40) -->
+  <g transform="translate(40, 20) scale(0.55)">
+    <!-- Soil Furrows -->
+    <path d="M 64 420 C 140 450, 372 450, 448 420" fill="none" stroke="#6E5F44" stroke-width="24" stroke-linecap="round"/>
+    <path d="M 112 370 C 180 395, 332 395, 400 370" fill="none" stroke="#9E8D6E" stroke-width="22" stroke-linecap="round"/>
+    <path d="M 160 320 C 205 340, 307 340, 352 320" fill="none" stroke="#D8972C" stroke-width="20" stroke-linecap="round"/>
+
+    <!-- Stem -->
+    <path d="M 256 360 C 254 280, 258 200, 256 120" fill="none" stroke="url(#wmSproutGrad)" stroke-width="30" stroke-linecap="round"/>
+
+    <!-- Leaves -->
+    <path d="M 256 240 C 150 220, 110 140, 170 100 C 230 110, 245 170, 256 240 Z" fill="#3FA65B"/>
+    <path d="M 256 190 C 350 170, 380 90, 320 60 C 270 70, 260 130, 256 190 Z" fill="#25603A"/>
+    <circle cx="256" cy="330" r="16" fill="#D8972C"/>
+  </g>
+
+  <!-- Right Typography: Upajo -->
+  <text x="360" y="195" font-family="'Noto Sans Devanagari', -apple-system, sans-serif" font-size="140" font-weight="900" fill="#2E1F14" letter-spacing="-1.5">Upajo</text>
+
+  <!-- Devanagari Secondary Subtitle -->
+  <text x="770" y="190" font-family="'Noto Sans Devanagari', sans-serif" font-size="64" font-weight="800" fill="#25603A">उपजो</text>
+
+  <!-- Earthy Tagline Under Wordmark -->
+  <text x="365" y="248" font-family="'Noto Sans Devanagari', -apple-system, sans-serif" font-size="22" font-weight="600" fill="#6E5F44" letter-spacing="0.5">DIRECT FARM-TO-FORK PLATFORM</text>
+</svg>
+

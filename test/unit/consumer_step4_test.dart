@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:upajo/features/marketplace/domain/models/cart_item.dart';
 import 'package:upajo/features/marketplace/domain/models/product_model.dart';
-import 'package:upajo/features/marketplace/domain/models/order_model.dart';
 
 void main() {
   group('STEP 4: Customer Portal & Checkout Invariants', () {

@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_text_field.dart';
+import '../../../../core/widgets/language_switcher_button.dart';
 import '../controllers/auth_controller.dart';
 
 class SignupScreen extends ConsumerStatefulWidget {
@@ -19,6 +21,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
@@ -30,6 +33,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   void dispose() {
     _nameController.dispose();
     _phoneController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
@@ -55,9 +59,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
   String _getStrengthLabel(int score) {
     if (score == 0) return '';
-    if (score <= 1) return 'कमजोर (Weak)';
-    if (score <= 3) return 'मध्यम (Fair)';
-    return 'मजबूत (Strong)';
+    if (score <= 1) return 'auth.password_strength_weak'.tr();
+    if (score <= 3) return 'auth.password_strength_fair'.tr();
+    return 'auth.password_strength_strong'.tr();
   }
 
   Future<void> _handleSignUp() async {
@@ -69,24 +73,31 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       phone: _phoneController.text.trim(),
       password: _passwordController.text,
       role: _selectedRole,
+      email: _emailController.text.trim().isEmpty ? null : _emailController.text.trim(),
     );
 
     if (!mounted) return;
 
     if (success) {
-      // Send SMS OTP for initial phone verification
-      await controller.sendOtp(_phoneController.text.trim());
+      final profile = ref.read(authControllerProvider).userProfile;
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('पंजीकरण सफल! कृपया फोन सत्यापन हेतु एसएमएस ओटीपी दर्ज करें।'),
+          SnackBar(
+            content: Text('auth.signup_success'.tr()),
             backgroundColor: AppColors.success,
           ),
         );
-        context.push(RouteNames.verifyOtp);
+        if (profile == null ||
+            ((profile.villageOrCity?.isEmpty ?? true) && (profile.district?.isEmpty ?? true))) {
+          context.go(RouteNames.onboarding);
+        } else if (profile.isFarmer) {
+          context.go(RouteNames.farmerDashboard);
+        } else {
+          context.go(RouteNames.consumerHome);
+        }
       }
     } else {
-      final error = ref.read(authControllerProvider).errorMessage ?? 'पंजीकरण विफल रहा';
+      final error = ref.read(authControllerProvider).errorMessage ?? 'auth.signup_failed'.tr();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(error),
@@ -104,9 +115,15 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('खाता बनाएं (Sign Up)'),
+        title: Text('auth.signup_title'.tr()),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 12.0),
+            child: LanguageSwitcherButton(),
+          ),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -117,7 +134,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  'उपजो में आपका स्वागत है!',
+                  'auth.signup_welcome'.tr(),
                   style: AppTypography.headlineSmall.copyWith(
                     fontWeight: FontWeight.bold,
                     color: AppColors.primaryDark,
@@ -125,14 +142,41 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  'सीधे उपज बेचने या खरीदने के लिए पंजीकरण करें',
+                  'auth.signup_subtitle'.tr(),
                   style: AppTypography.bodyMedium.copyWith(color: AppColors.onSurfaceVariant),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 20),
+
+                // Notice: Phone is not SMS verified
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.info_outline, size: 18, color: AppColors.primaryDark),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Phone number is registered with password auth. Phone is NOT SMS-verified. Password reset by SMS is unavailable until an SMS gateway is configured.',
+                          style: AppTypography.bodySmall.copyWith(
+                            color: AppColors.primaryDark,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
 
                 // Role Selector (Farmer vs Customer)
                 Text(
-                  'आप किस रूप में जुड़ना चाहते हैं? (Select Role)',
+                  'auth.select_role_prompt'.tr(),
                   style: AppTypography.titleSmall.copyWith(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 12),
@@ -163,7 +207,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                               ),
                               const SizedBox(height: 6),
                               Text(
-                                'किसान (Farmer)',
+                                'auth.role_farmer'.tr(),
                                 style: AppTypography.labelLarge.copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: _selectedRole == 'farmer' ? AppColors.primary : AppColors.onSurface,
@@ -200,7 +244,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                               ),
                               const SizedBox(height: 6),
                               Text(
-                                'ग्राहक (Customer)',
+                                'auth.role_consumer'.tr(),
                                 style: AppTypography.labelLarge.copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: _selectedRole == 'consumer' ? AppColors.primary : AppColors.onSurface,
@@ -217,13 +261,13 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
                 // Name Field
                 AppTextField(
-                  label: 'पूरा नाम (Full Name)',
-                  hintText: 'उदा. रामेश्वर पाटीदार',
+                  label: 'auth.full_name'.tr(),
+                  hintText: 'auth.full_name_hint'.tr(),
                   controller: _nameController,
                   prefixIcon: const Icon(Icons.person_outline),
                   validator: (val) {
                     if (val == null || val.trim().length < 2) {
-                      return 'कृपया अपना पूरा नाम दर्ज करें';
+                      return 'auth.full_name_required'.tr();
                     }
                     return null;
                   },
@@ -232,8 +276,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
                 // Phone Field
                 AppTextField(
-                  label: 'मोबाइल नंबर (Phone Number)',
-                  hintText: '9876543210',
+                  label: 'auth.phone_label'.tr(),
+                  hintText: 'auth.phone_hint'.tr(),
                   controller: _phoneController,
                   keyboardType: TextInputType.phone,
                   prefixIcon: Container(
@@ -251,7 +295,25 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   validator: (val) {
                     final cleaned = (val ?? '').replaceAll(RegExp(r'[^0-9]'), '');
                     if (cleaned.length != 10 || !RegExp(r'^[6-9]').hasMatch(cleaned)) {
-                      return 'कृपया 10 अंकों का वैध भारतीय मोबाइल नंबर दर्ज करें';
+                      return 'auth.invalid_phone'.tr();
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                // Email Field (OPTIONAL)
+                AppTextField(
+                  label: 'Email (Optional / ऐच्छिक)',
+                  hintText: 'kisan@example.com (optional)',
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  prefixIcon: const Icon(Icons.email_outlined),
+                  validator: (val) {
+                    if (val != null && val.trim().isNotEmpty) {
+                      if (!val.contains('@') || !val.contains('.')) {
+                        return 'कृपया वैध ईमेल दर्ज करें (Enter valid email or leave blank)';
+                      }
                     }
                     return null;
                   },
@@ -260,8 +322,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
                 // Password Field
                 AppTextField(
-                  label: 'पासवर्ड (Password, min 8 chars)',
-                  hintText: 'न्यूनतम 8 अक्षर',
+                  label: 'auth.password_label'.tr(),
+                  hintText: 'auth.password_hint'.tr(),
                   controller: _passwordController,
                   obscureText: _obscurePassword,
                   prefixIcon: const Icon(Icons.lock_outline),
@@ -272,7 +334,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   onChanged: (val) => setState(() {}),
                   validator: (val) {
                     if (val == null || val.length < 8) {
-                      return 'पासवर्ड कम से कम 8 अक्षरों का होना चाहिए';
+                      return 'auth.password_min_length'.tr();
                     }
                     return null;
                   },
@@ -309,8 +371,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
                 // Confirm Password Field
                 AppTextField(
-                  label: 'पासवर्ड की पुष्टि करें (Confirm Password)',
-                  hintText: 'पासवर्ड पुनः दर्ज करें',
+                  label: 'auth.confirm_password'.tr(),
+                  hintText: 'auth.confirm_password_hint'.tr(),
                   controller: _confirmPasswordController,
                   obscureText: _obscureConfirmPassword,
                   prefixIcon: const Icon(Icons.lock_reset),
@@ -320,7 +382,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   ),
                   validator: (val) {
                     if (val != _passwordController.text) {
-                      return 'पासवर्ड मेल नहीं खाते हैं (Passwords do not match)';
+                      return 'auth.passwords_do_not_match'.tr();
                     }
                     return null;
                   },
@@ -329,7 +391,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
                 // Submit Button
                 AppButton(
-                  text: 'ओटीपी प्राप्त करें व आगे बढ़ें (Register)',
+                  label: 'auth.signup_submit'.tr(),
                   variant: ButtonVariant.primary,
                   isLoading: authState.isLoading,
                   onPressed: _handleSignUp,
@@ -341,13 +403,14 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'पहले से खाता है? ',
+                      'auth.already_have_account'.tr(),
                       style: AppTypography.bodyMedium.copyWith(color: AppColors.onSurfaceVariant),
                     ),
+                    const SizedBox(width: 6),
                     TextButton(
                       onPressed: () => context.pushReplacement(RouteNames.login),
                       child: Text(
-                        'लॉग इन करें (Log In)',
+                        'auth.login_button'.tr(),
                         style: AppTypography.labelLarge.copyWith(
                           color: AppColors.primary,
                           fontWeight: FontWeight.bold,
@@ -364,4 +427,3 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     );
   }
 }
-

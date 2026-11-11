@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:uuid/uuid.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -28,19 +29,10 @@ class _ListMachineryScreenState extends ConsumerState<ListMachineryScreen> {
   final _dailyRateController = TextEditingController(text: '3000');
   final _depositController = TextEditingController(text: '1500');
   final _villageController = TextEditingController();
-  final _districtController = TextEditingController(text: 'सीहोर');
+  final _districtController = TextEditingController(text: 'Sehore');
 
   String _selectedType = 'tractor';
   static const _uuid = Uuid();
-
-  final List<Map<String, String>> _types = [
-    {'id': 'tractor', 'label': 'ट्रैक्टर (Tractor)'},
-    {'id': 'rotavator', 'label': 'रोटावेटर (Rotavator)'},
-    {'id': 'harvester', 'label': 'हार्वेस्टर (Harvester)'},
-    {'id': 'drone_sprayer', 'label': 'ड्रोन स्प्रेयर (Drone)'},
-    {'id': 'seed_drill', 'label': 'सीड ड्रिल (Seed Drill)'},
-    {'id': 'thresher', 'label': 'थ्रेशर (Thresher)'},
-  ];
 
   @override
   void dispose() {
@@ -65,7 +57,7 @@ class _ListMachineryScreenState extends ConsumerState<ListMachineryScreen> {
     final machine = MachineryModel(
       id: _uuid.v4(),
       ownerId: ownerId,
-      ownerName: user?.fullName ?? 'सत्यापित किसान',
+      ownerName: user?.fullName ?? 'machinery.verified_farmer'.tr(),
       ownerPhone: user?.phoneNumber ?? '9876543210',
       titleHi: _titleHiController.text.trim(),
       titleEn: _titleEnController.text.trim().isNotEmpty
@@ -77,19 +69,19 @@ class _ListMachineryScreenState extends ConsumerState<ListMachineryScreen> {
       hourlyRate: double.tryParse(_hourlyRateController.text) ?? 500.0,
       dailyRate: double.tryParse(_dailyRateController.text) ?? 3000.0,
       securityDeposit: double.tryParse(_depositController.text) ?? 1500.0,
-      images: [
+      images: const [
         'https://images.unsplash.com/photo-1592982537447-7440770cbfc9?w=600',
       ],
-      villageOrCity: _villageController.text.trim().isNotEmpty ? _villageController.text.trim() : 'श्यामपुर',
-      district: _districtController.text.trim().isNotEmpty ? _districtController.text.trim() : 'सीहोर',
-      state: 'मध्य प्रदेश',
+      villageOrCity: _villageController.text.trim().isNotEmpty ? _villageController.text.trim() : 'machinery.default_village'.tr(),
+      district: _districtController.text.trim().isNotEmpty ? _districtController.text.trim() : 'machinery.default_district'.tr(),
+      state: 'machinery.state_mp'.tr(),
     );
 
     final success = await ref.read(machineryControllerProvider.notifier).listNewMachinery(machine);
     if (mounted && success) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('आपका कृषि यंत्र सफलतापूर्वक किराए के लिए सूचीबद्ध हो गया!'),
+        SnackBar(
+          content: Text('machinery.add_machine_success'.tr()),
           backgroundColor: AppColors.primary600,
         ),
       );
@@ -101,10 +93,19 @@ class _ListMachineryScreenState extends ConsumerState<ListMachineryScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(machineryControllerProvider);
 
+    final types = [
+      {'id': 'tractor', 'label': 'machinery.cat_tractor'.tr()},
+      {'id': 'rotavator', 'label': 'machinery.cat_rotavator'.tr()},
+      {'id': 'harvester', 'label': 'machinery.cat_harvester'.tr()},
+      {'id': 'drone_sprayer', 'label': 'machinery.cat_drone'.tr()},
+      {'id': 'seed_drill', 'label': 'machinery.cat_seed_drill'.tr()},
+      {'id': 'thresher', 'label': 'machinery.cat_thresher'.tr()},
+    ];
+
     return Scaffold(
       backgroundColor: AppColors.soil50,
       appBar: AppBar(
-        title: const Text('यंत्र किराए पर दें', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text('machinery.list_machine'.tr(), style: const TextStyle(fontWeight: FontWeight.bold)),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -118,11 +119,11 @@ class _ListMachineryScreenState extends ConsumerState<ListMachineryScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('यंत्र की जानकारी', style: AppTypography.headlineSmall.copyWith(fontSize: 17.0)),
+                    Text('machinery.machine_info'.tr(), style: AppTypography.headlineSmall.copyWith(fontSize: 17.0)),
                     const SizedBox(height: 16.0),
 
                     // Machinery Type Dropdown
-                    const Text('यंत्र का प्रकार', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.0)),
+                    Text('machinery.machine_type'.tr(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.0)),
                     const SizedBox(height: 6.0),
                     DropdownButtonFormField<String>(
                       value: _selectedType,
@@ -131,7 +132,7 @@ class _ListMachineryScreenState extends ConsumerState<ListMachineryScreen> {
                         fillColor: Colors.white,
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
                       ),
-                      items: _types.map((t) => DropdownMenuItem(value: t['id'], child: Text(t['label']!))).toList(),
+                      items: types.map((t) => DropdownMenuItem(value: t['id'], child: Text(t['label']!))).toList(),
                       onChanged: (val) {
                         if (val != null) setState(() => _selectedType = val);
                       },
@@ -140,17 +141,17 @@ class _ListMachineryScreenState extends ConsumerState<ListMachineryScreen> {
 
                     // Title Hindi
                     AppTextField(
-                      label: 'यंत्र का नाम (हिंदी में)',
-                      hint: 'उदा. स्वराज 855 FE 52 HP',
+                      label: 'machinery.machine_name_hi'.tr(),
+                      hint: 'machinery.cat_tractor'.tr(),
                       controller: _titleHiController,
-                      validator: (val) => val == null || val.trim().isEmpty ? 'कृपया नाम दर्ज करें' : null,
+                      validator: (val) => val == null || val.trim().isEmpty ? 'machinery.enter_name_error'.tr() : null,
                     ),
                     const SizedBox(height: 14.0),
 
                     // Title English
                     AppTextField(
-                      label: 'नाम (अंग्रेजी में)',
-                      hint: 'e.g. Swaraj 855 FE 52HP',
+                      label: 'machinery.machine_name_en'.tr(),
+                      hint: 'machinery.cat_tractor'.tr(),
                       controller: _titleEnController,
                     ),
                     const SizedBox(height: 14.0),
@@ -160,7 +161,7 @@ class _ListMachineryScreenState extends ConsumerState<ListMachineryScreen> {
                       children: [
                         Expanded(
                           child: AppTextField(
-                            label: 'हॉर्सपावर (HP)',
+                            label: 'machinery.horsepower'.tr(),
                             hint: '45',
                             keyboardType: TextInputType.number,
                             controller: _hpController,
@@ -169,7 +170,7 @@ class _ListMachineryScreenState extends ConsumerState<ListMachineryScreen> {
                         const SizedBox(width: 10.0),
                         Expanded(
                           child: AppTextField(
-                            label: 'मॉडल वर्ष',
+                            label: 'machinery.model_year'.tr(),
                             hint: '2023',
                             keyboardType: TextInputType.number,
                             controller: _yearController,
@@ -188,23 +189,23 @@ class _ListMachineryScreenState extends ConsumerState<ListMachineryScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('किराया दर व जमानत (Pricing)', style: AppTypography.headlineSmall.copyWith(fontSize: 17.0)),
+                    Text('machinery.pricing_deposit'.tr(), style: AppTypography.headlineSmall.copyWith(fontSize: 17.0)),
                     const SizedBox(height: 16.0),
                     Row(
                       children: [
                         Expanded(
                           child: AppTextField(
-                            label: 'प्रति दिन दर (₹/दिन)',
+                            label: 'machinery.daily_rate'.tr(),
                             hint: '3000',
                             keyboardType: TextInputType.number,
                             controller: _dailyRateController,
-                            validator: (val) => val == null || val.isEmpty ? 'दैनिक दर भरें' : null,
+                            validator: (val) => val == null || val.isEmpty ? 'machinery.enter_daily_rate_error'.tr() : null,
                           ),
                         ),
                         const SizedBox(width: 10.0),
                         Expanded(
                           child: AppTextField(
-                            label: 'प्रति घंटा दर (₹/घंटा)',
+                            label: 'machinery.hourly_rate'.tr(),
                             hint: '500',
                             keyboardType: TextInputType.number,
                             controller: _hourlyRateController,
@@ -214,7 +215,7 @@ class _ListMachineryScreenState extends ConsumerState<ListMachineryScreen> {
                     ),
                     const SizedBox(height: 14.0),
                     AppTextField(
-                      label: 'जमानत राशि (Security Deposit ₹)',
+                      label: 'machinery.security_deposit'.tr(),
                       hint: '1500',
                       keyboardType: TextInputType.number,
                       controller: _depositController,
@@ -230,17 +231,17 @@ class _ListMachineryScreenState extends ConsumerState<ListMachineryScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('यंत्र की लोकेशन', style: AppTypography.headlineSmall.copyWith(fontSize: 17.0)),
+                    Text('machinery.machine_location'.tr(), style: AppTypography.headlineSmall.copyWith(fontSize: 17.0)),
                     const SizedBox(height: 16.0),
                     AppTextField(
-                      label: 'गाँव या कस्बा',
-                      hint: 'उदा. श्यामपुर',
+                      label: 'machinery.village_or_city'.tr(),
+                      hint: 'machinery.default_village'.tr(),
                       controller: _villageController,
                     ),
                     const SizedBox(height: 14.0),
                     AppTextField(
-                      label: 'जिला',
-                      hint: 'सीहोर',
+                      label: 'machinery.district'.tr(),
+                      hint: 'machinery.default_district'.tr(),
                       controller: _districtController,
                     ),
                   ],
@@ -250,7 +251,7 @@ class _ListMachineryScreenState extends ConsumerState<ListMachineryScreen> {
 
               // Submit Button
               AppButton(
-                label: 'यंत्र प्रकाशित करें',
+                label: 'machinery.publish_machine'.tr(),
                 isLoading: state.isLoading,
                 onPressed: _submit,
                 icon: const Icon(Icons.check_circle_rounded, color: Colors.white, size: 22.0),
@@ -263,4 +264,3 @@ class _ListMachineryScreenState extends ConsumerState<ListMachineryScreen> {
     );
   }
 }
-

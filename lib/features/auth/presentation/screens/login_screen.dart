@@ -8,6 +8,7 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/app_text_field.dart';
+import '../../../../core/widgets/language_switcher_button.dart';
 import '../controllers/auth_controller.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -18,16 +19,15 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
-  final _phoneController = TextEditingController();
+  final _identifierController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
-  bool _isOtpMode = false;
   bool _obscurePassword = true;
 
   @override
   void dispose() {
-    _phoneController.dispose();
+    _identifierController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -35,11 +35,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   void _onPasswordLogin() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final phone = _phoneController.text.trim();
+    final identifier = _identifierController.text.trim();
     final password = _passwordController.text;
 
     final success = await ref.read(authControllerProvider.notifier).signInWithPassword(
-          phone: phone,
+          phone: identifier,
           password: password,
         );
 
@@ -61,28 +61,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       final err = ref.read(authControllerProvider).errorMessage;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(err ?? 'अमान्य मोबाइल नंबर या पासवर्ड (Invalid Credentials)'),
-          backgroundColor: AppColors.clay500,
-        ),
-      );
-    }
-  }
-
-  void _onSendOtp() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    final phone = _phoneController.text.trim();
-    final success = await ref.read(authControllerProvider.notifier).sendOtp(phone);
-
-    if (!mounted) return;
-
-    if (success) {
-      context.push(RouteNames.verifyOtp);
-    } else {
-      final err = ref.read(authControllerProvider).errorMessage;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(err ?? 'auth.invalid_phone'.tr()),
+          content: Text(err ?? 'गलत मोबाइल नंबर/ईमेल या पासवर्ड (Invalid mobile number/email or password)'),
           backgroundColor: AppColors.clay500,
         ),
       );
@@ -108,6 +87,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             }
           },
         ),
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 12.0),
+            child: LanguageSwitcherButton(),
+          ),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -144,9 +129,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 const SizedBox(height: 6.0),
                 Text(
-                  _isOtpMode
-                      ? 'अपने पंजीकृत मोबाइल नंबर से ओटीपी प्राप्त करें'
-                      : 'अपने मोबाइल नंबर और पासवर्ड से लॉगिन करें',
+                  'auth.login_subtitle_password'.tr(),
                   style: AppTypography.bodyMedium,
                   textAlign: TextAlign.center,
                 ),
@@ -160,176 +143,62 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Mode Selector Pill Tabs
-                      Container(
-                        decoration: BoxDecoration(
-                          color: AppColors.soil100,
-                          borderRadius: BorderRadius.circular(12.0),
-                        ),
-                        padding: const EdgeInsets.all(4.0),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: InkWell(
-                                onTap: () => setState(() => _isOtpMode = false),
-                                borderRadius: BorderRadius.circular(10.0),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(vertical: 10.0),
-                                  decoration: BoxDecoration(
-                                    color: !_isOtpMode ? Colors.white : Colors.transparent,
-                                    borderRadius: BorderRadius.circular(10.0),
-                                    boxShadow: !_isOtpMode
-                                        ? [
-                                            BoxShadow(
-                                              color: Colors.black.withOpacity(0.06),
-                                              blurRadius: 4,
-                                              offset: const Offset(0, 2),
-                                            ),
-                                          ]
-                                        : null,
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      'पासवर्ड (Password)',
-                                      style: TextStyle(
-                                        fontSize: 13.5,
-                                        fontWeight: !_isOtpMode ? FontWeight.w700 : FontWeight.w500,
-                                        color: !_isOtpMode ? AppColors.primary700 : AppColors.soil600,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Expanded(
-                              child: InkWell(
-                                onTap: () => setState(() => _isOtpMode = true),
-                                borderRadius: BorderRadius.circular(10.0),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(vertical: 10.0),
-                                  decoration: BoxDecoration(
-                                    color: _isOtpMode ? Colors.white : Colors.transparent,
-                                    borderRadius: BorderRadius.circular(10.0),
-                                    boxShadow: _isOtpMode
-                                        ? [
-                                            BoxShadow(
-                                              color: Colors.black.withOpacity(0.06),
-                                              blurRadius: 4,
-                                              offset: const Offset(0, 2),
-                                            ),
-                                          ]
-                                        : null,
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      'ओटीपी (SMS OTP)',
-                                      style: TextStyle(
-                                        fontSize: 13.5,
-                                        fontWeight: _isOtpMode ? FontWeight.w700 : FontWeight.w500,
-                                        color: _isOtpMode ? AppColors.primary700 : AppColors.soil600,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 20.0),
-
                       AppTextField(
-                        controller: _phoneController,
-                        label: 'auth.phone_label'.tr(),
-                        hintText: 'auth.phone_hint'.tr(),
-                        keyboardType: TextInputType.phone,
-                        prefixIcon: const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 14.0),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                '🇮🇳 +91',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 16.0,
-                                  color: AppColors.soil800,
-                                ),
-                              ),
-                              SizedBox(width: 8.0),
-                              VerticalDivider(
-                                color: AppColors.soil300,
-                                thickness: 1.5,
-                                indent: 14,
-                                endIndent: 14,
-                              ),
-                            ],
-                          ),
-                        ),
+                        controller: _identifierController,
+                        label: 'Mobile Number or Email / मोबाइल या ईमेल',
+                        hintText: '9876543210 or user@example.com',
+                        keyboardType: TextInputType.emailAddress,
+                        prefixIcon: const Icon(Icons.person_pin_rounded, color: AppColors.primary600),
                         validator: (value) {
-                          if (value == null || value.trim().length != 10) {
-                            return 'auth.invalid_phone'.tr();
+                          if (value == null || value.trim().isEmpty) {
+                            return 'कृपया मोबाइल नंबर अथवा ईमेल दर्ज करें (Enter mobile or email)';
                           }
-                          if (!RegExp(r'^[6-9]\d{9}$').hasMatch(value.trim())) {
-                            return 'auth.invalid_phone'.tr();
+                          final val = value.trim();
+                          if (val.contains('@')) {
+                            if (!val.contains('.')) {
+                              return 'अमान्य ईमेल पता (Invalid email format)';
+                            }
+                            return null;
+                          }
+                          final cleaned = val.replaceAll(RegExp(r'[^0-9]'), '');
+                          if (cleaned.length < 10) {
+                            return 'कृपया 10 अंकों का वैध मोबाइल नंबर दर्ज करें (Enter 10-digit phone)';
                           }
                           return null;
                         },
                       ),
                       const SizedBox(height: 16.0),
 
-                      if (!_isOtpMode) ...[
-                        AppTextField(
-                          controller: _passwordController,
-                          label: 'पासवर्ड (Password)',
-                          hintText: 'अपना पासवर्ड दर्ज करें',
-                          obscureText: _obscurePassword,
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                              color: AppColors.soil500,
-                            ),
-                            onPressed: () {
-                              setState(() => _obscurePassword = !_obscurePassword);
-                            },
+                      AppTextField(
+                        controller: _passwordController,
+                        label: 'auth.password'.tr(),
+                        hintText: 'auth.password_hint'.tr(),
+                        obscureText: _obscurePassword,
+                        prefixIcon: const Icon(Icons.lock_outline_rounded, color: AppColors.soil600),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                            color: AppColors.soil500,
                           ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'कृपया पासवर्ड दर्ज करें';
-                            }
-                            return null;
+                          onPressed: () {
+                            setState(() => _obscurePassword = !_obscurePassword);
                           },
                         ),
-                        const SizedBox(height: 8.0),
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: TextButton(
-                            onPressed: () => context.push(RouteNames.forgotPassword),
-                            child: const Text(
-                              'पासवर्ड भूल गए? (Forgot Password?)',
-                              style: TextStyle(
-                                fontSize: 13.0,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.primary600,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 12.0),
-                        AppButton(
-                          label: 'auth.login_button'.tr(),
-                          onPressed: _onPasswordLogin,
-                          isLoading: authState.isLoading,
-                          icon: const Icon(Icons.login_rounded, size: 22.0),
-                        ),
-                      ] else ...[
-                        AppButton(
-                          label: 'auth.send_otp'.tr(),
-                          onPressed: _onSendOtp,
-                          isLoading: authState.isLoading,
-                          icon: const Icon(Icons.arrow_forward_rounded, size: 22.0),
-                        ),
-                      ],
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'auth.password_required'.tr();
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 20.0),
+
+                      AppButton(
+                        label: 'auth.login_button'.tr(),
+                        onPressed: _onPasswordLogin,
+                        isLoading: authState.isLoading,
+                        icon: const Icon(Icons.login_rounded, size: 22.0),
+                      ),
                     ],
                   ),
                 ),
@@ -341,14 +210,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'नया खाता बनाना चाहते हैं?',
+                      'auth.dont_have_account'.tr(),
                       style: AppTypography.bodyMedium.copyWith(color: AppColors.soil700),
                     ),
                     TextButton(
                       onPressed: () => context.push(RouteNames.signup),
-                      child: const Text(
-                        'साइन अप करें (Sign Up)',
-                        style: TextStyle(
+                      child: Text(
+                        'auth.signup_button'.tr(),
+                        style: const TextStyle(
                           fontSize: 15.0,
                           fontWeight: FontWeight.w800,
                           color: AppColors.primary600,
@@ -365,7 +234,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     const Icon(Icons.shield_outlined, size: 16.0, color: AppColors.primary500),
                     const SizedBox(width: 6.0),
                     Text(
-                      '100% सुरक्षित सर्वर-साइड प्रमाणीकरण',
+                      'auth.secure_auth_note'.tr(),
                       style: AppTypography.bodySmall.copyWith(
                         fontWeight: FontWeight.w600,
                         color: AppColors.soil600,

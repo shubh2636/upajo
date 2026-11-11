@@ -20,11 +20,11 @@ class _KrishiSahayakScreenState extends ConsumerState<KrishiSahayakScreen> {
   final ScrollController _scrollController = ScrollController();
 
   final List<String> _quickSuggestions = [
-    'गेहूं में पहली सिंचाई कब करें?',
-    'पत्तियों पर पीले धब्बे दिख रहे हैं',
-    'क्या आज मौसम छिड़काव के लिए सही है?',
-    'चने में इल्ली नियंत्रण के उपाय',
-    'यूरिया की सही मात्रा कितनी है?',
+    'sahayak.q1'.tr(),
+    'sahayak.q2'.tr(),
+    'sahayak.q3'.tr(),
+    'sahayak.q4'.tr(),
+    'sahayak.q5'.tr(),
   ];
 
   @override
@@ -56,7 +56,7 @@ class _KrishiSahayakScreenState extends ConsumerState<KrishiSahayakScreen> {
     ref.read(krishiSahayakControllerProvider.notifier).sendUserQuery(
       query: text,
       farmerId: farmerId,
-      cropContext: advisorState.recommendation?.nameHi ?? 'गेहूं (Wheat)',
+      cropContext: advisorState.recommendation?.nameHi ?? 'Wheat',
       district: advisorState.district,
       stateName: advisorState.stateName,
       currentTemp: advisorState.weatherData?.currentTemp,
@@ -102,7 +102,7 @@ class _KrishiSahayakScreenState extends ConsumerState<KrishiSahayakScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('sahayak.title'.tr(), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16.5)),
-                const Text('क्लाउड AI • हिंदी आवाज़ सहायता', style: TextStyle(fontSize: 11.0, color: AppColors.primary600, fontWeight: FontWeight.bold)),
+                Text('sahayak.ai_voice_assistant'.tr(), style: const TextStyle(fontSize: 11.0, color: AppColors.primary600, fontWeight: FontWeight.bold)),
               ],
             ),
           ],
@@ -110,7 +110,7 @@ class _KrishiSahayakScreenState extends ConsumerState<KrishiSahayakScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.delete_outline_rounded),
-            tooltip: 'बातचीत साफ करें',
+            tooltip: 'sahayak.clear_chat'.tr(),
             onPressed: () => controller.clearChat(farmerId),
           ),
         ],
@@ -145,7 +145,7 @@ class _KrishiSahayakScreenState extends ConsumerState<KrishiSahayakScreen> {
                     child: CircularProgressIndicator(strokeWidth: 2.0, color: AppColors.primary500),
                   ),
                   const SizedBox(width: 10.0),
-                  Text('कृषि सहायक उत्तर तैयार कर रहे हैं...', style: AppTypography.bodySmall.copyWith(color: AppColors.soil600)),
+                  Text('sahayak.generating_answer'.tr(), style: AppTypography.bodySmall.copyWith(color: AppColors.soil600)),
                 ],
               ),
             ),
@@ -179,7 +179,7 @@ class _KrishiSahayakScreenState extends ConsumerState<KrishiSahayakScreen> {
               const Icon(Icons.eco_rounded, size: 16.0, color: AppColors.primary600),
               const SizedBox(width: 6.0),
               Text(
-                'फसल: ${crop?.nameHi ?? "गेहूं"} (${advisorState.district})',
+                '${'sahayak.crop_context_label'.tr()}: ${crop?.nameHi ?? ""} (${advisorState.district})',
                 style: const TextStyle(fontSize: 12.0, fontWeight: FontWeight.bold, color: AppColors.soil800),
               ),
             ],
@@ -190,7 +190,7 @@ class _KrishiSahayakScreenState extends ConsumerState<KrishiSahayakScreen> {
                 const Icon(Icons.wb_sunny_outlined, size: 15.0, color: AppColors.wheat700),
                 const SizedBox(width: 4.0),
                 Text(
-                  '${weather.currentTemp.toStringAsFixed(0)}°C • हवा ${weather.windSpeedKmH.toStringAsFixed(0)} km/h',
+                  '${weather.currentTemp.toStringAsFixed(0)}°C • ${'advisor.wind_speed_chip'.tr(namedArgs: {'speed': weather.windSpeedKmH.toStringAsFixed(0)})}',
                   style: const TextStyle(fontSize: 11.5, color: AppColors.soil700, fontWeight: FontWeight.w600),
                 ),
               ],
@@ -233,11 +233,11 @@ class _KrishiSahayakScreenState extends ConsumerState<KrishiSahayakScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Row(
+                  Row(
                     children: [
-                      Icon(Icons.psychology_rounded, size: 16.0, color: AppColors.primary600),
-                      SizedBox(width: 4.0),
-                      Text('कृषि सहायक', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.primary700)),
+                      const Icon(Icons.psychology_rounded, size: 16.0, color: AppColors.primary600),
+                      const SizedBox(width: 4.0),
+                      Text('sahayak.assistant_name'.tr(), style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.primary700)),
                     ],
                   ),
                   IconButton(
@@ -248,7 +248,7 @@ class _KrishiSahayakScreenState extends ConsumerState<KrishiSahayakScreen> {
                     ),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
-                    tooltip: 'बोलकर सुनें',
+                    tooltip: 'sahayak.listen_voice'.tr(),
                     onPressed: () => controller.speakMessage(msg.content, msg.id),
                   ),
                 ],
@@ -344,7 +344,7 @@ class _KrishiSahayakScreenState extends ConsumerState<KrishiSahayakScreen> {
                 textInputAction: TextInputAction.send,
                 onSubmitted: _submitMessage,
                 decoration: InputDecoration(
-                  hintText: state.isListening ? 'सुन रहे हैं... बोलिए' : 'बोलें या सवाल लिखें...',
+                  hintText: state.isListening ? 'common.listening'.tr() : 'sahayak.text_hint'.tr(),
                   hintStyle: TextStyle(
                     color: state.isListening ? AppColors.terracotta600 : AppColors.soil400,
                     fontSize: 14.0,
@@ -385,10 +385,10 @@ class _KrishiSahayakScreenState extends ConsumerState<KrishiSahayakScreen> {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
       color: AppColors.soil100,
-      child: const Text(
-        'सुरक्षा चेतावनी: AI कीटनाशक सलाह मार्गदर्शक है। आपात स्थिति में निःशुल्क किसान कॉल सेंटर 1800-180-1551 पर संपर्क करें।',
+      child: Text(
+        'sahayak.safety_warning'.tr(),
         textAlign: TextAlign.center,
-        style: TextStyle(fontSize: 10.5, color: AppColors.soil600, fontWeight: FontWeight.w600),
+        style: const TextStyle(fontSize: 10.5, color: AppColors.soil600, fontWeight: FontWeight.w600),
       ),
     );
   }

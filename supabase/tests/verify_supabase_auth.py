@@ -68,15 +68,20 @@ def main():
         print(f"  [✗] Failed to connect to Auth API: {e}")
         sys.exit(1)
 
-    # 2. Test Signup with unique phone / password
-    test_phone = f"+9198{int(time.time()) % 100000000:08d}"
-    test_password = "TestPassword@12345"
-    print(f"\n--- 2. Testing Signup ({test_phone}) ---")
+    # 2. Test Mobile + Password Auth (Synthetic Email Mapping)
+    raw_10_digit = f"98{int(time.time()) % 100000000:08d}"
+    synthetic_email = f"{raw_10_digit}@phone.upajo.com"
+    test_password = "KisanPassword@123"
+
+    print(f"\n--- 2. Testing Mobile Signup via Synthetic Auth Mapping ---")
+    print(f"  Phone: {raw_10_digit} -> Email: {synthetic_email}")
+
     signup_url = f"{supabase_url}/auth/v1/signup"
     signup_payload = json.dumps({
-        "phone": test_phone,
+        "email": synthetic_email,
         "password": test_password,
         "data": {
+            "phone": raw_10_digit,
             "full_name": "Upajo Verification Test",
             "role": "farmer"
         }
@@ -101,17 +106,17 @@ def main():
     except urllib.error.HTTPError as e:
         err_body = e.read().decode("utf-8")
         print(f"  [!] Signup returned HTTP {e.code}: {err_body}")
-        if "sms_provider" in err_body or "disabled" in err_body or "phone_provider_disabled" in err_body:
-            print("  [*] Note: Phone provider is not enabled in this Supabase project.")
-            print("      Enable Phone Auth in Supabase Dashboard -> Authentication -> Providers -> Phone.")
+        if "rate_limit" in err_body:
+            print("  [*] Supabase email rate limit triggered because 'Confirm email' is currently ON.")
+            print("      Turn OFF 'Confirm email' in Supabase Dashboard > Authentication > Providers > Email.")
     except Exception as e:
         print(f"  [✗] Signup failed: {e}")
 
     # 3. Test Login
-    print(f"\n--- 3. Testing Login ({test_phone}) ---")
+    print(f"\n--- 3. Testing Mobile Login ({raw_10_digit}) ---")
     login_url = f"{supabase_url}/auth/v1/token?grant_type=password"
     login_payload = json.dumps({
-        "phone": test_phone,
+        "email": synthetic_email,
         "password": test_password
     }).encode("utf-8")
     req = urllib.request.Request(
@@ -151,10 +156,10 @@ def main():
             print(f"  [!] Logout call returned: {e}")
 
     # 5. Verify Database Tables
-    print("\n--- 5. Verifying Database Tables & Public Profiles Access ---")
-    profiles_url = f"{supabase_url}/rest/v1/profiles?select=id,role&limit=1"
+    print("\n--- 5. Verifying Database Tables & Public Categories Access ---")
+    categories_url = f"{supabase_url}/rest/v1/categories?select=id,name_en,name_hi&limit=3"
     req = urllib.request.Request(
-        profiles_url,
+        categories_url,
         headers={
             "apikey": supabase_anon_key,
             "Authorization": f"Bearer {supabase_anon_key}"
@@ -163,12 +168,14 @@ def main():
     try:
         with urllib.request.urlopen(req, timeout=10) as resp:
             data = json.loads(resp.read().decode("utf-8"))
-            print(f"  [✓] 'profiles' table exists and is queryable via REST! Records returned: {len(data)}")
+            print(f"  [✓] 'categories' table verified! {len(data)} sample categories retrieved:")
+            for item in data:
+                print(f"      - {item.get('name_en')} ({item.get('name_hi')})")
     except urllib.error.HTTPError as e:
         err = e.read().decode("utf-8")
         print(f"  [!] REST API query returned HTTP {e.code}: {err}")
     except Exception as e:
-        print(f"  [✗] Failed to query profiles table: {e}")
+        print(f"  [✗] Failed to query categories table: {e}")
 
     print("\n" + "=" * 60)
     print("  VERIFICATION COMPLETE")

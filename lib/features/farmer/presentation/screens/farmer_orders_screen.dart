@@ -53,7 +53,7 @@ class _FarmerOrdersScreenState extends ConsumerState<FarmerOrdersScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('स्थिति बदलने में त्रुटि: $e')),
+          SnackBar(content: Text(e.toString())),
         );
       }
     } finally {
@@ -98,7 +98,7 @@ class _FarmerOrdersScreenState extends ConsumerState<FarmerOrdersScreen> {
                       nextLabel = 'farmer.mark_packed'.tr();
                     } else if (order.status == 'harvesting_packed') {
                       nextStatus = isPickup ? 'ready_for_pickup' : 'out_for_delivery';
-                      nextLabel = isPickup ? 'उठाने के लिए तैयार' : 'farmer.mark_out_delivery'.tr();
+                      nextLabel = isPickup ? 'farmer.ready_for_pickup'.tr() : 'farmer.mark_out_delivery'.tr();
                     } else if (order.status == 'out_for_delivery' || order.status == 'ready_for_pickup') {
                       nextStatus = 'delivered';
                       nextLabel = 'farmer.mark_delivered'.tr();
@@ -132,7 +132,7 @@ class _FarmerOrdersScreenState extends ConsumerState<FarmerOrdersScreen> {
                           ),
                           const SizedBox(height: 10.0),
 
-                          Text('ग्राहक: ${order.deliveryAddress['full_name'] ?? 'ग्राहक'} (फोन: +91 ${order.deliveryAddress['phone'] ?? ''})', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5)),
+                          Text('${'farmer.customer_label'.tr()}: ${order.deliveryAddress['full_name'] ?? ''} (+91 ${order.deliveryAddress['phone'] ?? ''})', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5)),
                           Text('${order.deliveryAddress['address_line'] ?? ''}, ${order.deliveryAddress['village_or_city'] ?? ''} - ${order.deliveryAddress['pin_code'] ?? ''}', style: const TextStyle(fontSize: 12.0, color: AppColors.soil600)),
                           const SizedBox(height: 10.0),
 
@@ -143,8 +143,8 @@ class _FarmerOrdersScreenState extends ConsumerState<FarmerOrdersScreen> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text('${isPickup ? 'खेत से उठाना (Pickup)' : 'होम डिलीवरी'}', style: const TextStyle(fontSize: 12.0, fontWeight: FontWeight.w600)),
-                                Text('कुल राशि: ₹${order.totalAmount.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.primary600)),
+                                Text(isPickup ? 'farmer.pickup'.tr() : 'consumer.home_delivery'.tr(), style: const TextStyle(fontSize: 12.0, fontWeight: FontWeight.w600)),
+                                Text('${'farmer.total_amount_label'.tr()}: ₹${order.totalAmount.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.primary600)),
                               ],
                             ),
                           ),
@@ -158,7 +158,7 @@ class _FarmerOrdersScreenState extends ConsumerState<FarmerOrdersScreen> {
                                 child: OutlinedButton.icon(
                                   onPressed: () {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('WhatsApp संदेश लिंक जनरेट किया गया')),
+                                      SnackBar(content: Text('farmer.whatsapp_generated'.tr())),
                                     );
                                   },
                                   icon: const Icon(Icons.chat_bubble_outline_rounded, color: Colors.green, size: 18.0),
@@ -190,7 +190,7 @@ class _FarmerOrdersScreenState extends ConsumerState<FarmerOrdersScreen> {
                                 ),
                                 onPressed: () => context.push(RouteNames.liveTracking, extra: order.id),
                                 icon: const Icon(Icons.navigation_rounded, size: 18.0),
-                                label: const Text('लाइव लोकेशन मैप (OSM ट्रैकिंग)', style: TextStyle(fontWeight: FontWeight.bold)),
+                                label: Text('farmer.live_tracking_map'.tr(), style: const TextStyle(fontWeight: FontWeight.bold)),
                               ),
                             ),
                           ],

@@ -16,7 +16,7 @@ void main() {
           theme: AppTheme.lightTheme,
           home: Scaffold(
             body: AppButton(
-              label: 'आगे बढ़ें',
+              label: 'Submit',
               onPressed: () => pressed = true,
             ),
           ),
@@ -39,14 +39,14 @@ void main() {
           theme: AppTheme.lightTheme,
           home: const Scaffold(
             body: AppTextField(
-              label: 'मोबाइल नंबर',
+              label: 'Mobile Number',
               hintText: '9876543210',
             ),
           ),
         ),
       );
 
-      expect(find.text('मोबाइल नंबर'), findsOneWidget);
+      expect(find.text('Mobile Number'), findsOneWidget);
       expect(find.text('9876543210'), findsOneWidget);
     });
 

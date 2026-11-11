@@ -56,8 +56,8 @@ class _MyProductsScreenState extends ConsumerState<MyProductsScreen> {
           SnackBar(
             content: Text(
               updated.isActive
-                  ? 'फसल बिक्री के लिए पुनः सक्रिय की गई (Product Resumed)'
-                  : 'फसल की बिक्री रोक दी गई है (Product Paused)',
+                  ? 'farmer.product_resumed'.tr()
+                  : 'farmer.product_paused'.tr(),
             ),
           ),
         );
@@ -65,7 +65,7 @@ class _MyProductsScreenState extends ConsumerState<MyProductsScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('त्रुटि: $e')),
+          SnackBar(content: Text(e.toString())),
         );
       }
     } finally {
@@ -77,17 +77,17 @@ class _MyProductsScreenState extends ConsumerState<MyProductsScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('फसल हटाएं? (Delete Produce)'),
-        content: Text('क्या आप वाकई "${product.titleHi}" को अपनी सूची से हटाना चाहते हैं?'),
+        title: Text('farmer.delete_produce_title'.tr()),
+        content: Text('farmer.delete_produce_confirm'.tr()),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('रद्द करें'),
+            child: Text('common.cancel'.tr()),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.clay500),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('हटाएं', style: TextStyle(color: Colors.white)),
+            child: Text('common.delete'.tr(), style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -102,13 +102,13 @@ class _MyProductsScreenState extends ConsumerState<MyProductsScreen> {
       await _loadProducts();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('फसल सफलतापूर्वक हटाई गई (Product Deleted)')),
+          SnackBar(content: Text('farmer.produce_deleted_success'.tr())),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('हटाने में त्रुटि: $e')),
+          SnackBar(content: Text(e.toString())),
         );
       }
     } finally {
@@ -144,9 +144,9 @@ class _MyProductsScreenState extends ConsumerState<MyProductsScreen> {
                       children: [
                         const Icon(Icons.grass_rounded, size: 56.0, color: AppColors.soil400),
                         const SizedBox(height: 14.0),
-                        Text('कोई उपज नहीं जोड़ी गई है', style: AppTypography.headlineSmall),
+                        Text('common.empty'.tr(), style: AppTypography.headlineSmall),
                         const SizedBox(height: 6.0),
-                        const Text('अपनी पहली फसल जोड़ें और सीधे ग्राहकों को बेचें', style: TextStyle(color: AppColors.soil600)),
+                        Text('farmer.add_product'.tr(), style: const TextStyle(color: AppColors.soil600)),
                         const SizedBox(height: 20.0),
                         AppButton(
                           label: 'farmer.add_product'.tr(),
@@ -210,7 +210,7 @@ class _MyProductsScreenState extends ConsumerState<MyProductsScreen> {
                                             borderRadius: BorderRadius.circular(6.0),
                                           ),
                                           child: Text(
-                                            p.isActive ? 'सक्रिय' : 'रुकी हुई',
+                                            p.isActive ? 'common.active'.tr() : 'common.pending'.tr(),
                                             style: TextStyle(
                                               fontSize: 11.0,
                                               fontWeight: FontWeight.bold,
@@ -221,10 +221,10 @@ class _MyProductsScreenState extends ConsumerState<MyProductsScreen> {
                                       ],
                                     ),
                                     const SizedBox(height: 4.0),
-                                    Text('₹${p.pricePerKg.toStringAsFixed(0)} / किलो', style: AppTypography.priceMedium),
+                                    Text('₹${p.pricePerKg.toStringAsFixed(0)} / ${'common.kg'.tr()}', style: AppTypography.priceMedium),
                                     const SizedBox(height: 4.0),
                                     Text(
-                                      'स्टॉक: ${p.stockKg} किग्रा • पैक: ${p.packSizesKg.join(', ')} kg',
+                                      '${'farmer.active_stock'.tr()}: ${p.stockKg} ${'common.kg'.tr()} • ${'farmer.pack_sizes'.tr()}: ${p.packSizesKg.join(', ')} ${'common.kg'.tr()}',
                                       style: const TextStyle(fontSize: 12.0, color: AppColors.soil600),
                                     ),
                                   ],
@@ -244,7 +244,7 @@ class _MyProductsScreenState extends ConsumerState<MyProductsScreen> {
                                   color: p.isActive ? AppColors.wheat700 : AppColors.primary600,
                                 ),
                                 label: Text(
-                                  p.isActive ? 'रोकें (Pause)' : 'सक्रिय करें (Resume)',
+                                  p.isActive ? 'farmer.pause_action'.tr() : 'farmer.resume_action'.tr(),
                                   style: TextStyle(
                                     color: p.isActive ? AppColors.wheat700 : AppColors.primary600,
                                     fontWeight: FontWeight.w600,
@@ -255,9 +255,9 @@ class _MyProductsScreenState extends ConsumerState<MyProductsScreen> {
                               TextButton.icon(
                                 onPressed: isUpdating ? null : () => _deleteProduct(p),
                                 icon: const Icon(Icons.delete_outline_rounded, size: 18.0, color: AppColors.clay500),
-                                label: const Text(
-                                  'हटाएं (Delete)',
-                                  style: TextStyle(color: AppColors.clay500, fontWeight: FontWeight.w600),
+                                label: Text(
+                                  'common.delete'.tr(),
+                                  style: const TextStyle(color: AppColors.clay500, fontWeight: FontWeight.w600),
                                 ),
                               ),
                             ],

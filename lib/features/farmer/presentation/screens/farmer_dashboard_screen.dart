@@ -5,9 +5,11 @@ import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/bento_grid.dart';
+import '../../../../core/widgets/language_switcher_button.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../../marketplace/presentation/controllers/marketplace_controller.dart';
 import '../../../marketplace/domain/models/order_model.dart';
@@ -73,6 +75,10 @@ class _FarmerDashboardScreenState extends ConsumerState<FarmerDashboardScreen> {
           ],
         ),
         actions: [
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 8.0),
+            child: LanguageSwitcherButton(),
+          ),
           IconButton(
             icon: const Icon(Icons.account_balance_wallet_outlined),
             onPressed: () => context.push(RouteNames.farmerEarnings),
@@ -133,10 +139,10 @@ class _FarmerDashboardScreenState extends ConsumerState<FarmerDashboardScreen> {
                               children: [
                                 Text(
                                   user?.kycStatus == 'verified' || user?.kycStatus == 'approved'
-                                      ? '🌾 सत्यापित किसान (KYC Verified)'
+                                      ? '🌾 ${'farmer.kyc_status_verified'.tr()}'
                                       : user?.kycStatus == 'pending'
-                                          ? '⏳ KYC सत्यापन प्रक्रिया में'
-                                          : '⚠️ KYC पूर्ण करें',
+                                          ? '⏳ ${'farmer.kyc_status_pending'.tr()}'
+                                          : '⚠️ ${'farmer.kyc_status_needed'.tr()}',
                                   style: const TextStyle(
                                     fontSize: 12.0,
                                     fontWeight: FontWeight.w700,
@@ -155,7 +161,7 @@ class _FarmerDashboardScreenState extends ConsumerState<FarmerDashboardScreen> {
                     ),
                     const SizedBox(height: 12.0),
                     Text(
-                      '${'farmer.greeting'.tr()}, ${user?.fullName ?? 'किसान साथी'}!',
+                      '${'farmer.greeting'.tr()}, ${user?.fullName ?? ''}!',
                       style: AppTypography.displaySmall.copyWith(color: Colors.white),
                     ),
                     const SizedBox(height: 4.0),
@@ -213,14 +219,14 @@ class _FarmerDashboardScreenState extends ConsumerState<FarmerDashboardScreen> {
                                   color: AppColors.wheat400,
                                   borderRadius: BorderRadius.circular(4.0),
                                 ),
-                                child: const Text('लाइव', style: TextStyle(fontSize: 10.0, fontWeight: FontWeight.bold, color: AppColors.soil900)),
+                                child: Text('common.live'.tr(), style: const TextStyle(fontSize: 10.0, fontWeight: FontWeight.bold, color: AppColors.soil900)),
                               ),
                             ],
                           ),
                           const SizedBox(height: 4.0),
-                          const Text(
-                            'मौसम अलर्ट, मिट्टी अनुसार सर्वोत्तम फसल व कृषि कैलेंडर',
-                            style: TextStyle(fontSize: 12.0, color: AppColors.soil700),
+                          Text(
+                            'advisor.live_desc'.tr(),
+                            style: const TextStyle(fontSize: 12.0, color: AppColors.soil700),
                           ),
                         ],
                       ),
@@ -260,14 +266,14 @@ class _FarmerDashboardScreenState extends ConsumerState<FarmerDashboardScreen> {
                             ],
                           ),
                           const SizedBox(height: 10.0),
-                          const Text(
-                            'रोग पहचान',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.0, color: AppColors.soil900),
+                          Text(
+                            'disease.title'.tr(),
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.0, color: AppColors.soil900),
                           ),
                           const SizedBox(height: 2.0),
-                          const Text(
-                            'पत्ती फोटो से तुरंत इलाज',
-                            style: TextStyle(fontSize: 11.0, color: AppColors.soil600),
+                          Text(
+                            'disease.subtitle'.tr(),
+                            style: const TextStyle(fontSize: 11.0, color: AppColors.soil600),
                           ),
                         ],
                       ),
@@ -300,14 +306,14 @@ class _FarmerDashboardScreenState extends ConsumerState<FarmerDashboardScreen> {
                             ],
                           ),
                           const SizedBox(height: 10.0),
-                          const Text(
-                            'कृषि सहायक',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.0, color: AppColors.soil900),
+                          Text(
+                            'sahayak.title'.tr(),
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.0, color: AppColors.soil900),
                           ),
                           const SizedBox(height: 2.0),
-                          const Text(
-                            'हिंदी आवाज़ बातचीत AI',
-                            style: TextStyle(fontSize: 11.0, color: AppColors.soil600),
+                          Text(
+                            'sahayak.subtitle'.tr(),
+                            style: const TextStyle(fontSize: 11.0, color: AppColors.soil600),
                           ),
                         ],
                       ),
@@ -346,14 +352,14 @@ class _FarmerDashboardScreenState extends ConsumerState<FarmerDashboardScreen> {
                             ],
                           ),
                           const SizedBox(height: 10.0),
-                          const Text(
-                            'यंत्र किराया',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.0, color: AppColors.soil900),
+                          Text(
+                            'machinery.title'.tr(),
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.0, color: AppColors.soil900),
                           ),
                           const SizedBox(height: 2.0),
-                          const Text(
-                            'ट्रैक्टर, रोटावेटर व कंबाइन',
-                            style: TextStyle(fontSize: 11.0, color: AppColors.soil600),
+                          Text(
+                            'machinery.browse_machines'.tr(),
+                            style: const TextStyle(fontSize: 11.0, color: AppColors.soil600),
                           ),
                         ],
                       ),
@@ -386,14 +392,14 @@ class _FarmerDashboardScreenState extends ConsumerState<FarmerDashboardScreen> {
                             ],
                           ),
                           const SizedBox(height: 10.0),
-                          const Text(
-                            'बीज व खाद',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.0, color: AppColors.soil900),
+                          Text(
+                            'store.title'.tr(),
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.0, color: AppColors.soil900),
                           ),
                           const SizedBox(height: 2.0),
-                          const Text(
-                            'सत्यापित इनपुट भंडार',
-                            style: TextStyle(fontSize: 11.0, color: AppColors.primary700, fontWeight: FontWeight.bold),
+                          Text(
+                            'store.certified_badge'.tr(),
+                            style: const TextStyle(fontSize: 11.0, color: AppColors.primary700, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
@@ -432,14 +438,14 @@ class _FarmerDashboardScreenState extends ConsumerState<FarmerDashboardScreen> {
                             ],
                           ),
                           const SizedBox(height: 10.0),
-                          const Text(
-                            'मंडी भाव (Agmarknet)',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: AppColors.soil900),
+                          Text(
+                            'mandi.title'.tr(),
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: AppColors.soil900),
                           ),
                           const SizedBox(height: 2.0),
-                          const Text(
-                            'लाइव दरें व 7-दिन ट्रेंड ग्राफ',
-                            style: TextStyle(fontSize: 11.0, color: AppColors.soil600),
+                          Text(
+                            'mandi.history_7d'.tr(),
+                            style: const TextStyle(fontSize: 11.0, color: AppColors.soil600),
                           ),
                         ],
                       ),
@@ -472,14 +478,14 @@ class _FarmerDashboardScreenState extends ConsumerState<FarmerDashboardScreen> {
                             ],
                           ),
                           const SizedBox(height: 10.0),
-                          const Text(
-                            'बिक्री रिपोर्ट व बिल',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: AppColors.soil900),
+                          Text(
+                            'analytics.title'.tr(),
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: AppColors.soil900),
                           ),
                           const SizedBox(height: 2.0),
-                          const Text(
-                            'कमाई ग्राफ व GST इनवॉइस',
-                            style: TextStyle(fontSize: 11.0, color: AppColors.soil600),
+                          Text(
+                            'analytics.subtitle'.tr(),
+                            style: const TextStyle(fontSize: 11.0, color: AppColors.soil600),
                           ),
                         ],
                       ),
@@ -491,7 +497,7 @@ class _FarmerDashboardScreenState extends ConsumerState<FarmerDashboardScreen> {
               const SizedBox(height: 20.0),
 
               // Bento Stats Grid
-              Text('ताज़ा आंकड़े (Overview)', style: AppTypography.headlineSmall),
+              Text('farmer.dashboard_title'.tr(), style: AppTypography.headlineSmall),
               const SizedBox(height: 12.0),
 
               BentoGrid(
@@ -505,15 +511,15 @@ class _FarmerDashboardScreenState extends ConsumerState<FarmerDashboardScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Row(
+                        Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('सक्रिय फसलें', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.0)),
-                            Icon(Icons.storefront_rounded, color: AppColors.primary500),
+                            Text('farmer.active_stock'.tr(), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.0)),
+                            const Icon(Icons.storefront_rounded, color: AppColors.primary500),
                           ],
                         ),
                         Text('${_products.length}', style: AppTypography.displayMedium),
-                        const Text('बाज़ार में उपलब्ध', style: TextStyle(fontSize: 11.5, color: AppColors.soil600)),
+                        Text('common.active'.tr(), style: const TextStyle(fontSize: 11.5, color: AppColors.soil600)),
                       ],
                     ),
                   ),
@@ -528,18 +534,18 @@ class _FarmerDashboardScreenState extends ConsumerState<FarmerDashboardScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Row(
+                        Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('नए ऑर्डर', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.0)),
-                            Icon(Icons.schedule_rounded, color: AppColors.wheat700),
+                            Text('farmer.pending_orders'.tr(), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.0)),
+                            const Icon(Icons.schedule_rounded, color: AppColors.wheat700),
                           ],
                         ),
                         Text(
                           '${pendingOrders.length}',
                           style: AppTypography.displayMedium.copyWith(color: AppColors.wheat900),
                         ),
-                        const Text('पैकिंग / भेजना बाकी', style: TextStyle(fontSize: 11.5, color: AppColors.soil600)),
+                        Text('common.pending'.tr(), style: const TextStyle(fontSize: 11.5, color: AppColors.soil600)),
                       ],
                     ),
                   ),
@@ -554,15 +560,15 @@ class _FarmerDashboardScreenState extends ConsumerState<FarmerDashboardScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Row(
+                        Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('कुल कमाई', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.0)),
-                            Icon(Icons.currency_rupee_rounded, color: AppColors.primary600),
+                            Text('farmer.total_earnings'.tr(), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.0)),
+                            const Icon(Icons.currency_rupee_rounded, color: AppColors.primary600),
                           ],
                         ),
-                        Text('₹${totalEarnings.toStringAsFixed(0)}', style: AppTypography.headlineMedium.copyWith(color: AppColors.primary700)),
-                        const Text('सीधे बैंक खाते में भुगतान', style: TextStyle(fontSize: 11.0, color: AppColors.primary700, fontWeight: FontWeight.bold)),
+                        Text(AppFormatters.currency(totalEarnings, locale: context.locale), style: AppTypography.headlineMedium.copyWith(color: AppColors.primary700)),
+                        Text('farmer.bank_details_title'.tr(), style: const TextStyle(fontSize: 11.0, color: AppColors.primary700, fontWeight: FontWeight.bold)),
                       ],
                     ),
                   ),
@@ -575,15 +581,15 @@ class _FarmerDashboardScreenState extends ConsumerState<FarmerDashboardScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Row(
+                        Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('पूरे हुए ऑर्डर', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.0)),
-                            Icon(Icons.task_alt_rounded, color: AppColors.primary500),
+                            Text('analytics.completed_orders'.tr(), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.0)),
+                            const Icon(Icons.task_alt_rounded, color: AppColors.primary500),
                           ],
                         ),
                         Text('${deliveredOrders.length}', style: AppTypography.displayMedium),
-                        const Text('ग्राहकों तक पहुँचे', style: TextStyle(fontSize: 11.5, color: AppColors.soil600)),
+                        Text('common.verified'.tr(), style: const TextStyle(fontSize: 11.5, color: AppColors.soil600)),
                       ],
                     ),
                   ),
@@ -596,10 +602,10 @@ class _FarmerDashboardScreenState extends ConsumerState<FarmerDashboardScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('आए हुए नए ऑर्डर', style: AppTypography.headlineSmall),
+                  Text('farmer.pending_orders'.tr(), style: AppTypography.headlineSmall),
                   TextButton(
                     onPressed: () => context.push(RouteNames.farmerOrders),
-                    child: const Text('सभी देखें', style: TextStyle(fontWeight: FontWeight.bold)),
+                    child: Text('common.view_all'.tr(), style: const TextStyle(fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),
@@ -615,9 +621,9 @@ class _FarmerDashboardScreenState extends ConsumerState<FarmerDashboardScreen> {
                       children: [
                         const Icon(Icons.inbox_outlined, size: 40.0, color: AppColors.soil400),
                         const SizedBox(height: 8.0),
-                        Text('अभी तक कोई ऑर्डर नहीं मिला है', style: AppTypography.bodyMedium),
+                        Text('common.empty'.tr(), style: AppTypography.bodyMedium),
                         const SizedBox(height: 4.0),
-                        const Text('अपनी उपज जोड़ें ताकि आसपास के ग्राहक खरीद सकें', style: TextStyle(fontSize: 12.0, color: AppColors.soil500)),
+                        Text('consumer.empty_cart_desc'.tr(), style: const TextStyle(fontSize: 12.0, color: AppColors.soil500)),
                       ],
                     ),
                   ),
@@ -642,12 +648,12 @@ class _FarmerDashboardScreenState extends ConsumerState<FarmerDashboardScreen> {
                               Text(order.orderNumber, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5)),
                               const SizedBox(height: 4.0),
                               Text(
-                                '${order.deliveryMode == 'pickup' ? 'खेत से उठाना' : 'होम डिलीवरी'} • ${order.status}',
+                                '${order.deliveryMode == 'pickup' ? 'consumer.farmgate_pickup'.tr() : 'consumer.home_delivery'.tr()} • ${order.status}',
                                 style: TextStyle(fontSize: 12.0, color: order.status == 'delivered' ? AppColors.primary600 : AppColors.wheat700, fontWeight: FontWeight.w600),
                               ),
                             ],
                           ),
-                          Text('₹${order.totalAmount.toStringAsFixed(0)}', style: AppTypography.headlineSmall.copyWith(color: AppColors.primary600)),
+                          Text(AppFormatters.currency(order.totalAmount, locale: context.locale), style: AppTypography.headlineSmall.copyWith(color: AppColors.primary600)),
                         ],
                       ),
                     );

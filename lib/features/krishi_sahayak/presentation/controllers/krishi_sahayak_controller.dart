@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:flutter_tts/flutter_tts.dart';
@@ -68,7 +69,7 @@ class KrishiSahayakController extends StateNotifier<KrishiSahayakState> {
         ChatMessage(
           id: 'welcome_msg',
           role: 'assistant',
-          content: 'राम-राम किसान भाई! मैं आपका डिजिटल कृषि सहायक हूँ। आप मुझसे बोलकर या लिखकर अपनी फसल, खाद, सिंचाई, मौसम या फसल रोग के बारे में कोई भी सवाल पूछ सकते हैं।',
+          content: 'sahayak.greeting'.tr(),
           timestamp: DateTime.now(),
         ),
       ],
@@ -209,7 +210,7 @@ class KrishiSahayakController extends StateNotifier<KrishiSahayakState> {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: 'सहायक से संपर्क नहीं हो सका: $e',
+        errorMessage: e.toString(),
       );
     }
   }

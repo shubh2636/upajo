@@ -21,24 +21,24 @@ class _CropAdvisorScreenState extends ConsumerState<CropAdvisorScreen> {
   final TextEditingController _landAreaController = TextEditingController(text: '2.0');
 
   final List<Map<String, String>> _soilOptions = [
-    {'id': 'black_soil', 'label': 'काली गहरी मिट्टी (Black Soil)'},
-    {'id': 'sandy_loam', 'label': 'बलुई दोमट (Sandy Loam)'},
-    {'id': 'alluvial', 'label': 'जलोढ़ दोमट (Alluvial Loam)'},
-    {'id': 'red_soil', 'label': 'लाल / हल्की मिट्टी (Red Soil)'},
-    {'id': 'clay_loam', 'label': 'चिकनी दोमट (Clay Loam)'},
+    {'id': 'black_soil', 'key': 'advisor.soil_black'},
+    {'id': 'sandy_loam', 'key': 'advisor.soil_sandy_loam'},
+    {'id': 'alluvial', 'key': 'advisor.soil_alluvial'},
+    {'id': 'red_soil', 'key': 'advisor.soil_red'},
+    {'id': 'clay_loam', 'key': 'advisor.soil_clay_loam'},
   ];
 
   final List<Map<String, String>> _seasonOptions = [
-    {'id': 'rabi', 'label': 'रबी (सर्दी: गेहूं, चना, सरसों)'},
-    {'id': 'kharif', 'label': 'खरीफ (मानसून: धान, सोयाबीन)'},
-    {'id': 'zaid', 'label': 'जायद (गर्मी: मूंग, उड़द, सब्जियां)'},
+    {'id': 'rabi', 'key': 'advisor.season_rabi'},
+    {'id': 'kharif', 'key': 'advisor.season_kharif'},
+    {'id': 'zaid', 'key': 'advisor.season_zaid'},
   ];
 
   final List<Map<String, String>> _waterOptions = [
-    {'id': 'tube_well', 'label': 'ट्यूबवेल / बोरवेल (Tube Well)'},
-    {'id': 'canal', 'label': 'नहरी पानी (Canal)'},
-    {'id': 'rainfed', 'label': 'केवल वर्षा आधारित (Rainfed)'},
-    {'id': 'drip_sprinkler', 'label': 'ड्रिप / स्प्रिंकलर (Drip)'},
+    {'id': 'tube_well', 'key': 'advisor.water_tube_well'},
+    {'id': 'canal', 'key': 'advisor.water_canal'},
+    {'id': 'rainfed', 'key': 'advisor.water_rainfed'},
+    {'id': 'drip_sprinkler', 'key': 'advisor.water_drip_sprinkler'},
   ];
 
   @override
@@ -68,12 +68,12 @@ class _CropAdvisorScreenState extends ConsumerState<CropAdvisorScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh_rounded),
-            tooltip: 'मौसम अपडेट करें',
+            tooltip: 'common.refresh'.tr(),
             onPressed: () => controller.fetchWeather(lat: 23.2032, lon: 77.0844),
           ),
           IconButton(
             icon: const Icon(Icons.calendar_month_rounded),
-            tooltip: 'फसल कैलेंडर',
+            tooltip: 'advisor.crop_calendar'.tr(),
             onPressed: () => context.push(RouteNames.cropCalendar),
           ),
         ],
@@ -141,7 +141,7 @@ class _CropAdvisorScreenState extends ConsumerState<CropAdvisorScreen> {
               child: CircularProgressIndicator(strokeWidth: 2.5, color: AppColors.primary500),
             ),
             const SizedBox(width: 12.0),
-            Text('ओपन-मेटियो से मौसम डेटा आ रहा है...', style: AppTypography.bodyMedium),
+            Text('common.loading'.tr(), style: AppTypography.bodyMedium),
           ],
         ),
       );
@@ -180,9 +180,9 @@ class _CropAdvisorScreenState extends ConsumerState<CropAdvisorScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'खेत का मौसम (Live Open-Meteo)',
-                        style: TextStyle(color: AppColors.wheat200, fontSize: 12.0, fontWeight: FontWeight.w700),
+                      Text(
+                        'advisor.field_weather'.tr(),
+                        style: const TextStyle(color: AppColors.wheat200, fontSize: 12.0, fontWeight: FontWeight.w700),
                       ),
                       Text(
                         '${state.district}, ${state.stateName}',
@@ -209,7 +209,7 @@ class _CropAdvisorScreenState extends ConsumerState<CropAdvisorScreen> {
                       ),
                     ),
                     const SizedBox(width: 6.0),
-                    const Text('लाइव', style: TextStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.bold)),
+                    Text('common.live'.tr(), style: const TextStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
@@ -243,9 +243,9 @@ class _CropAdvisorScreenState extends ConsumerState<CropAdvisorScreen> {
           // Humidity & Wind Metrics
           Row(
             children: [
-              _metricChip(Icons.water_drop_outlined, 'नमी: ${weather.currentHumidity}%'),
+              _metricChip(Icons.water_drop_outlined, 'advisor.humidity_chip'.tr(namedArgs: {'val': '${weather.currentHumidity}'})),
               const SizedBox(width: 10.0),
-              _metricChip(Icons.air_rounded, 'हवा: ${weather.windSpeedKmH.toStringAsFixed(1)} किमी/घं'),
+              _metricChip(Icons.air_rounded, 'advisor.wind_speed_chip'.tr(namedArgs: {'speed': weather.windSpeedKmH.toStringAsFixed(1)})),
             ],
           ),
           const SizedBox(height: 14.0),
@@ -279,8 +279,8 @@ class _CropAdvisorScreenState extends ConsumerState<CropAdvisorScreen> {
                 Expanded(
                   child: Text(
                     weather.shouldSprayPesticide
-                        ? 'छिड़काव के लिए मौसम उपयुक्त है (हवा शांत है)'
-                        : 'कीटनाशक छिड़काव स्थगित रखें (तेज हवा या वर्षा का खतरा)',
+                        ? 'advisor.spray_favorable'.tr()
+                        : 'advisor.spray_unfavorable'.tr(),
                     style: TextStyle(
                       color: weather.shouldSprayPesticide
                           ? Colors.white
@@ -353,20 +353,20 @@ class _CropAdvisorScreenState extends ConsumerState<CropAdvisorScreen> {
               const Icon(Icons.eco_rounded, color: AppColors.primary500, size: 22.0),
               const SizedBox(width: 8.0),
               Text(
-                'खेत की जानकारी दर्ज करें',
+                'advisor.enter_farm_details'.tr(),
                 style: AppTypography.headlineSmall.copyWith(fontSize: 17.0),
               ),
             ],
           ),
           const SizedBox(height: 4.0),
-          const Text(
-            'सटीक सिफारिश के लिए अपनी मिट्टी, मौसम और पानी की सुविधा चुनें',
-            style: TextStyle(fontSize: 12.0, color: AppColors.soil600),
+          Text(
+            'advisor.farm_details_subtitle'.tr(),
+            style: const TextStyle(fontSize: 12.0, color: AppColors.soil600),
           ),
           const SizedBox(height: 18.0),
 
           // 1. Soil Type Selector
-          _fieldLabel('1. मिट्टी का प्रकार (Soil Type)'),
+          _fieldLabel('advisor.soil_type_step'.tr()),
           const SizedBox(height: 6.0),
           DropdownButtonFormField<String>(
             value: state.selectedSoilType,
@@ -375,7 +375,7 @@ class _CropAdvisorScreenState extends ConsumerState<CropAdvisorScreen> {
             items: _soilOptions.map((opt) {
               return DropdownMenuItem<String>(
                 value: opt['id'],
-                child: Text(opt['label']!, style: const TextStyle(fontSize: 14.0)),
+                child: Text(opt['key']!.tr(), style: const TextStyle(fontSize: 14.0)),
               );
             }).toList(),
             onChanged: (val) {
@@ -385,7 +385,7 @@ class _CropAdvisorScreenState extends ConsumerState<CropAdvisorScreen> {
           const SizedBox(height: 16.0),
 
           // 2. Season Selector
-          _fieldLabel('2. बुआई का मौसम (Season)'),
+          _fieldLabel('advisor.season_step'.tr()),
           const SizedBox(height: 6.0),
           DropdownButtonFormField<String>(
             value: state.selectedSeason,
@@ -394,7 +394,7 @@ class _CropAdvisorScreenState extends ConsumerState<CropAdvisorScreen> {
             items: _seasonOptions.map((opt) {
               return DropdownMenuItem<String>(
                 value: opt['id'],
-                child: Text(opt['label']!, style: const TextStyle(fontSize: 14.0)),
+                child: Text(opt['key']!.tr(), style: const TextStyle(fontSize: 14.0)),
               );
             }).toList(),
             onChanged: (val) {
@@ -404,7 +404,7 @@ class _CropAdvisorScreenState extends ConsumerState<CropAdvisorScreen> {
           const SizedBox(height: 16.0),
 
           // 3. Irrigation Source Selector
-          _fieldLabel('3. सिंचाई की सुविधा (Water Source)'),
+          _fieldLabel('advisor.water_step'.tr()),
           const SizedBox(height: 6.0),
           DropdownButtonFormField<String>(
             value: state.selectedWaterSource,
@@ -413,7 +413,7 @@ class _CropAdvisorScreenState extends ConsumerState<CropAdvisorScreen> {
             items: _waterOptions.map((opt) {
               return DropdownMenuItem<String>(
                 value: opt['id'],
-                child: Text(opt['label']!, style: const TextStyle(fontSize: 14.0)),
+                child: Text(opt['key']!.tr(), style: const TextStyle(fontSize: 14.0)),
               );
             }).toList(),
             onChanged: (val) {
@@ -423,7 +423,7 @@ class _CropAdvisorScreenState extends ConsumerState<CropAdvisorScreen> {
           const SizedBox(height: 16.0),
 
           // 4. Land Area
-          _fieldLabel('4. जमीन का क्षेत्रफल (एकड़ में)'),
+          _fieldLabel('advisor.land_area_step'.tr()),
           const SizedBox(height: 6.0),
           Row(
             children: [
@@ -505,7 +505,7 @@ class _CropAdvisorScreenState extends ConsumerState<CropAdvisorScreen> {
                     const Icon(Icons.verified_rounded, color: AppColors.primary600, size: 16.0),
                     const SizedBox(width: 4.0),
                     Text(
-                      '${(rec.confidenceScore * 100).toInt()}% मॉडल अनुमान (Estimate)',
+                      'advisor.model_estimate'.tr(namedArgs: {'percent': '${(rec.confidenceScore * 100).toInt()}'}),
                       style: const TextStyle(color: AppColors.primary700, fontSize: 11.5, fontWeight: FontWeight.bold),
                     ),
                   ],
@@ -523,7 +523,7 @@ class _CropAdvisorScreenState extends ConsumerState<CropAdvisorScreen> {
           ),
           const SizedBox(height: 4.0),
           Text(
-            'अनुशंसित किस्म: ${rec.variety} (${rec.scientificName})',
+            '${'advisor.recommended_variety'.tr()} ${rec.variety} (${rec.scientificName})',
             style: const TextStyle(fontSize: 13.5, color: AppColors.soil700, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 14.0),
@@ -542,10 +542,10 @@ class _CropAdvisorScreenState extends ConsumerState<CropAdvisorScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('प्रति एकड़ उपज', style: TextStyle(fontSize: 11.5, color: AppColors.soil600)),
+                      Text('advisor.per_acre_yield'.tr(), style: const TextStyle(fontSize: 11.5, color: AppColors.soil600)),
                       const SizedBox(height: 4.0),
                       Text(
-                        '${rec.expectedYieldMinQuintal.toInt()} - ${rec.expectedYieldMaxQuintal.toInt()} क्विंटल',
+                        '${rec.expectedYieldMinQuintal.toInt()} - ${rec.expectedYieldMaxQuintal.toInt()} ${'common.quintal'.tr()}',
                         style: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.w900, color: AppColors.wheat900),
                       ),
                     ],
@@ -564,10 +564,10 @@ class _CropAdvisorScreenState extends ConsumerState<CropAdvisorScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('${state.landAreaAcres} एकड़ में कुल पैदावार', style: const TextStyle(fontSize: 11.5, color: AppColors.soil600)),
+                      Text('advisor.total_yield_for_area'.tr(namedArgs: {'acres': '${state.landAreaAcres}'}), style: const TextStyle(fontSize: 11.5, color: AppColors.soil600)),
                       const SizedBox(height: 4.0),
                       Text(
-                        '~${rec.totalExpectedYieldQuintal} क्विंटल',
+                        '~${rec.totalExpectedYieldQuintal} ${'common.quintal'.tr()}',
                         style: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.w900, color: AppColors.primary700),
                       ),
                     ],
@@ -606,7 +606,7 @@ class _CropAdvisorScreenState extends ConsumerState<CropAdvisorScreen> {
             children: [
               Expanded(
                 child: AppButton(
-                  label: state.isPlanSaved ? 'सहेजा गया ✓' : 'योजना सहेजें',
+                  label: state.isPlanSaved ? 'advisor.plan_saved'.tr() : 'advisor.save_plan'.tr(),
                   variant: state.isPlanSaved ? ButtonVariant.outline : ButtonVariant.secondary,
                   onPressed: state.isPlanSaved
                       ? null
@@ -618,8 +618,8 @@ class _CropAdvisorScreenState extends ConsumerState<CropAdvisorScreen> {
                           );
                           if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('फसल योजना व कैलेंडर कार्य सफलतापूर्वक सहेजे गए!'),
+                              SnackBar(
+                                content: Text('advisor.plan_saved_toast'.tr()),
                                 backgroundColor: AppColors.primary600,
                               ),
                             );
@@ -635,7 +635,7 @@ class _CropAdvisorScreenState extends ConsumerState<CropAdvisorScreen> {
               const SizedBox(width: 10.0),
               Expanded(
                 child: AppButton(
-                  label: 'कैलेंडर देखें',
+                  label: 'advisor.view_calendar'.tr(),
                   variant: ButtonVariant.primary,
                   onPressed: () => context.push(RouteNames.cropCalendar),
                   icon: const Icon(Icons.arrow_forward_rounded, size: 20.0, color: Colors.white),

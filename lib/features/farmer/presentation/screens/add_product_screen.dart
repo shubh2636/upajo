@@ -66,7 +66,7 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedPackSizes.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('कम से कम एक बोरी का आकार चुनें (10/20/50 kg)')),
+        SnackBar(content: Text('farmer.select_pack_size_error'.tr())),
       );
       return;
     }
@@ -75,25 +75,25 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
     if (user == null) return;
 
     if (user.kycStatus != 'verified' && user.kycStatus != 'approved') {
-      showDialog(
+      showDialog<void>(
         context: context,
         builder: (ctx) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
-          title: const Row(
+          title: Row(
             children: [
-              Icon(Icons.shield_outlined, color: AppColors.clay500),
-              SizedBox(width: 8.0),
-              Text('KYC सत्यापन आवश्यक है', style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold)),
+              const Icon(Icons.shield_outlined, color: AppColors.clay500),
+              const SizedBox(width: 8.0),
+              Text('farmer.kyc_required_title'.tr(), style: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold)),
             ],
           ),
-          content: const Text(
-            'फसल प्रकाशित करने से पहले किसान KYC (पहचान पत्र व बैंक विवरण) पूर्ण होना अनिवार्य है ताकि खरीदारों को सत्यापित उपज मिल सके।',
-            style: TextStyle(fontSize: 13.5),
+          content: Text(
+            'farmer.kyc_required_desc'.tr(),
+            style: const TextStyle(fontSize: 13.5),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('बाद में'),
+              child: Text('common.later'.tr()),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -104,7 +104,7 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
                 Navigator.pop(ctx);
                 context.push(RouteNames.farmerKyc);
               },
-              child: const Text('KYC पूर्ण करें', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              child: Text('farmer.complete_kyc'.tr(), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
             ),
           ],
         ),
@@ -128,8 +128,8 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
         categoryId: _selectedCategoryId,
         titleHi: _titleController.text.trim(),
         titleEn: _titleController.text.trim(),
-        descriptionHi: _descController.text.trim().isEmpty ? 'खेत से सीधी शुद्ध फसल' : _descController.text.trim(),
-        descriptionEn: _descController.text.trim().isEmpty ? 'Farm fresh pure produce' : _descController.text.trim(),
+        descriptionHi: _descController.text.trim().isEmpty ? 'farmer.default_desc'.tr() : _descController.text.trim(),
+        descriptionEn: _descController.text.trim().isEmpty ? 'Direct farm-fresh produce' : _descController.text.trim(),
         images: [imageUrl],
         pricePerKg: double.parse(_priceController.text.trim()),
         stockKg: double.parse(_stockController.text.trim()),
@@ -139,9 +139,9 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
         deliveryModes: _selectedDeliveryModes,
         isOrganic: _isOrganic,
         isActive: true,
-        villageOrCity: user.villageOrCity ?? 'आष्टा',
-        district: user.district ?? 'सीहोर',
-        state: user.state ?? 'मध्य प्रदेश',
+        villageOrCity: user.villageOrCity ?? 'Ashta',
+        district: user.district ?? 'Sehore',
+        state: user.state ?? 'Madhya Pradesh',
         pinCode: user.pinCode ?? '466116',
         createdAt: DateTime.now(),
       );
@@ -151,7 +151,7 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('फसल सफलतापूर्वक प्रकाशित हो गई! (Produce Published)')),
+          SnackBar(content: Text('farmer.publish_success'.tr())),
         );
         context.pop();
       }
@@ -198,8 +198,8 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
                       const SizedBox(width: 10.0),
                       Expanded(
                         child: Text(
-                          'फसल प्रकाशित करने के लिए आपका KYC सत्यापन आवश्यक है।',
-                          style: TextStyle(
+                          'farmer.kyc_warning_banner'.tr(),
+                          style: const TextStyle(
                             fontSize: 12.5,
                             fontWeight: FontWeight.w600,
                             color: AppColors.wheat900,
@@ -208,7 +208,7 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
                       ),
                       TextButton(
                         onPressed: () => context.push(RouteNames.farmerKyc),
-                        child: const Text('सत्यापित करें', style: TextStyle(fontWeight: FontWeight.bold)),
+                        child: Text('farmer.verify_now'.tr(), style: const TextStyle(fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),
@@ -246,7 +246,7 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
                             const SizedBox(height: 8.0),
                             Text('farmer.take_photo'.tr(), style: const TextStyle(fontWeight: FontWeight.w700)),
                             const SizedBox(height: 2.0),
-                            const Text('कम इंटरनेट के लिए फोटो स्वतः छोटी होगी', style: TextStyle(fontSize: 11.0, color: AppColors.soil500)),
+                            Text('farmer.photo_compression_hint'.tr(), style: const TextStyle(fontSize: 11.0, color: AppColors.soil500)),
                           ],
                         ),
                       ),
@@ -257,7 +257,7 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
                           child: OutlinedButton.icon(
                             onPressed: () => _pickImage(ImageSource.camera),
                             icon: const Icon(Icons.camera_alt_outlined),
-                            label: const Text('कैमरा'),
+                            label: Text('common.camera'.tr()),
                           ),
                         ),
                         const SizedBox(width: 10.0),
@@ -265,7 +265,7 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
                           child: OutlinedButton.icon(
                             onPressed: () => _pickImage(ImageSource.gallery),
                             icon: const Icon(Icons.photo_library_outlined),
-                            label: const Text('गैलरी'),
+                            label: Text('common.gallery'.tr()),
                           ),
                         ),
                       ],
@@ -285,8 +285,8 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
                     AppTextField(
                       controller: _titleController,
                       label: 'farmer.product_name'.tr(),
-                      hintText: 'उदा. शरबती गेहूं (ग्रेड-ए) या देसी चना',
-                      validator: (val) => val == null || val.trim().isEmpty ? 'फसल का नाम लिखें' : null,
+                      hintText: 'farmer.product_name_hint'.tr(),
+                      validator: (val) => val == null || val.trim().isEmpty ? 'farmer.product_name_required'.tr() : null,
                     ),
                     const SizedBox(height: 14.0),
 
@@ -296,9 +296,9 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
                           child: AppTextField(
                             controller: _priceController,
                             label: 'farmer.price_per_kg'.tr(),
-                            hintText: 'उदा. 42',
+                            hintText: 'farmer.price_hint'.tr(),
                             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                            validator: (val) => (val == null || double.tryParse(val) == null) ? 'भाव लिखें' : null,
+                            validator: (val) => (val == null || double.tryParse(val) == null) ? 'farmer.price_required'.tr() : null,
                           ),
                         ),
                         const SizedBox(width: 12.0),
@@ -306,9 +306,9 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
                           child: AppTextField(
                             controller: _stockController,
                             label: 'farmer.total_stock_kg'.tr(),
-                            hintText: 'उदा. 500',
+                            hintText: 'farmer.stock_hint'.tr(),
                             keyboardType: TextInputType.number,
-                            validator: (val) => (val == null || double.tryParse(val) == null) ? 'स्टॉक लिखें' : null,
+                            validator: (val) => (val == null || double.tryParse(val) == null) ? 'farmer.stock_required'.tr() : null,
                           ),
                         ),
                       ],
@@ -327,7 +327,7 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
                   children: [
                     Text('farmer.pack_sizes'.tr(), style: AppTypography.headlineSmall),
                     const SizedBox(height: 4.0),
-                    const Text('ग्राहक इन पैक में सीधे ऑर्डर कर सकेंगे:', style: TextStyle(fontSize: 12.0, color: AppColors.soil600)),
+                    Text('farmer.pack_sizes_subtitle'.tr(), style: const TextStyle(fontSize: 12.0, color: AppColors.soil600)),
                     const SizedBox(height: 12.0),
 
                     Row(
@@ -422,7 +422,7 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
                     SwitchListTile(
                       value: _isOrganic,
                       title: Text('farmer.is_organic'.tr(), style: const TextStyle(fontWeight: FontWeight.w700)),
-                      subtitle: const Text('बिना रासायनिक यूरिया या कीटनाशक वाली शुद्ध प्राकृतिक फसल', style: TextStyle(fontSize: 12.0)),
+                      subtitle: Text('farmer.organic_subtitle'.tr(), style: const TextStyle(fontSize: 12.0)),
                       activeColor: AppColors.primary500,
                       contentPadding: EdgeInsets.zero,
                       onChanged: (val) => setState(() => _isOrganic = val),

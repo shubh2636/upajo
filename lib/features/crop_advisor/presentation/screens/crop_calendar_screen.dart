@@ -69,11 +69,11 @@ class _CropCalendarScreenState extends ConsumerState<CropCalendarScreen> {
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
-                  _filterChip('all', 'सभी कार्य ($totalCount)'),
+                  _filterChip('all', 'advisor.all_tasks'.tr(namedArgs: {'count': '$totalCount'})),
                   const SizedBox(width: 8.0),
-                  _filterChip('pending', 'बाकी कार्य (${totalCount - completedCount})'),
+                  _filterChip('pending', 'advisor.pending_tasks'.tr(namedArgs: {'count': '${totalCount - completedCount}'})),
                   const SizedBox(width: 8.0),
-                  _filterChip('completed', 'पूर्ण कार्य ($completedCount)'),
+                  _filterChip('completed', 'advisor.completed_tasks'.tr(namedArgs: {'count': '$completedCount'})),
                 ],
               ),
             ),
@@ -82,9 +82,9 @@ class _CropCalendarScreenState extends ConsumerState<CropCalendarScreen> {
 
             // 3. Task List
             if (filteredTasks.isEmpty)
-              const EmptyStateView(
-                title: 'कोई कार्य नहीं मिला',
-                subtitle: 'इस फ़िल्टर के लिए कोई आगामी कृषि कार्य उपलब्ध नहीं है।',
+              EmptyStateView(
+                title: 'common.empty'.tr(),
+                subtitle: 'advisor.no_tasks_desc'.tr(),
                 icon: Icons.task_alt_rounded,
               )
             else
@@ -136,12 +136,12 @@ class _CropCalendarScreenState extends ConsumerState<CropCalendarScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    rec != null ? rec.nameHi : 'सक्रिय फसल कैलेंडर',
+                    rec != null ? rec.nameHi : 'advisor.crop_calendar'.tr(),
                     style: AppTypography.headlineSmall.copyWith(fontSize: 18.0),
                   ),
                   const SizedBox(height: 2.0),
                   Text(
-                    rec != null ? 'किस्म: ${rec.variety}' : 'सत्र 2026-27',
+                    rec != null ? '${'advisor.recommended_variety'.tr()} ${rec.variety}' : '2026-27',
                     style: const TextStyle(fontSize: 12.5, color: AppColors.soil600),
                   ),
                 ],
@@ -154,7 +154,7 @@ class _CropCalendarScreenState extends ConsumerState<CropCalendarScreen> {
                   border: Border.all(color: AppColors.primary200),
                 ),
                 child: Text(
-                  '${(progress * 100).toInt()}% पूर्ण',
+                  '${(progress * 100).toInt()}% ${'common.completed'.tr()}',
                   style: const TextStyle(color: AppColors.primary700, fontWeight: FontWeight.bold, fontSize: 13.0),
                 ),
               ),
@@ -177,12 +177,12 @@ class _CropCalendarScreenState extends ConsumerState<CropCalendarScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '$completedCount/$totalCount कार्य पूरे हुए',
+                '$completedCount/$totalCount ${'advisor.tasks_completed'.tr()}',
                 style: const TextStyle(fontSize: 12.0, color: AppColors.soil700, fontWeight: FontWeight.w600),
               ),
-              const Text(
-                'ICAR समयबद्ध कैलेंडर',
-                style: TextStyle(fontSize: 11.5, color: AppColors.wheat700, fontWeight: FontWeight.bold),
+              Text(
+                'advisor.icar_calendar'.tr(),
+                style: const TextStyle(fontSize: 11.5, color: AppColors.wheat700, fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -264,8 +264,8 @@ class _CropCalendarScreenState extends ConsumerState<CropCalendarScreen> {
                         const SizedBox(width: 8.0),
                         Text(
                           task.daysAfterSowing >= 0
-                              ? 'बोआई +${task.daysAfterSowing} दिन'
-                              : 'बोआई से पहले',
+                              ? 'advisor.sowing_plus'.tr(namedArgs: {'days': '${task.daysAfterSowing}'})
+                              : 'advisor.before_sowing'.tr(),
                           style: const TextStyle(fontSize: 11.5, color: AppColors.soil600, fontWeight: FontWeight.w600),
                         ),
                       ],
@@ -324,19 +324,19 @@ class _CropCalendarScreenState extends ConsumerState<CropCalendarScreen> {
                   const Icon(Icons.calendar_today_rounded, size: 14.0, color: AppColors.soil500),
                   const SizedBox(width: 4.0),
                   Text(
-                    'अंतिम तिथि: ${DateFormat('dd MMM yyyy').format(task.dueDate)}',
+                    '${'advisor.due_date'.tr()}: ${DateFormat('dd MMM yyyy').format(task.dueDate)}',
                     style: const TextStyle(fontSize: 11.5, color: AppColors.soil600),
                   ),
                 ],
               ),
               if (task.isCompleted)
-                const Row(
+                Row(
                   children: [
-                    Icon(Icons.check_circle_rounded, size: 14.0, color: AppColors.primary600),
-                    SizedBox(width: 4.0),
+                    const Icon(Icons.check_circle_rounded, size: 14.0, color: AppColors.primary600),
+                    const SizedBox(width: 4.0),
                     Text(
-                      'संपन्न',
-                      style: TextStyle(fontSize: 11.5, color: AppColors.primary600, fontWeight: FontWeight.bold),
+                      'common.done'.tr(),
+                      style: const TextStyle(fontSize: 11.5, color: AppColors.primary600, fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
@@ -369,19 +369,19 @@ class _CropCalendarScreenState extends ConsumerState<CropCalendarScreen> {
   String _getStageLabel(String stage) {
     switch (stage) {
       case 'soil_prep':
-        return 'खेत की तैयारी';
+        return 'advisor.task_field_prep'.tr();
       case 'sowing':
-        return 'बोआई (Sowing)';
+        return 'advisor.task_sowing'.tr();
       case 'irrigation':
-        return 'सिंचाई (Irrigation)';
+        return 'advisor.task_irrigation'.tr();
       case 'fertilizer':
-        return 'खाद / पोषण';
+        return 'advisor.task_fertilizer'.tr();
       case 'pest_control':
-        return 'कीट / खरपतवार';
+        return 'advisor.task_pest'.tr();
       case 'harvesting':
-        return 'कटाई (Harvest)';
+        return 'advisor.task_harvest'.tr();
       default:
-        return 'कार्य';
+        return 'advisor.task_general'.tr();
     }
   }
 }

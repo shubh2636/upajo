@@ -84,13 +84,13 @@ class _FarmerEarningsScreenState extends ConsumerState<FarmerEarningsScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('बैंक एवं UPI विवरण सुरक्षित सहेजा गया!')),
+          SnackBar(content: Text('farmer.bank_saved_success'.tr())),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('त्रुटि: $e')),
+          SnackBar(content: Text(e.toString())),
         );
       }
     } finally {
@@ -103,7 +103,7 @@ class _FarmerEarningsScreenState extends ConsumerState<FarmerEarningsScreen> {
     return Scaffold(
       backgroundColor: AppColors.soil50,
       appBar: AppBar(
-        title: const Text('कमाई व बैंक खाता (Earnings)'),
+        title: Text('farmer.total_earnings'.tr()),
         backgroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
@@ -121,14 +121,14 @@ class _FarmerEarningsScreenState extends ConsumerState<FarmerEarningsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('कुल प्राप्त कमाई (Settled)', style: TextStyle(color: AppColors.wheat200, fontWeight: FontWeight.bold)),
+                  Text('farmer.settled_earnings'.tr(), style: const TextStyle(color: AppColors.wheat200, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 6.0),
                   Text('₹${_totalSettled.toStringAsFixed(0)}', style: AppTypography.displayLarge.copyWith(color: Colors.white)),
                   const SizedBox(height: 12.0),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 4.0),
                     decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(8.0)),
-                    child: const Text('प्रारंभिक प्रचार अवधि: 0% प्लेटफ़ॉर्म शुल्क (0% Promotional Platform Fee)', style: TextStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.bold)),
+                    child: Text('farmer.promo_platform_fee'.tr(), style: const TextStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),
@@ -142,36 +142,36 @@ class _FarmerEarningsScreenState extends ConsumerState<FarmerEarningsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('पारदर्शी शुल्क विवरणी (Fee Breakdown)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5)),
+                  Text('farmer.fee_breakdown'.tr(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5)),
                   const SizedBox(height: 10.0),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('सकल बिक्री (Gross Sales):', style: TextStyle(color: AppColors.soil700, fontSize: 13.0)),
+                      Text('${'farmer.gross_sales'.tr()}:', style: const TextStyle(color: AppColors.soil700, fontSize: 13.0)),
                       Text('₹${_totalSettled.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.w700)),
                     ],
                   ),
                   const SizedBox(height: 6.0),
-                  const Row(
+                  Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('प्लेटफ़ॉर्म शुल्क (Platform Fee - Promo):', style: TextStyle(color: AppColors.soil700, fontSize: 13.0)),
-                      Text('₹0.00 (0%)', style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.primary600)),
+                      Text('${'farmer.platform_fee_promo'.tr()}:', style: const TextStyle(color: AppColors.soil700, fontSize: 13.0)),
+                      const Text('₹0.00 (0%)', style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.primary600)),
                     ],
                   ),
                   const SizedBox(height: 6.0),
-                  const Row(
+                  Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('भुगतान गेटवे शुल्क (PG Charges):', style: TextStyle(color: AppColors.soil700, fontSize: 13.0)),
-                      Text('₹0.00 (उपजो द्वारा वहन)', style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.primary600)),
+                      Text('${'farmer.pg_charges'.tr()}:', style: const TextStyle(color: AppColors.soil700, fontSize: 13.0)),
+                      Text('₹0.00 (${'farmer.absorbed_by_upajo'.tr()})', style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.primary600)),
                     ],
                   ),
                   const Divider(height: 16.0),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('शुद्ध किसान भुगतान (Net Payout):', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14.0)),
+                      Text('${'farmer.net_payout'.tr()}:', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14.0)),
                       Text('₹${_totalSettled.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.w900, color: AppColors.primary600, fontSize: 15.0)),
                     ],
                   ),
@@ -190,9 +190,9 @@ class _FarmerEarningsScreenState extends ConsumerState<FarmerEarningsScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('प्रगतिरत ऑर्डर मूल्य (Pending)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.0)),
+                      Text('farmer.pending_orders_val'.tr(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.0)),
                       const SizedBox(height: 2.0),
-                      const Text('डिलीवरी पूरी होते ही खाते में जमा होगा', style: TextStyle(fontSize: 11.5, color: AppColors.soil600)),
+                      Text('farmer.pending_desc'.tr(), style: const TextStyle(fontSize: 11.5, color: AppColors.soil600)),
                     ],
                   ),
                   Text('₹${_pendingSettlement.toStringAsFixed(0)}', style: AppTypography.headlineMedium.copyWith(color: AppColors.wheat900)),
@@ -213,22 +213,22 @@ class _FarmerEarningsScreenState extends ConsumerState<FarmerEarningsScreen> {
                   AppTextField(
                     controller: _upiController,
                     label: 'farmer.upi_id'.tr(),
-                    hintText: 'उदा. 9876543210@upi',
+                    hintText: 'user@bankupi',
                     prefixIcon: const Icon(Icons.qr_code_2_rounded, color: AppColors.primary500),
                   ),
                   const SizedBox(height: 14.0),
 
                   AppTextField(
                     controller: _holderController,
-                    label: 'खाता धारक का नाम (Bank Holder)',
-                    hintText: 'पासबुक के अनुसार नाम',
+                    label: 'farmer.bank_holder_name'.tr(),
+                    hintText: 'farmer.bank_holder_hint'.tr(),
                   ),
                   const SizedBox(height: 14.0),
 
                   AppTextField(
                     controller: _accountController,
                     label: 'farmer.bank_acc'.tr(),
-                    hintText: 'बैंक खाता संख्या',
+                    hintText: '123456789012',
                     keyboardType: TextInputType.number,
                   ),
                   const SizedBox(height: 14.0),
@@ -236,7 +236,7 @@ class _FarmerEarningsScreenState extends ConsumerState<FarmerEarningsScreen> {
                   AppTextField(
                     controller: _ifscController,
                     label: 'farmer.ifsc_code'.tr(),
-                    hintText: 'उदा. SBIN0001234',
+                    hintText: 'SBIN0001234',
                   ),
                   const SizedBox(height: 22.0),
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_button.dart';
@@ -18,35 +19,37 @@ class FarmerAnalyticsScreen extends ConsumerStatefulWidget {
 }
 
 class _FarmerAnalyticsScreenState extends ConsumerState<FarmerAnalyticsScreen> {
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final user = ref.read(authControllerProvider).userProfile;
-      final farmerId = user?.id ?? 'demo_farmer_id';
-      ref.read(farmerAnalyticsControllerProvider.notifier).loadAnalytics(farmerId);
+      if (user != null) {
+        ref.read(farmerAnalyticsControllerProvider.notifier).loadAnalytics(user.id);
+      }
     });
   }
 
-  void _downloadSampleInvoice(FarmerAnalyticsModel analytics) {
+  Future<void> _downloadSampleInvoice(FarmerAnalyticsModel analytics) async {
     final user = ref.read(authControllerProvider).userProfile;
 
-    InvoicePdfGenerator.printOrShareInvoice(
-      invoiceNumber: 'UPJ-INV-2026-0812',
-      farmerName: user?.fullName ?? 'बलदेव सिंह पटेल',
-      farmerVillage: 'ग्राम श्यामपुर',
-      farmerDistrict: 'सीहोर (म.प्र.)',
-      farmerPhone: user?.phoneNumber ?? '9425098765',
-      buyerName: analytics.topBuyers.isNotEmpty ? analytics.topBuyers.first.buyerName : 'अमित शर्मा',
-      buyerAddress: 'मकान नं 42, ई-7 अरेरा कॉलोनी, भोपाल',
-      buyerPhone: '9826011223',
-      cropName: 'शरबती गेहूं (C-306)',
-      variety: 'सुजाता ग्रेड-ए',
+    await InvoicePdfGenerator.printOrShareInvoice(
+      invoiceNumber: 'UPAJ-INV-${DateTime.now().year}-0842',
+      farmerName: user?.fullName ?? 'Baldev Singh Patel',
+      farmerVillage: 'Gram Shyampur',
+      farmerDistrict: 'Sehore (M.P.)',
+      farmerPhone: user?.phoneNumber ?? '9876543210',
+      buyerName: analytics.topBuyers.isNotEmpty ? analytics.topBuyers.first.buyerName : 'Amit Sharma',
+      buyerAddress: 'House 42, E-7 Arera Colony, Bhopal',
+      buyerPhone: '9425012345',
+      cropName: 'Sharbati Wheat C-306',
+      variety: 'Sujata Grade-A',
       packSizeKg: 50,
-      quantityPacks: 2,
-      pricePerKg: 35.0,
-      deliveryFee: 150.0,
-      paymentMode: 'UPI (Razorpay Verified)',
+      quantityPacks: 50,
+      pricePerKg: 34.50,
+      deliveryFee: 0.0,
+      paymentMode: 'Bank Transfer / UPI',
     );
   }
 
@@ -58,11 +61,11 @@ class _FarmerAnalyticsScreenState extends ConsumerState<FarmerAnalyticsScreen> {
     return Scaffold(
       backgroundColor: AppColors.soil50,
       appBar: AppBar(
-        title: const Text('बिक्री विश्लेषण व इनवॉइस', style: TextStyle(fontWeight: FontWeight.w900)),
+        title: Text('analytics.title'.tr(), style: const TextStyle(fontWeight: FontWeight.w900)),
         actions: [
           IconButton(
             icon: const Icon(Icons.picture_as_pdf_rounded),
-            tooltip: 'इनवॉइस डाउनलोड करें',
+            tooltip: 'analytics.download_invoice'.tr(),
             onPressed: analytics != null ? () => _downloadSampleInvoice(analytics) : null,
           ),
         ],
@@ -70,7 +73,7 @@ class _FarmerAnalyticsScreenState extends ConsumerState<FarmerAnalyticsScreen> {
       body: state.isLoading && analytics == null
           ? const Center(child: CircularProgressIndicator(color: AppColors.primary500))
           : analytics == null
-              ? const Center(child: Text('आंकड़े उपलब्ध नहीं हैं'))
+              ? Center(child: Text('analytics.no_data'.tr()))
               : SingleChildScrollView(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
@@ -98,7 +101,7 @@ class _FarmerAnalyticsScreenState extends ConsumerState<FarmerAnalyticsScreen> {
 
                       // 5. PDF Invoicing CTA Button
                       AppButton(
-                        label: 'जीएसटी-मुक्त बिक्री इनवॉइस (PDF) डाउनलोड करें',
+                        label: 'analytics.download_gst_invoice_btn'.tr(),
                         variant: ButtonVariant.primary,
                         onPressed: () => _downloadSampleInvoice(analytics),
                         icon: const Icon(Icons.print_rounded, size: 22.0, color: Colors.white),
@@ -132,11 +135,11 @@ class _FarmerAnalyticsScreenState extends ConsumerState<FarmerAnalyticsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Row(
+              Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('कुल शुद्ध किसान भुगतान (Net Payout)', style: TextStyle(color: AppColors.wheat200, fontSize: 13.0, fontWeight: FontWeight.bold)),
-                  Icon(Icons.verified_rounded, color: AppColors.wheat400, size: 20.0),
+                  Text('analytics.net_payout'.tr(), style: const TextStyle(color: AppColors.wheat200, fontSize: 13.0, fontWeight: FontWeight.bold)),
+                  const Icon(Icons.verified_rounded, color: AppColors.wheat400, size: 20.0),
                 ],
               ),
               const SizedBox(height: 8.0),
@@ -145,7 +148,7 @@ class _FarmerAnalyticsScreenState extends ConsumerState<FarmerAnalyticsScreen> {
                 style: const TextStyle(fontSize: 34.0, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: -1.0),
               ),
               const SizedBox(height: 4.0),
-              const Text('सीधे आपके बैंक व UPI खाते में जमा', style: TextStyle(color: Colors.white70, fontSize: 12.0)),
+              Text('analytics.bank_upi_direct'.tr(), style: const TextStyle(color: Colors.white70, fontSize: 12.0)),
             ],
           ),
         ),
@@ -161,10 +164,10 @@ class _FarmerAnalyticsScreenState extends ConsumerState<FarmerAnalyticsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('कुल बिकी उपज', style: TextStyle(fontSize: 11.5, color: AppColors.soil600)),
+                    Text('analytics.total_sold_produce'.tr(), style: const TextStyle(fontSize: 11.5, color: AppColors.soil600)),
                     const SizedBox(height: 4.0),
-                    Text('${analytics.totalQuintals} क्विंटल', style: const TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold, color: AppColors.soil900)),
-                    Text('${analytics.totalOrders} ऑर्डर पूरे हुए', style: const TextStyle(fontSize: 11.0, color: AppColors.primary700)),
+                    Text('analytics.quintals_unit'.tr(args: [analytics.totalQuintals.toString()]), style: const TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold, color: AppColors.soil900)),
+                    Text('analytics.orders_completed_count'.tr(args: [analytics.totalOrders.toString()]), style: const TextStyle(fontSize: 11.0, color: AppColors.primary700)),
                   ],
                 ),
               ),
@@ -176,10 +179,10 @@ class _FarmerAnalyticsScreenState extends ConsumerState<FarmerAnalyticsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('औसत प्राप्त भाव', style: TextStyle(fontSize: 11.5, color: AppColors.soil600)),
+                    Text('analytics.avg_realized_rate'.tr(), style: const TextStyle(fontSize: 11.5, color: AppColors.soil600)),
                     const SizedBox(height: 4.0),
-                    Text('₹${analytics.averageRatePerQuintal.toInt()}/क्विं', style: const TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold, color: AppColors.wheat900)),
-                    const Text('मंडी से 25% अधिक लाभ', style: TextStyle(fontSize: 11.0, color: AppColors.success600, fontWeight: FontWeight.bold)),
+                    Text('₹${analytics.averageRatePerQuintal.toInt()}' + 'analytics.per_quintal_short'.tr(), style: const TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold, color: AppColors.wheat900)),
+                    Text('analytics.mandi_extra_profit'.tr(), style: const TextStyle(fontSize: 11.0, color: AppColors.success600, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
@@ -203,8 +206,8 @@ class _FarmerAnalyticsScreenState extends ConsumerState<FarmerAnalyticsScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('मासिक बिक्री रुझान (Monthly Trends)', style: AppTypography.headlineSmall.copyWith(fontSize: 15.0)),
-              const Text('₹ में', style: TextStyle(fontSize: 12.0, color: AppColors.soil600, fontWeight: FontWeight.bold)),
+              Text('analytics.monthly_trends'.tr(), style: AppTypography.headlineSmall.copyWith(fontSize: 15.0)),
+              Text('analytics.in_rupees'.tr(), style: const TextStyle(fontSize: 12.0, color: AppColors.soil600, fontWeight: FontWeight.bold)),
             ],
           ),
           const SizedBox(height: 18.0),
@@ -263,7 +266,7 @@ class _FarmerAnalyticsScreenState extends ConsumerState<FarmerAnalyticsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('फसलों के अनुसार कमाई (Crop Share)', style: AppTypography.headlineSmall.copyWith(fontSize: 15.0)),
+          Text('analytics.crop_share'.tr(), style: AppTypography.headlineSmall.copyWith(fontSize: 15.0)),
           const SizedBox(height: 14.0),
           ...cropBreakdown.entries.map((entry) {
             return Padding(
@@ -306,7 +309,7 @@ class _FarmerAnalyticsScreenState extends ConsumerState<FarmerAnalyticsScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('शीर्ष निष्ठावान खरीदार (Top Buyers)', style: AppTypography.headlineSmall.copyWith(fontSize: 15.0)),
+              Text('analytics.top_buyers_title'.tr(), style: AppTypography.headlineSmall.copyWith(fontSize: 15.0)),
               const Icon(Icons.people_alt_rounded, color: AppColors.primary600, size: 20.0),
             ],
           ),
@@ -321,7 +324,7 @@ class _FarmerAnalyticsScreenState extends ConsumerState<FarmerAnalyticsScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(b.buyerName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
-                      Text('${b.location} • ${b.ordersCount} बार ऑर्डर किया', style: const TextStyle(fontSize: 11.5, color: AppColors.soil600)),
+                      Text('${b.location} • ' + 'analytics.orders_count_badge'.tr(args: [b.ordersCount.toString()]), style: const TextStyle(fontSize: 11.5, color: AppColors.soil600)),
                     ],
                   ),
                   Text('₹${b.totalSpent.toInt()}', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15.0, color: AppColors.soil900)),
@@ -334,4 +337,3 @@ class _FarmerAnalyticsScreenState extends ConsumerState<FarmerAnalyticsScreen> {
     );
   }
 }
-

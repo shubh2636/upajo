@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -33,7 +34,7 @@ class OrderTrackingScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.soil50,
       appBar: AppBar(
-        title: Text('ऑर्डर: ${order.orderNumber}'),
+        title: Text('${'nav.orders'.tr()}: ${order.orderNumber}'),
         backgroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
@@ -52,12 +53,12 @@ class OrderTrackingScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    currentStep == 3 ? 'ऑर्डर प्राप्त हो चुका है (Delivered) ✓' : 'ऑर्डर प्रगति पर है (In Progress)',
+                    currentStep == 3 ? '${'consumer.step_delivered'.tr()} ✓' : 'consumer.in_transit'.tr(),
                     style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 18.0),
                   ),
                   const SizedBox(height: 4.0),
                   Text(
-                    isPickup ? 'खेत से उठाना (Farm Pickup)' : 'घर पर डिलीवरी (Doorstep Delivery)',
+                    isPickup ? 'consumer.farmgate_pickup'.tr() : 'consumer.home_delivery'.tr(),
                     style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 13.0),
                   ),
                 ],
@@ -72,30 +73,30 @@ class OrderTrackingScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('ऑर्डर प्रगति स्थिति (Status Timeline)', style: AppTypography.headlineSmall),
+                  Text('consumer.status_timeline'.tr(), style: AppTypography.headlineSmall),
                   const SizedBox(height: 20.0),
 
                   _buildStep(
-                    title: 'ऑर्डर स्वीकृत (Confirmed)',
-                    subtitle: 'किसान द्वारा ऑर्डर स्वीकार कर लिया गया है',
+                    title: 'consumer.step_confirmed'.tr(),
+                    subtitle: 'consumer.step_confirmed'.tr(),
                     isActive: currentStep >= 0,
                     isDone: currentStep > 0,
                   ),
                   _buildStep(
-                    title: 'कटाई व पैकिंग पूर्ण (Packed)',
-                    subtitle: 'खेत से ताज़ी फसल पैक कर दी गई है',
+                    title: 'consumer.step_packed'.tr(),
+                    subtitle: 'consumer.step_packed'.tr(),
                     isActive: currentStep >= 1,
                     isDone: currentStep > 1,
                   ),
                   _buildStep(
-                    title: isPickup ? 'खेत से उठाने के लिए तैयार' : 'डिलीवरी के लिए रवाना (Out for Delivery)',
-                    subtitle: isPickup ? 'आप सीधे किसान के खेत जाकर उठा सकते हैं' : 'डिलीवरी पार्टनर रास्ते में है',
+                    title: isPickup ? 'consumer.step_ready_pickup'.tr() : 'consumer.step_out_delivery'.tr(),
+                    subtitle: isPickup ? 'consumer.step_ready_pickup'.tr() : 'consumer.step_out_delivery'.tr(),
                     isActive: currentStep >= 2,
                     isDone: currentStep > 2,
                   ),
                   _buildStep(
-                    title: 'सफलतापूर्वक प्राप्त (Delivered)',
-                    subtitle: 'फसल आपके हाथों में सुरक्षित पहुँच चुकी है',
+                    title: 'consumer.step_delivered'.tr(),
+                    subtitle: 'consumer.step_delivered'.tr(),
                     isActive: currentStep >= 3,
                     isDone: currentStep >= 3,
                     isLast: true,
@@ -121,8 +122,8 @@ class OrderTrackingScreen extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('अन्नदाता: ${order.farmerName ?? 'सत्यापित किसान'}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5)),
-                        const Text('सीधे किसान से संपर्क करें', style: TextStyle(fontSize: 11.5, color: AppColors.soil600)),
+                        Text('${'auth.role_farmer'.tr()}: ${order.farmerName ?? ''}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5)),
+                        Text('farmer.whatsapp_customer'.tr(), style: const TextStyle(fontSize: 11.5, color: AppColors.soil600)),
                       ],
                     ),
                   ),
@@ -134,8 +135,8 @@ class OrderTrackingScreen extends ConsumerWidget {
                         SnackBar(
                           content: Text(
                             phone != null && phone.isNotEmpty
-                                ? 'किसान से संपर्क: +91 $phone'
-                                : 'किसान का फ़ोन नंबर उपलब्ध नहीं है',
+                                ? '+91 $phone'
+                                : 'common.empty'.tr(),
                           ),
                         ),
                       );
@@ -155,22 +156,22 @@ class OrderTrackingScreen extends ConsumerWidget {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
               ),
               icon: const Icon(Icons.picture_as_pdf_rounded, color: AppColors.primary600),
-              label: const Text(
-                'डिजिटल इनवॉइस डाउनलोड (GST Invoice)',
-                style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.primary700),
+              label: Text(
+                'consumer.download_gst_invoice'.tr(),
+                style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.primary700),
               ),
               onPressed: () {
                 InvoicePdfGenerator.printOrShareInvoice(
                   invoiceNumber: order.orderNumber,
-                  farmerName: order.farmerName ?? 'सत्यापित किसान',
-                  farmerVillage: 'खेत स्थान',
-                  farmerDistrict: 'मध्य प्रदेश',
+                  farmerName: order.farmerName ?? 'Verified Farmer',
+                  farmerVillage: 'Madhya Pradesh',
+                  farmerDistrict: 'Madhya Pradesh',
                   farmerPhone: order.farmerPhone ?? '',
-                  buyerName: order.deliveryAddress['full_name'] as String? ?? 'ग्राहक',
+                  buyerName: order.deliveryAddress['full_name'] as String? ?? 'Buyer',
                   buyerAddress: order.deliveryAddress['address_line'] as String? ?? '',
                   buyerPhone: order.deliveryAddress['phone'] as String? ?? '',
-                  cropName: 'कृषि उपज',
-                  variety: 'ग्रेड-ए मानक',
+                  cropName: 'Produce',
+                  variety: 'Grade-A',
                   packSizeKg: 10,
                   quantityPacks: 1,
                   pricePerKg: order.subtotalAmount > 0 ? (order.subtotalAmount / 10) : 35.0,
@@ -182,10 +183,10 @@ class OrderTrackingScreen extends ConsumerWidget {
 
             const SizedBox(height: 14.0),
 
-            // Live OSM Delivery Tracking (Part 5)
+            // Live OSM Delivery Tracking
             if (!isPickup) ...[
               AppButton(
-                label: 'लाइव डिलीवरी ट्रैक करें (Live OSM Map)',
+                label: 'consumer.track_live_osm'.tr(),
                 variant: ButtonVariant.primary,
                 onPressed: () => context.push(RouteNames.liveTracking, extra: order.id),
                 icon: const Icon(Icons.navigation_rounded, size: 20.0, color: Colors.white),
@@ -206,17 +207,17 @@ class OrderTrackingScreen extends ConsumerWidget {
                   final confirm = await showDialog<bool>(
                     context: context,
                     builder: (ctx) => AlertDialog(
-                      title: const Text('ऑर्डर रद्द करें? (Cancel Order)'),
-                      content: const Text('क्या आप वाकई इस ऑर्डर को रद्द करना चाहते हैं?'),
+                      title: Text('consumer.cancel_order_prompt'.tr()),
+                      content: Text('consumer.cancel_order_prompt'.tr()),
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.pop(ctx, false),
-                          child: const Text('नहीं'),
+                          child: Text('common.no'.tr()),
                         ),
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(backgroundColor: AppColors.clay500),
                           onPressed: () => Navigator.pop(ctx, true),
-                          child: const Text('हां, रद्द करें', style: TextStyle(color: Colors.white)),
+                          child: Text('consumer.cancel_order_action'.tr(), style: const TextStyle(color: Colors.white)),
                         ),
                       ],
                     ),
@@ -225,14 +226,14 @@ class OrderTrackingScreen extends ConsumerWidget {
                     await ref.read(marketplaceRepositoryProvider).updateOrderStatus(order.id, 'cancelled');
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('ऑर्डर सफलतापूर्वक रद्द कर दिया गया')),
+                        SnackBar(content: Text('consumer.cancel_order_action'.tr())),
                       );
                       context.pop();
                     }
                   }
                 },
                 icon: const Icon(Icons.cancel_outlined, size: 20.0),
-                label: const Text('ऑर्डर रद्द करें (Cancel Order)', style: TextStyle(fontWeight: FontWeight.w700)),
+                label: Text('consumer.cancel_order_action'.tr(), style: const TextStyle(fontWeight: FontWeight.w700)),
               ),
               const SizedBox(height: 12.0),
             ],
@@ -240,7 +241,7 @@ class OrderTrackingScreen extends ConsumerWidget {
             // Rating CTA if Delivered
             if (currentStep == 3)
               AppButton(
-                label: 'फसल की गुणवत्ता को रेट करें (Rate Produce)',
+                label: 'consumer.rate_produce'.tr(),
                 variant: ButtonVariant.secondary,
                 onPressed: () {
                   showModalBottomSheet<void>(

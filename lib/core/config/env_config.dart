@@ -7,10 +7,23 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 /// 1. Compile-time `--dart-define` flags (production & CI/CD recommended)
 /// 2. Local gitignored `.env` file (local development convenience)
 /// 
-/// FAILS LOUDLY at startup if required endpoints or keys are missing or still
-/// contain placeholder values (e.g. "your-project").
+/// Strictly validates backend credentials at startup. If either SUPABASE_URL or
+/// SUPABASE_ANON_KEY is missing or contains placeholder values (e.g. "your-project"),
+/// the app displays a full-screen "Backend not configured" message rather than
+/// crashing or allowing broken signups.
 class EnvConfig {
   EnvConfig._();
+
+  // Read via --dart-define in ONE place only
+  static const String _dartDefSupabaseUrl = String.fromEnvironment('SUPABASE_URL');
+  static const String _dartDefSupabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
+  static const String _dartDefApiBaseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: String.fromEnvironment('ML_SERVICE_URL'),
+  );
+  static const String _dartDefRazorpayKeyId = String.fromEnvironment('RAZORPAY_KEY_ID');
+  static const String _dartDefOpenMeteo = String.fromEnvironment('OPEN_METEO_BASE_URL');
+  static const String _dartDefMapTile = String.fromEnvironment('MAP_TILE_URL');
 
   static String _supabaseUrl = '';
   static String _supabaseAnonKey = '';
@@ -19,9 +32,10 @@ class EnvConfig {
   static String _openMeteoBaseUrl = '';
   static String _mapTileUrl = '';
   static bool _isInitialized = false;
+  static String? _configErrorReason;
 
-  /// Initializes environment configuration and enforces strict production invariants.
-  static Future<void> initialize({bool failLoudly = true}) async {
+  /// Initializes environment configuration.
+  static Future<void> initialize({bool failLoudly = false}) async {
     // 1. Attempt loading from gitignored .env file if available
     try {
       await dotenv.load(fileName: '.env');
@@ -29,58 +43,48 @@ class EnvConfig {
       // .env is optional when using --dart-define
     }
 
-    // 2. Read with compile-time --dart-define taking highest precedence
-    const dartDefSupabaseUrl = String.fromEnvironment('SUPABASE_URL');
-    const dartDefSupabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
-    const dartDefApiBaseUrl = String.fromEnvironment(
-      'API_BASE_URL',
-      defaultValue: String.fromEnvironment('ML_SERVICE_URL'),
-    );
-    const dartDefRazorpayKeyId = String.fromEnvironment('RAZORPAY_KEY_ID');
-    const dartDefOpenMeteo = String.fromEnvironment('OPEN_METEO_BASE_URL');
-    const dartDefMapTile = String.fromEnvironment('MAP_TILE_URL');
-
-    _supabaseUrl = dartDefSupabaseUrl.isNotEmpty
-        ? dartDefSupabaseUrl.trim()
+    _supabaseUrl = _dartDefSupabaseUrl.isNotEmpty
+        ? _dartDefSupabaseUrl.trim()
         : (dotenv.env['SUPABASE_URL'] ?? '').trim();
 
-    _supabaseAnonKey = dartDefSupabaseAnonKey.isNotEmpty
-        ? dartDefSupabaseAnonKey.trim()
+    _supabaseAnonKey = _dartDefSupabaseAnonKey.isNotEmpty
+        ? _dartDefSupabaseAnonKey.trim()
         : (dotenv.env['SUPABASE_ANON_KEY'] ?? '').trim();
 
-    _apiBaseUrl = dartDefApiBaseUrl.isNotEmpty
-        ? dartDefApiBaseUrl.trim()
+    _apiBaseUrl = _dartDefApiBaseUrl.isNotEmpty
+        ? _dartDefApiBaseUrl.trim()
         : (dotenv.env['API_BASE_URL'] ?? dotenv.env['ML_SERVICE_URL'] ?? 'http://10.0.2.2:8000').trim();
 
-    _razorpayKeyId = dartDefRazorpayKeyId.isNotEmpty
-        ? dartDefRazorpayKeyId.trim()
+    _razorpayKeyId = _dartDefRazorpayKeyId.isNotEmpty
+        ? _dartDefRazorpayKeyId.trim()
         : (dotenv.env['RAZORPAY_KEY_ID'] ?? 'rzp_test_placeholder').trim();
 
-    _openMeteoBaseUrl = dartDefOpenMeteo.isNotEmpty
-        ? dartDefOpenMeteo.trim()
+    _openMeteoBaseUrl = _dartDefOpenMeteo.isNotEmpty
+        ? _dartDefOpenMeteo.trim()
         : (dotenv.env['OPEN_METEO_BASE_URL'] ?? 'https://api.open-meteo.com/v1/forecast').trim();
 
-    _mapTileUrl = dartDefMapTile.isNotEmpty
-        ? dartDefMapTile.trim()
+    _mapTileUrl = _dartDefMapTile.isNotEmpty
+        ? _dartDefMapTile.trim()
         : (dotenv.env['MAP_TILE_URL'] ?? 'https://tile.openstreetmap.org/{z}/{x}/{y}.png').trim();
 
     _isInitialized = true;
+    _evaluateConfig();
 
-    if (failLoudly) {
-      validateConfig();
+    if (failLoudly && _configErrorReason != null) {
+      debugPrint(_configErrorReason);
+      throw StateError(_configErrorReason!);
     }
   }
 
-  /// Validates configuration and fails loudly if required variables are missing,
-  /// malformed, or set to placeholder dummy strings.
-  static void validateConfig() {
+  /// Internal evaluator that populates _configErrorReason
+  static void _evaluateConfig() {
     final errors = <String>[];
 
     // SUPABASE_URL validation
     if (_supabaseUrl.isEmpty) {
       errors.add('SUPABASE_URL is required but was not provided.');
     } else if (_supabaseUrl.contains('your-project') || _supabaseUrl.contains('placeholder')) {
-      errors.add('SUPABASE_URL still contains placeholder "$_supabaseUrl". Set your real Supabase project URL.');
+      errors.add('SUPABASE_URL contains placeholder "$_supabaseUrl". Set your real Supabase project URL.');
     } else if (!Uri.tryParse(_supabaseUrl)!.hasScheme) {
       errors.add('SUPABASE_URL "$_supabaseUrl" is invalid. It must include http:// or https://');
     }
@@ -94,33 +98,23 @@ class EnvConfig {
       errors.add('CRITICAL SECURITY VIOLATION: Never use service_role key in the Flutter app! Use public anon key only.');
     }
 
-    // API_BASE_URL validation
-    if (_apiBaseUrl.isEmpty) {
-      errors.add('API_BASE_URL is required but was not provided.');
-    } else if (_apiBaseUrl.contains('your-') || _apiBaseUrl.contains('placeholder')) {
-      errors.add('API_BASE_URL contains placeholder dummy string. Set real FastAPI URL (e.g. http://10.0.2.2:8000).');
-    }
-
     if (errors.isNotEmpty) {
-      final banner = '\n'
-          '======================================================================\n'
-          '❌ FATAL CONFIGURATION ERROR - APP STARTUP ABORTED\n'
-          '======================================================================\n'
-          '${errors.map((e) => '  [!] $e').join('\n')}\n\n'
-          'Please provide your real configuration using one of these two methods:\n\n'
-          'Method 1: Compile-time --dart-define flags (Recommended):\n'
-          '  flutter run --flavor dev \\\n'
-          '    --dart-define=SUPABASE_URL=https://<YOUR-PROJECT-REF>.supabase.co \\\n'
-          '    --dart-define=SUPABASE_ANON_KEY=<YOUR-SUPABASE-ANON-KEY> \\\n'
-          '    --dart-define=API_BASE_URL=http://10.0.2.2:8000\n\n'
-          'Method 2: Gitignored .env file in project root:\n'
-          '  SUPABASE_URL=https://<YOUR-PROJECT-REF>.supabase.co\n'
-          '  SUPABASE_ANON_KEY=<YOUR-SUPABASE-ANON-KEY>\n'
-          '  API_BASE_URL=http://10.0.2.2:8000\n'
-          '======================================================================\n';
-      debugPrint(banner);
-      throw StateError(banner);
+      _configErrorReason = errors.join('\n');
+    } else {
+      _configErrorReason = null;
     }
+  }
+
+  /// Returns true only when both URL and anon key are valid and not placeholders.
+  static bool get isBackendConfigured {
+    if (!_isInitialized) _lazyInit();
+    return _configErrorReason == null;
+  }
+
+  /// Detailed human-readable error reason if backend is not configured.
+  static String? get configErrorReason {
+    if (!_isInitialized) _lazyInit();
+    return _configErrorReason;
   }
 
   static String get supabaseUrl {
@@ -156,14 +150,13 @@ class EnvConfig {
   }
 
   static void _lazyInit() {
-    _supabaseUrl = const String.fromEnvironment('SUPABASE_URL');
-    _supabaseAnonKey = const String.fromEnvironment('SUPABASE_ANON_KEY');
-    _apiBaseUrl = const String.fromEnvironment('API_BASE_URL', defaultValue: 'http://10.0.2.2:8000');
-    _razorpayKeyId = const String.fromEnvironment('RAZORPAY_KEY_ID', defaultValue: 'rzp_test_placeholder');
-    _openMeteoBaseUrl = const String.fromEnvironment('OPEN_METEO_BASE_URL', defaultValue: 'https://api.open-meteo.com/v1/forecast');
-    _mapTileUrl = const String.fromEnvironment('MAP_TILE_URL', defaultValue: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png');
+    _supabaseUrl = _dartDefSupabaseUrl.isNotEmpty ? _dartDefSupabaseUrl.trim() : '';
+    _supabaseAnonKey = _dartDefSupabaseAnonKey.isNotEmpty ? _dartDefSupabaseAnonKey.trim() : '';
+    _apiBaseUrl = _dartDefApiBaseUrl.isNotEmpty ? _dartDefApiBaseUrl.trim() : 'http://10.0.2.2:8000';
+    _razorpayKeyId = _dartDefRazorpayKeyId.isNotEmpty ? _dartDefRazorpayKeyId.trim() : 'rzp_test_placeholder';
+    _openMeteoBaseUrl = _dartDefOpenMeteo.isNotEmpty ? _dartDefOpenMeteo.trim() : 'https://api.open-meteo.com/v1/forecast';
+    _mapTileUrl = _dartDefMapTile.isNotEmpty ? _dartDefMapTile.trim() : 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
     _isInitialized = true;
+    _evaluateConfig();
   }
 }
-
-

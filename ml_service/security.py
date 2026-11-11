@@ -12,6 +12,9 @@ import logging
 import secrets
 from collections import defaultdict, deque
 from typing import Optional, Dict, Any, Deque
+from dotenv import load_dotenv
+
+load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
 from fastapi import Request, HTTPException, Header, Depends, status
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -157,7 +160,13 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response = await call_next(request)
         response.headers["X-Content-Type-Options"] = "nosniff"
         # Apply strict CSP and frame protection to API endpoints (leave docs, dashboard & static assets unconstrained)
-        if not (request.url.path in ("/", "/docs", "/redoc", "/openapi.json", "/favicon.ico") or request.url.path.startswith("/static")):
+        norm_path = request.url.path.rstrip("/")
+        is_doc_or_asset = (
+            norm_path in ("", "/docs", "/redoc", "/openapi.json", "/favicon.ico")
+            or request.url.path.startswith("/docs")
+            or request.url.path.startswith("/static")
+        )
+        if not is_doc_or_asset:
             response.headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none';"
             response.headers["X-Frame-Options"] = "DENY"
         return response

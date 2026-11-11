@@ -42,7 +42,7 @@ class FarmerAnalyticsController extends StateNotifier<FarmerAnalyticsState> {
       final data = await _repository.getFarmerAnalytics(farmerId);
       state = state.copyWith(analytics: data, isLoading: false);
     } catch (e) {
-      state = state.copyWith(isLoading: false, errorMessage: 'आंकड़े लोड नहीं हो सके: $e');
+      state = state.copyWith(isLoading: false, errorMessage: e.toString());
     }
   }
 }

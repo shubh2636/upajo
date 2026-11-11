@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_button.dart';
@@ -18,16 +19,6 @@ class MandiPricesScreen extends ConsumerStatefulWidget {
 }
 
 class _MandiPricesScreenState extends ConsumerState<MandiPricesScreen> {
-  final List<Map<String, String>> _cropFilters = [
-    {'id': 'all', 'label': 'सभी फसलें'},
-    {'id': 'गेहूं', 'label': 'गेहूं (Wheat)'},
-    {'id': 'चना', 'label': 'चना (Chickpea)'},
-    {'id': 'सोयाबीन', 'label': 'सोयाबीन (Soybean)'},
-    {'id': 'सरसों', 'label': 'सरसों (Mustard)'},
-    {'id': 'धान', 'label': 'धान (Paddy)'},
-    {'id': 'प्याज', 'label': 'प्याज (Onion)'},
-  ];
-
   void _showPriceAlertDialog(MandiPriceModel item, String farmerId) {
     final targetController = TextEditingController(text: '${(item.modalPrice + 100).toInt()}');
     String condition = 'above';
@@ -58,7 +49,7 @@ class _MandiPricesScreenState extends ConsumerState<MandiPricesScreen> {
                         children: [
                           const Icon(Icons.notifications_active_rounded, color: AppColors.primary600, size: 24.0),
                           const SizedBox(width: 8.0),
-                          Text('भाव अलर्ट सेट करें', style: AppTypography.headlineSmall.copyWith(fontSize: 18.0)),
+                          Text('mandi.set_price_alert'.tr(), style: AppTypography.headlineSmall.copyWith(fontSize: 18.0)),
                         ],
                       ),
                       IconButton(icon: const Icon(Icons.close_rounded), onPressed: () => Navigator.pop(ctx)),
@@ -75,7 +66,7 @@ class _MandiPricesScreenState extends ConsumerState<MandiPricesScreen> {
                   Row(
                     children: [
                       ChoiceChip(
-                        label: const Text('भाव इससे ऊपर जाए'),
+                        label: Text('mandi.alert_price_above'.tr()),
                         selected: condition == 'above',
                         selectedColor: AppColors.primary500,
                         labelStyle: TextStyle(color: condition == 'above' ? Colors.white : AppColors.soil800, fontWeight: FontWeight.bold),
@@ -83,7 +74,7 @@ class _MandiPricesScreenState extends ConsumerState<MandiPricesScreen> {
                       ),
                       const SizedBox(width: 8.0),
                       ChoiceChip(
-                        label: const Text('भाव इससे नीचे जाए'),
+                        label: Text('mandi.alert_price_below'.tr()),
                         selected: condition == 'below',
                         selectedColor: AppColors.primary500,
                         labelStyle: TextStyle(color: condition == 'below' ? Colors.white : AppColors.soil800, fontWeight: FontWeight.bold),
@@ -97,7 +88,7 @@ class _MandiPricesScreenState extends ConsumerState<MandiPricesScreen> {
                     controller: targetController,
                     keyboardType: TextInputType.number,
                     decoration: InputDecoration(
-                      labelText: 'लक्ष्य भाव (₹ प्रति क्विंटल)',
+                      labelText: 'mandi.target_price_label'.tr(),
                       prefixText: '₹ ',
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
                     ),
@@ -105,7 +96,7 @@ class _MandiPricesScreenState extends ConsumerState<MandiPricesScreen> {
                   const SizedBox(height: 20.0),
 
                   AppButton(
-                    label: 'अलर्ट सुरक्षित करें',
+                    label: 'mandi.save_alert'.tr(),
                     onPressed: () {
                       final val = double.tryParse(targetController.text) ?? item.modalPrice;
                       ref.read(mandiControllerProvider.notifier).createPriceAlert(
@@ -117,7 +108,7 @@ class _MandiPricesScreenState extends ConsumerState<MandiPricesScreen> {
                       Navigator.pop(ctx);
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('${item.cropNameHi} का भाव ₹${val.toInt()} पहुंचने पर आपको अलर्ट मिलेगा!'),
+                          content: Text('mandi.alert_saved_msg'.tr(args: [item.cropNameHi, val.toInt().toString()])),
                           backgroundColor: AppColors.primary600,
                         ),
                       );
@@ -141,14 +132,24 @@ class _MandiPricesScreenState extends ConsumerState<MandiPricesScreen> {
 
     final selectedForChart = state.selectedMandiForChart;
 
+    final cropFilters = [
+      {'id': 'all', 'label': 'mandi.filter_all'.tr()},
+      {'id': 'wheat', 'label': 'mandi.crop_wheat'.tr()},
+      {'id': 'gram', 'label': 'mandi.crop_gram'.tr()},
+      {'id': 'soybean', 'label': 'mandi.crop_soybean'.tr()},
+      {'id': 'mustard', 'label': 'mandi.crop_mustard'.tr()},
+      {'id': 'paddy', 'label': 'mandi.crop_paddy'.tr()},
+      {'id': 'onion', 'label': 'mandi.crop_onion'.tr()},
+    ];
+
     return Scaffold(
       backgroundColor: AppColors.soil50,
       appBar: AppBar(
-        title: const Text('लाइव मंडी भाव (Agmarknet)', style: TextStyle(fontWeight: FontWeight.w900)),
+        title: Text('mandi.title'.tr(), style: const TextStyle(fontWeight: FontWeight.w900)),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh_rounded),
-            tooltip: 'भाव ताज़ा करें',
+            tooltip: 'mandi.refresh_rates'.tr(),
             onPressed: () => controller.loadPrices(),
           ),
         ],
@@ -171,7 +172,7 @@ class _MandiPricesScreenState extends ConsumerState<MandiPricesScreen> {
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
-                  children: _cropFilters.map((c) {
+                  children: cropFilters.map((c) {
                     final isSelected = state.selectedCrop == c['id'];
                     return Padding(
                       padding: const EdgeInsets.only(right: 8.0),
@@ -206,7 +207,7 @@ class _MandiPricesScreenState extends ConsumerState<MandiPricesScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('प्रमुख मंडियों के दैनिक भाव', style: AppTypography.headlineSmall.copyWith(fontSize: 17.0)),
+                  Text('mandi.major_mandis_daily'.tr(), style: AppTypography.headlineSmall.copyWith(fontSize: 17.0)),
                   Text(
                     DateFormat('dd MMM yyyy').format(DateTime.now()),
                     style: const TextStyle(fontSize: 12.0, color: AppColors.soil600, fontWeight: FontWeight.bold),
@@ -261,18 +262,18 @@ class _MandiPricesScreenState extends ConsumerState<MandiPricesScreen> {
             child: const Icon(Icons.trending_up_rounded, color: Colors.white, size: 22.0),
           ),
           const SizedBox(width: 12.0),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'आज का मंडी रुझान: चना व गेहूं में मजबूती',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: AppColors.soil900),
+                  'mandi.today_trend_hero'.tr(),
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: AppColors.soil900),
                 ),
-                SizedBox(height: 2.0),
+                const SizedBox(height: 2.0),
                 Text(
-                  'सरकारी पोर्टल (Agmarknet) से सीधे सत्यापित लाइव मॉडल भाव प्रति क्विंटल।',
-                  style: TextStyle(fontSize: 11.5, color: AppColors.soil700),
+                  'mandi.gov_agmarknet_desc'.tr(),
+                  style: const TextStyle(fontSize: 11.5, color: AppColors.soil700),
                 ),
               ],
             ),
@@ -299,7 +300,7 @@ class _MandiPricesScreenState extends ConsumerState<MandiPricesScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '${item.cropNameHi} - 7 दिवसीय भाव ट्रेंड',
+                    'mandi.days_trend_title'.tr(args: [item.cropNameHi]),
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5, color: AppColors.soil900),
                   ),
                   Text(
@@ -309,7 +310,7 @@ class _MandiPricesScreenState extends ConsumerState<MandiPricesScreen> {
                 ],
               ),
               Text(
-                '₹${item.modalPrice.toInt()}/क्विंटल',
+                '₹${item.modalPrice.toInt()} ' + 'mandi.price_per_quintal'.tr(),
                 style: const TextStyle(fontSize: 17.0, fontWeight: FontWeight.w900, color: AppColors.primary700),
               ),
             ],
@@ -417,11 +418,11 @@ class _MandiPricesScreenState extends ConsumerState<MandiPricesScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'दायरा: ₹${item.minPrice.toInt()} - ₹${item.maxPrice.toInt()}/क्विंटल',
+                'mandi.price_range'.tr(args: [item.minPrice.toInt().toString(), item.maxPrice.toInt().toString()]),
                 style: const TextStyle(fontSize: 12.0, color: AppColors.soil700, fontWeight: FontWeight.w600),
               ),
               Text(
-                'आवक: ${item.arrivalsTonnes.toInt()} टन',
+                'mandi.arrivals_tonnes'.tr(args: [item.arrivalsTonnes.toInt().toString()]),
                 style: const TextStyle(fontSize: 11.5, color: AppColors.soil600),
               ),
             ],
@@ -433,7 +434,7 @@ class _MandiPricesScreenState extends ConsumerState<MandiPricesScreen> {
             alignment: Alignment.centerRight,
             child: TextButton.icon(
               icon: const Icon(Icons.add_alert_rounded, size: 16.0),
-              label: const Text('भाव अलर्ट सेट करें', style: TextStyle(fontSize: 12.0, fontWeight: FontWeight.bold)),
+              label: Text('mandi.set_price_alert'.tr(), style: const TextStyle(fontSize: 12.0, fontWeight: FontWeight.bold)),
               onPressed: () => _showPriceAlertDialog(item, farmerId),
             ),
           ),
@@ -442,4 +443,3 @@ class _MandiPricesScreenState extends ConsumerState<MandiPricesScreen> {
     );
   }
 }
-

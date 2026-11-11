@@ -69,6 +69,7 @@ class AuthController extends StateNotifier<AuthState> {
     required String phone,
     required String password,
     required String role,
+    String? email,
   }) async {
     state = state.copyWith(isLoading: true, errorMessage: null, pendingPhone: phone);
     try {
@@ -77,6 +78,7 @@ class AuthController extends StateNotifier<AuthState> {
         phone: phone,
         password: password,
         role: role,
+        email: email,
       );
       state = state.copyWith(userProfile: profile, isLoading: false);
       return true;
@@ -93,7 +95,7 @@ class AuthController extends StateNotifier<AuthState> {
     state = state.copyWith(isLoading: true, errorMessage: null, pendingPhone: phone);
     try {
       final profile = await _repository.signInWithPassword(
-        phone: phone,
+        identifier: phone,
         password: password,
       );
       state = state.copyWith(userProfile: profile, isLoading: false);
@@ -224,7 +226,7 @@ class AuthController extends StateNotifier<AuthState> {
       if (state.selectedRole == 'farmer') {
         await _repository.createFarmerProfile(
           farmerId: saved.id,
-          farmName: farmName ?? '$fullName का खेत',
+          farmName: farmName ?? '$fullName Farm',
           totalAcres: totalAcres,
         );
       }

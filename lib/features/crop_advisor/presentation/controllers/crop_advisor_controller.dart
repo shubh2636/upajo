@@ -35,8 +35,8 @@ class CropAdvisorState {
     this.selectedSeason = 'rabi',
     this.selectedWaterSource = 'tube_well',
     this.landAreaAcres = 2.0,
-    this.district = 'सीहोर',
-    this.stateName = 'मध्य प्रदेश',
+    this.district = 'Sehore',
+    this.stateName = 'Madhya Pradesh',
     this.isPlanSaved = false,
   });
 
@@ -95,7 +95,7 @@ class CropAdvisorController extends StateNotifier<CropAdvisorState> {
     } catch (e) {
       state = state.copyWith(
         isWeatherLoading: false,
-        errorMessage: 'मौसम डेटा प्राप्त नहीं हो सका: $e',
+        errorMessage: e.toString(),
       );
     }
   }
@@ -139,7 +139,7 @@ class CropAdvisorController extends StateNotifier<CropAdvisorState> {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: 'फसल सिफारिश में त्रुटि: $e',
+        errorMessage: e.toString(),
       );
     }
   }
@@ -163,7 +163,7 @@ class CropAdvisorController extends StateNotifier<CropAdvisorState> {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: 'योजना सहेजने में त्रुटि: $e',
+        errorMessage: e.toString(),
       );
     }
   }
@@ -176,7 +176,7 @@ class CropAdvisorController extends StateNotifier<CropAdvisorState> {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: 'कैलेंडर कार्य लोड नहीं हो सके: $e',
+        errorMessage: e.toString(),
       );
     }
   }

@@ -5,6 +5,7 @@ import '../../../core/network/supabase_client.dart';
 import '../../../core/router/route_names.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../core/widgets/brand_motifs.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -101,11 +102,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                     ],
                   ),
                   child: const Center(
-                    child: Icon(
-                      Icons.eco_rounded,
-                      size: 58.0,
-                      color: AppColors.primary500,
-                    ),
+                    child: SeedSproutMotif(size: 64.0),
                   ),
                 ),
                 const SizedBox(height: 24.0),

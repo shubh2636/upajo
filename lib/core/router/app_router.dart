@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'route_names.dart';
+import '../constants/app_constants.dart';
 import '../../core/network/supabase_client.dart';
 import '../../features/auth/presentation/splash_screen.dart';
 import '../../features/auth/presentation/language_select_screen.dart';
@@ -39,6 +40,9 @@ import '../../features/mandi/presentation/screens/mandi_prices_screen.dart';
 import '../../features/analytics/presentation/screens/farmer_analytics_screen.dart';
 import '../../features/marketplace/domain/models/product_model.dart';
 import '../../features/marketplace/domain/models/order_model.dart';
+import '../../features/support/presentation/screens/about_screen.dart';
+import '../../features/support/presentation/screens/support_screen.dart';
+import '../../features/auth/presentation/screens/delete_account_screen.dart';
 
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -92,6 +96,7 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: RouteNames.verifyOtp,
+      redirect: (context, state) => AppConstants.enableOtpAuth ? null : RouteNames.login,
       builder: (context, state) => const VerifyOtpScreen(),
     ),
     GoRoute(
@@ -235,6 +240,20 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: RouteNames.farmerAnalytics,
       builder: (context, state) => const FarmerAnalyticsScreen(),
+    ),
+
+    // Support, About & Compliance
+    GoRoute(
+      path: RouteNames.about,
+      builder: (context, state) => const AboutScreen(),
+    ),
+    GoRoute(
+      path: RouteNames.support,
+      builder: (context, state) => const SupportScreen(),
+    ),
+    GoRoute(
+      path: RouteNames.deleteAccount,
+      builder: (context, state) => const DeleteAccountScreen(),
     ),
   ],
 );

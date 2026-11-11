@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="launcher_background">#FAF7F0</color>
+    <color name="primary500">#25603A</color>
+    <color name="primary600">#1B492C</color>
+    <color name="soil50">#FAF7F0</color>
+    <color name="soil800">#2E1F14</color>
+    <color name="wheat500">#D8972C</color>
+</resources>
+

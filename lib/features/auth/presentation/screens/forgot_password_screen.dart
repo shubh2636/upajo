@@ -2,12 +2,14 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/app_text_field.dart';
+import '../../../../core/widgets/language_switcher_button.dart';
 import '../controllers/auth_controller.dart';
 
 class ForgotPasswordScreen extends ConsumerStatefulWidget {
@@ -66,10 +68,10 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   }
 
   String _getPasswordStrengthLabel(double strength) {
-    if (strength <= 0.25) return 'कमजोर (Weak)';
-    if (strength <= 0.6) return 'मध्यम (Fair)';
-    if (strength <= 0.8) return 'अच्छा (Good)';
-    return 'बेहद सुरक्षित (Strong)';
+    if (strength <= 0.25) return 'auth.password_strength_weak'.tr();
+    if (strength <= 0.6) return 'auth.password_strength_fair'.tr();
+    if (strength <= 0.8) return 'auth.password_strength_good'.tr();
+    return 'auth.password_strength_strong'.tr();
   }
 
   Color _getPasswordStrengthColor(double strength) {
@@ -83,8 +85,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     final phone = _phoneController.text.trim();
     if (phone.length != 10 || !RegExp(r'^[6-9]\d{9}$').hasMatch(phone)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('कृपया मान्य 10 अंकों का मोबाइल नंबर दर्ज करें (Invalid Phone Number)'),
+        SnackBar(
+          content: Text('auth.invalid_phone'.tr()),
           backgroundColor: AppColors.clay500,
         ),
       );
@@ -98,8 +100,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       setState(() => _otpSent = true);
       _startCooldown();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('ओटीपी आपके मोबाइल पर भेज दिया गया है (OTP Sent)'),
+        SnackBar(
+          content: Text('auth.otp_sent_success'.tr()),
           backgroundColor: AppColors.primary600,
         ),
       );
@@ -107,7 +109,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       final err = ref.read(authControllerProvider).errorMessage;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(err ?? 'ओटीपी भेजने में असमर्थ, कृपया पुनः प्रयास करें'),
+          content: Text(err ?? 'auth.otp_send_failed'.tr()),
           backgroundColor: AppColors.clay500,
         ),
       );
@@ -131,8 +133,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
 
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('पासवर्ड सफलतापूर्वक बदल गया! कृपया लॉगिन करें। (Password Reset Success)'),
+        SnackBar(
+          content: Text('auth.password_reset_success'.tr()),
           backgroundColor: AppColors.primary600,
         ),
       );
@@ -141,7 +143,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       final err = ref.read(authControllerProvider).errorMessage;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(err ?? 'पासवर्ड रीसेट करने में विफल (Password Reset Failed)'),
+          content: Text(err ?? 'auth.invalid_otp'.tr()),
           backgroundColor: AppColors.clay500,
         ),
       );
@@ -162,6 +164,12 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
           icon: const Icon(Icons.arrow_back_rounded, color: AppColors.soil800),
           onPressed: () => context.pop(),
         ),
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 12.0),
+            child: LanguageSwitcherButton(),
+          ),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -191,14 +199,14 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                 ),
                 const SizedBox(height: 20.0),
 
-                const Text(
-                  'पासवर्ड रीसेट (Reset Password)',
+                Text(
+                  'auth.reset_password_title'.tr(),
                   style: AppTypography.displaySmall,
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 6.0),
-                const Text(
-                  'अपना पंजीकृत मोबाइल नंबर दर्ज करें और ओटीपी सत्यापित करें',
+                Text(
+                  'auth.reset_password_subtitle'.tr(),
                   style: AppTypography.bodyMedium,
                   textAlign: TextAlign.center,
                 ),
@@ -213,8 +221,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                     children: [
                       AppTextField(
                         controller: _phoneController,
-                        label: 'मोबाइल नंबर (Mobile Number)',
-                        hintText: '10 अंकों का मोबाइल नंबर',
+                        label: 'auth.phone_label'.tr(),
+                        hintText: 'auth.phone_hint'.tr(),
                         keyboardType: TextInputType.phone,
                         enabled: !_otpSent,
                         prefixIcon: const Padding(
@@ -242,10 +250,10 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                         ),
                         validator: (value) {
                           if (value == null || value.trim().length != 10) {
-                            return 'कृपया 10 अंकों का फोन नंबर भरें';
+                            return 'auth.invalid_phone'.tr();
                           }
                           if (!RegExp(r'^[6-9]\d{9}$').hasMatch(value.trim())) {
-                            return 'मान्य भारतीय मोबाइल नंबर भरें';
+                            return 'auth.invalid_phone'.tr();
                           }
                           return null;
                         },
@@ -254,7 +262,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
 
                       if (!_otpSent) ...[
                         AppButton(
-                          label: 'ओटीपी भेजें (Send OTP)',
+                          label: 'auth.send_verification_code'.tr(),
                           onPressed: _onSendOtp,
                           isLoading: authState.isLoading,
                           icon: const Icon(Icons.send_rounded, size: 20.0),
@@ -262,12 +270,12 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                       ] else ...[
                         AppTextField(
                           controller: _otpController,
-                          label: 'ओटीपी दर्ज करें (Enter 6-Digit OTP)',
+                          label: 'auth.otp_title'.tr(),
                           hintText: '• • • • • •',
                           keyboardType: TextInputType.number,
                           validator: (value) {
                             if (value == null || value.trim().length != 6) {
-                              return 'मान्य 6 अंकों का ओटीपी दर्ज करें';
+                              return 'auth.invalid_otp'.tr();
                             }
                             return null;
                           },
@@ -276,8 +284,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
 
                         AppTextField(
                           controller: _newPasswordController,
-                          label: 'नया पासवर्ड (New Password)',
-                          hintText: 'न्यूनतम 8 अक्षर',
+                          label: 'auth.new_password'.tr(),
+                          hintText: 'auth.new_password_hint'.tr(),
                           obscureText: _obscureNewPassword,
                           onChanged: (_) => setState(() {}),
                           suffixIcon: IconButton(
@@ -291,7 +299,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                           ),
                           validator: (value) {
                             if (value == null || value.length < 8) {
-                              return 'पासवर्ड कम से कम 8 अक्षरों का होना चाहिए';
+                              return 'auth.password_min_length'.tr();
                             }
                             return null;
                           },
@@ -330,8 +338,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
 
                         AppTextField(
                           controller: _confirmPasswordController,
-                          label: 'पासवर्ड की पुष्टि करें (Confirm Password)',
-                          hintText: 'नया पासवर्ड पुनः दर्ज करें',
+                          label: 'auth.confirm_password'.tr(),
+                          hintText: 'auth.confirm_password_hint'.tr(),
                           obscureText: _obscureConfirmPassword,
                           suffixIcon: IconButton(
                             icon: Icon(
@@ -344,7 +352,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                           ),
                           validator: (value) {
                             if (value != _newPasswordController.text) {
-                              return 'पासवर्ड मेल नहीं खा रहे हैं';
+                              return 'auth.passwords_do_not_match'.tr();
                             }
                             return null;
                           },
@@ -352,7 +360,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                         const SizedBox(height: 24.0),
 
                         AppButton(
-                          label: 'पासवर्ड रीसेट करें (Confirm Reset)',
+                          label: 'auth.update_password_button'.tr(),
                           onPressed: _onResetPassword,
                           isLoading: authState.isLoading,
                           icon: const Icon(Icons.check_circle_outline_rounded, size: 22.0),
@@ -365,8 +373,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                             icon: const Icon(Icons.refresh_rounded, size: 18.0),
                             label: Text(
                               _resendCooldown > 0
-                                  ? 'पुनः ओटीपी भेजें (${_resendCooldown}s)'
-                                  : 'पुनः ओटीपी भेजें (Resend OTP)',
+                                  ? 'auth.resend_in_seconds'.tr(namedArgs: {'seconds': _resendCooldown.toString()})
+                                  : 'auth.resend_otp'.tr(),
                             ),
                           ),
                         ),
@@ -382,4 +390,3 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     );
   }
 }
-

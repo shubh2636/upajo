@@ -4,6 +4,8 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:easy_localization/easy_localization.dart';
+import '../../../../core/config/env_config.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_card.dart';
 import '../controllers/logistics_controller.dart';
@@ -44,11 +46,11 @@ class _LiveTrackingScreenState extends ConsumerState<LiveTrackingScreen> {
     return Scaffold(
       backgroundColor: AppColors.soil50,
       appBar: AppBar(
-        title: const Text('लाइव डिलीवरी ट्रैकिंग (OSM)', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text('logistics.title'.tr(), style: const TextStyle(fontWeight: FontWeight.bold)),
         actions: [
           IconButton(
             icon: const Icon(Icons.my_location_rounded),
-            tooltip: 'वाहन की स्थिति पर केंद्रित करें',
+            tooltip: 'logistics.center_map'.tr(),
             onPressed: () {
               if (tracking != null) {
                 _mapController.move(
@@ -60,7 +62,7 @@ class _LiveTrackingScreenState extends ConsumerState<LiveTrackingScreen> {
           ),
           IconButton(
             icon: const Icon(Icons.refresh_rounded),
-            tooltip: 'ताज़ा करें',
+            tooltip: 'logistics.refresh_tooltip'.tr(),
             onPressed: () => ref.read(logisticsControllerProvider.notifier).refreshLocation(widget.orderId),
           ),
         ],
@@ -68,7 +70,7 @@ class _LiveTrackingScreenState extends ConsumerState<LiveTrackingScreen> {
       body: state.isLoading && tracking == null
           ? const Center(child: CircularProgressIndicator(color: AppColors.primary500))
           : tracking == null
-              ? const Center(child: Text('ट्रैकिंग जानकारी उपलब्ध नहीं है'))
+              ? Center(child: Text('logistics.no_tracking_info'.tr()))
               : Stack(
                   children: [
                     // 1. OpenStreetMap Layer
@@ -82,7 +84,7 @@ class _LiveTrackingScreenState extends ConsumerState<LiveTrackingScreen> {
                       ),
                       children: [
                         TileLayer(
-                          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                          urlTemplate: EnvConfig.mapTileUrl,
                           userAgentPackageName: 'com.upajo.app',
                         ),
 
@@ -187,7 +189,7 @@ class _LiveTrackingScreenState extends ConsumerState<LiveTrackingScreen> {
                   border: Border.all(color: AppColors.primary200),
                 ),
                 child: Text(
-                  tracking.deliveryPartner == 'self' ? 'किसान डायरेक्ट' : 'Porter Express',
+                  tracking.deliveryPartner == 'self' ? 'logistics.farmer_direct'.tr() : 'Porter Express',
                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11.5, color: AppColors.primary700),
                 ),
               ),
@@ -197,8 +199,8 @@ class _LiveTrackingScreenState extends ConsumerState<LiveTrackingScreen> {
                   const SizedBox(width: 4.0),
                   Text(
                     tracking.estimatedDeliveryAt != null
-                        ? 'आगमन: ${DateFormat('hh:mm a').format(tracking.estimatedDeliveryAt!)}'
-                        : 'मार्ग में (In Transit)',
+                        ? 'logistics.arrival_time'.tr(args: [DateFormat('hh:mm a').format(tracking.estimatedDeliveryAt!)])
+                        : 'logistics.in_transit'.tr(),
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.0, color: AppColors.soil900),
                   ),
                 ],
@@ -229,7 +231,7 @@ class _LiveTrackingScreenState extends ConsumerState<LiveTrackingScreen> {
                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5),
                     ),
                     Text(
-                      'वाहन: ${tracking.vehicleNumber}',
+                      '${'logistics.vehicle_number'.tr()}: ${tracking.vehicleNumber}',
                       style: const TextStyle(fontSize: 12.0, color: AppColors.soil600),
                     ),
                   ],
@@ -243,7 +245,7 @@ class _LiveTrackingScreenState extends ConsumerState<LiveTrackingScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
                 ),
                 icon: const Icon(Icons.phone_rounded, size: 16.0),
-                label: const Text('कॉल करें', style: TextStyle(fontSize: 12.0, fontWeight: FontWeight.bold)),
+                label: Text('logistics.call_driver'.tr(), style: const TextStyle(fontSize: 12.0, fontWeight: FontWeight.bold)),
                 onPressed: () => _callDriver(tracking.driverPhone),
               ),
             ],

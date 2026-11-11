@@ -50,7 +50,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
             icon: const Icon(Icons.share_outlined),
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('उपज का लिंक कॉपी किया गया')),
+                SnackBar(content: Text('common.copied'.tr())),
               );
             },
           ),
@@ -89,7 +89,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                           decoration: BoxDecoration(color: AppColors.primary100, borderRadius: BorderRadius.circular(6.0)),
-                          child: const Text('प्रमाणित जैविक (Certified Organic)', style: TextStyle(color: AppColors.primary800, fontSize: 11.0, fontWeight: FontWeight.bold)),
+                          child: Text('consumer.certified_organic'.tr(), style: const TextStyle(color: AppColors.primary800, fontSize: 11.0, fontWeight: FontWeight.bold)),
                         ),
                     ],
                   ),
@@ -101,16 +101,16 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                   Row(
                     children: [
                       Text('₹${p.pricePerKg.toStringAsFixed(0)}', style: AppTypography.displayMedium.copyWith(color: AppColors.primary600)),
-                      const Text(' / किलो', style: TextStyle(fontSize: 14.0, color: AppColors.soil600, fontWeight: FontWeight.bold)),
+                      Text(' / ${'common.kg'.tr()}', style: const TextStyle(fontSize: 14.0, color: AppColors.soil600, fontWeight: FontWeight.bold)),
                       const Spacer(),
-                      Text('उपलब्ध स्टॉक: ${p.stockKg.toStringAsFixed(0)} किग्रा', style: const TextStyle(fontSize: 12.0, fontWeight: FontWeight.bold, color: AppColors.soil700)),
+                      Text('${'farmer.active_stock'.tr()}: ${p.stockKg.toStringAsFixed(0)} ${'common.kg'.tr()}', style: const TextStyle(fontSize: 12.0, fontWeight: FontWeight.bold, color: AppColors.soil700)),
                     ],
                   ),
 
                   const SizedBox(height: 20.0),
 
                   // Pack Sizes Choice
-                  Text('बोरी का वजन चुनें (Select Pack Size):', style: AppTypography.headlineSmall),
+                  Text('consumer.select_pack_size'.tr(), style: AppTypography.headlineSmall),
                   const SizedBox(height: 10.0),
 
                   Row(
@@ -154,7 +154,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('बोरियों की संख्या (Bags):', style: TextStyle(fontSize: 15.0, fontWeight: FontWeight.bold)),
+                      Text('${'consumer.bag_quantity'.tr()}:', style: const TextStyle(fontSize: 15.0, fontWeight: FontWeight.bold)),
                       Row(
                         children: [
                           IconButton(
@@ -188,8 +188,8 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(p.farmerName ?? 'अन्नदाता किसान', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15.0)),
-                              const Text('सत्यापित खेत मालिक • सीधे खेत से बिक्री', style: TextStyle(fontSize: 11.5, color: AppColors.soil600)),
+                              Text(p.farmerName ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15.0)),
+                              Text('farmer.kyc_status_verified'.tr(), style: const TextStyle(fontSize: 11.5, color: AppColors.soil600)),
                             ],
                           ),
                         ),
@@ -201,7 +201,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                   const SizedBox(height: 16.0),
 
                   // Description
-                  Text('उपज की खासियत:', style: AppTypography.headlineSmall),
+                  Text('${'common.details'.tr()}:', style: AppTypography.headlineSmall),
                   const SizedBox(height: 6.0),
                   Text(p.descriptionHi, style: AppTypography.bodyMedium),
                   const SizedBox(height: 100.0), // Spacing for bottom bar
@@ -231,7 +231,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('कुल मूल्य (Total)', style: TextStyle(fontSize: 11.0, color: AppColors.soil600)),
+                  Text('consumer.total_payable'.tr(), style: const TextStyle(fontSize: 11.0, color: AppColors.soil600)),
                   Text('₹${totalPrice.toStringAsFixed(0)}', style: AppTypography.headlineMedium.copyWith(color: AppColors.primary600)),
                 ],
               ),
@@ -243,12 +243,12 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                     final added = ref.read(cartControllerProvider.notifier).addToCart(p, _selectedPackSize, _quantity);
                     if (!added) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('आपकी टोकरी में पहले से दूसरे किसान की उपज है।')),
+                        SnackBar(content: Text('consumer.single_farmer_cart_error'.tr())),
                       );
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('${p.titleHi} (${_selectedPackSize}kg x $_quantity) टोकरी में जोड़ा गया!'),
+                          content: Text('${p.titleHi} ($_selectedPackSize${'common.kg'.tr()} x $_quantity) ${'consumer.added_to_cart_success'.tr()}'),
                           backgroundColor: AppColors.primary500,
                         ),
                       );

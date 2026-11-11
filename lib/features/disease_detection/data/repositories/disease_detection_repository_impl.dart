@@ -18,6 +18,7 @@ class DiseaseDetectionRepositoryImpl implements DiseaseDetectionRepository {
   static const _uuid = Uuid();
 
   Map<String, dynamic>? _treatmentDb;
+  ByteData? _tfliteModelBytes;
 
   DiseaseDetectionRepositoryImpl({
     SupabaseClient? supabase,
@@ -27,14 +28,27 @@ class DiseaseDetectionRepositoryImpl implements DiseaseDetectionRepository {
         _httpClient = httpClient ?? http.Client(),
         _mlServiceUrl = mlServiceUrl ?? EnvConfig.apiBaseUrl;
 
+  @override
+  Future<void> preloadModel() async {
+    await _loadTreatmentDbIfNeeded();
+  }
+
   Future<void> _loadTreatmentDbIfNeeded() async {
-    if (_treatmentDb != null) return;
+    if (_treatmentDb != null && _tfliteModelBytes != null) return;
     try {
       final jsonStr = await rootBundle.loadString('assets/models/disease_treatments.json');
       _treatmentDb = json.decode(jsonStr) as Map<String, dynamic>;
+      debugPrint('[DiseaseDetection] Agronomic treatment database loaded: ${_treatmentDb?.length ?? 0} pathologies');
     } catch (e) {
       debugPrint('[DiseaseDetection] Could not load treatment JSON from assets: $e');
       _treatmentDb = {};
+    }
+
+    try {
+      _tfliteModelBytes = await rootBundle.load('assets/models/plant_disease_model.tflite');
+      debugPrint('[DiseaseDetection] TFLite disease scan model loaded: ${_tfliteModelBytes?.lengthInBytes} bytes');
+    } catch (e) {
+      debugPrint('[DiseaseDetection] TFLite model load status: $e');
     }
   }
 

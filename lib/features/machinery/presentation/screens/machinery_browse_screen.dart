@@ -17,15 +17,6 @@ class MachineryBrowseScreen extends ConsumerStatefulWidget {
 }
 
 class _MachineryBrowseScreenState extends ConsumerState<MachineryBrowseScreen> {
-  final List<Map<String, String>> _categories = [
-    {'id': 'all', 'label': 'सभी यंत्र'},
-    {'id': 'tractor', 'label': 'ट्रैक्टर (Tractor)'},
-    {'id': 'rotavator', 'label': 'रोटावेटर (Rotavator)'},
-    {'id': 'harvester', 'label': 'हार्वेस्टर (Harvester)'},
-    {'id': 'drone_sprayer', 'label': 'ड्रोन स्प्रेयर (Drone)'},
-    {'id': 'seed_drill', 'label': 'सीड ड्रिल (Seed Drill)'},
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -39,6 +30,16 @@ class _MachineryBrowseScreenState extends ConsumerState<MachineryBrowseScreen> {
     final state = ref.watch(machineryControllerProvider);
     final controller = ref.read(machineryControllerProvider.notifier);
 
+    final categories = [
+      {'id': 'all', 'label': 'machinery.cat_all'.tr()},
+      {'id': 'tractor', 'label': 'machinery.cat_tractor'.tr()},
+      {'id': 'rotavator', 'label': 'machinery.cat_rotavator'.tr()},
+      {'id': 'harvester', 'label': 'machinery.cat_harvester'.tr()},
+      {'id': 'drone_sprayer', 'label': 'machinery.cat_drone'.tr()},
+      {'id': 'seed_drill', 'label': 'machinery.cat_seed_drill'.tr()},
+      {'id': 'thresher', 'label': 'machinery.cat_thresher'.tr()},
+    ];
+
     return Scaffold(
       backgroundColor: AppColors.soil50,
       appBar: AppBar(
@@ -46,7 +47,7 @@ class _MachineryBrowseScreenState extends ConsumerState<MachineryBrowseScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.receipt_long_rounded),
-            tooltip: 'मेरी बुकिंग व किराए',
+            tooltip: 'machinery.my_rentals_tooltip'.tr(),
             onPressed: () => context.push(RouteNames.myRentals),
           ),
         ],
@@ -56,7 +57,7 @@ class _MachineryBrowseScreenState extends ConsumerState<MachineryBrowseScreen> {
         foregroundColor: Colors.white,
         elevation: 3.0,
         icon: const Icon(Icons.add_circle_outline_rounded, size: 22.0),
-        label: const Text('यंत्र किराए पर दें', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
+        label: Text('machinery.list_machine'.tr(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
         onPressed: () => context.push(RouteNames.listMachinery),
       ),
       body: RefreshIndicator(
@@ -77,7 +78,7 @@ class _MachineryBrowseScreenState extends ConsumerState<MachineryBrowseScreen> {
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
-                  children: _categories.map((cat) {
+                  children: categories.map((cat) {
                     final isSelected = state.selectedType == cat['id'];
                     return Padding(
                       padding: const EdgeInsets.only(right: 8.0),
@@ -113,9 +114,9 @@ class _MachineryBrowseScreenState extends ConsumerState<MachineryBrowseScreen> {
                   ),
                 )
               else if (state.machineryList.isEmpty)
-                const EmptyStateView(
-                  title: 'कोई यंत्र उपलब्ध नहीं है',
-                  subtitle: 'इस श्रेणी में अभी कोई यंत्र किराए पर सूचीबद्ध नहीं है।',
+                EmptyStateView(
+                  title: 'machinery.no_machinery_title'.tr(),
+                  subtitle: 'machinery.no_machinery_sub'.tr(),
                   icon: Icons.agriculture_rounded,
                 )
               else
@@ -126,7 +127,7 @@ class _MachineryBrowseScreenState extends ConsumerState<MachineryBrowseScreen> {
                   separatorBuilder: (_, __) => const SizedBox(height: 16.0),
                   itemBuilder: (context, index) {
                     final machine = state.machineryList[index];
-                    return _buildMachineryCard(machine, controller);
+                    return _buildMachineryCard(context, machine, controller);
                   },
                 ),
 
@@ -157,18 +158,18 @@ class _MachineryBrowseScreenState extends ConsumerState<MachineryBrowseScreen> {
             child: const Icon(Icons.handshake_rounded, color: AppColors.soil900, size: 28.0),
           ),
           const SizedBox(width: 14.0),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'सत्यापित किसान यंत्र शेयरिंग',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15.0, color: AppColors.soil900),
+                  'machinery.hero_title'.tr(),
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15.0, color: AppColors.soil900),
                 ),
-                SizedBox(height: 3.0),
+                const SizedBox(height: 3.0),
                 Text(
-                  'ट्रैक्टर, रोटावेटर व कंबाइन उचित दैनिक दर पर किराए पर लें या अपना यंत्र देकर अतिरिक्त कमाई करें।',
-                  style: TextStyle(fontSize: 11.5, color: AppColors.soil700, height: 1.3),
+                  'machinery.hero_desc'.tr(),
+                  style: const TextStyle(fontSize: 11.5, color: AppColors.soil700, height: 1.3),
                 ),
               ],
             ),
@@ -178,7 +179,8 @@ class _MachineryBrowseScreenState extends ConsumerState<MachineryBrowseScreen> {
     );
   }
 
-  Widget _buildMachineryCard(MachineryModel machine, MachineryController controller) {
+  Widget _buildMachineryCard(BuildContext context, MachineryModel machine, MachineryController controller) {
+    final title = context.locale.languageCode == 'en' ? machine.titleEn : machine.titleHi;
     return AppCard(
       padding: EdgeInsets.zero,
       onTap: () {
@@ -241,7 +243,7 @@ class _MachineryBrowseScreenState extends ConsumerState<MachineryBrowseScreen> {
                       borderRadius: BorderRadius.circular(6.0),
                     ),
                     child: Text(
-                      '${machine.hp} HP पावर',
+                      'machinery.hp_power'.tr(args: [machine.hp.toString()]),
                       style: const TextStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.bold),
                     ),
                   ),
@@ -256,7 +258,7 @@ class _MachineryBrowseScreenState extends ConsumerState<MachineryBrowseScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  machine.titleHi,
+                  title,
                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0, color: AppColors.soil900),
                 ),
                 const SizedBox(height: 4.0),
@@ -270,7 +272,7 @@ class _MachineryBrowseScreenState extends ConsumerState<MachineryBrowseScreen> {
                     ),
                     const Spacer(),
                     Text(
-                      'मालिक: ${machine.ownerName ?? "सत्यापित किसान"}',
+                      'machinery.owner_prefix'.tr(args: [machine.ownerName ?? 'machinery.verified_farmer'.tr()]),
                       style: const TextStyle(fontSize: 12.0, color: AppColors.primary700, fontWeight: FontWeight.w600),
                     ),
                   ],
@@ -290,16 +292,16 @@ class _MachineryBrowseScreenState extends ConsumerState<MachineryBrowseScreen> {
                               '₹${machine.dailyRate.toInt()}',
                               style: const TextStyle(fontSize: 20.0, fontWeight: FontWeight.w900, color: AppColors.soil900),
                             ),
-                            const Text('/दिन', style: TextStyle(fontSize: 12.0, color: AppColors.soil600)),
+                            Text('/${'machinery.per_day'.tr()}', style: const TextStyle(fontSize: 12.0, color: AppColors.soil600)),
                             const SizedBox(width: 8.0),
                             Text(
-                              '(₹${machine.hourlyRate.toInt()}/घंटा)',
+                              '(₹${machine.hourlyRate.toInt()}/${'machinery.per_hour'.tr()})',
                               style: const TextStyle(fontSize: 12.0, color: AppColors.soil500),
                             ),
                           ],
                         ),
                         Text(
-                          'जमानत रिकॉर्ड: ₹${machine.securityDeposit.toInt()}',
+                          'machinery.deposit_record_amount'.tr(args: ['₹${machine.securityDeposit.toInt()}']),
                           style: const TextStyle(fontSize: 11.0, color: AppColors.wheat800, fontWeight: FontWeight.bold),
                         ),
                       ],
@@ -315,7 +317,7 @@ class _MachineryBrowseScreenState extends ConsumerState<MachineryBrowseScreen> {
                         controller.selectMachine(machine);
                         context.push(RouteNames.machineryDetail, extra: machine);
                       },
-                      child: const Text('किराए पर लें', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.0)),
+                      child: Text('machinery.rent_now'.tr(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.0)),
                     ),
                   ],
                 ),
@@ -327,4 +329,3 @@ class _MachineryBrowseScreenState extends ConsumerState<MachineryBrowseScreen> {
     );
   }
 }
-

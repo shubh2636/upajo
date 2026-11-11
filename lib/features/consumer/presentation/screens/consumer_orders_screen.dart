@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -46,7 +47,7 @@ class _ConsumerOrdersScreenState extends ConsumerState<ConsumerOrdersScreen> {
     return Scaffold(
       backgroundColor: AppColors.soil50,
       appBar: AppBar(
-        title: const Text('मेरे ऑर्डर (My Orders)'),
+        title: Text('consumer.my_orders'.tr()),
         backgroundColor: Colors.white,
       ),
       body: _isLoading
@@ -58,9 +59,9 @@ class _ConsumerOrdersScreenState extends ConsumerState<ConsumerOrdersScreen> {
                     children: [
                       const Icon(Icons.receipt_long_rounded, size: 54.0, color: AppColors.soil400),
                       const SizedBox(height: 12.0),
-                      Text('अभी कोई ऑर्डर नहीं है', style: AppTypography.headlineSmall),
+                      Text('common.empty'.tr(), style: AppTypography.headlineSmall),
                       const SizedBox(height: 6.0),
-                      const Text('खेत से सीधी ताज़ी उपज का ऑर्डर करें', style: TextStyle(color: AppColors.soil600)),
+                      Text('consumer.empty_cart_desc'.tr(), style: const TextStyle(color: AppColors.soil600)),
                     ],
                   ),
                 )
@@ -102,10 +103,10 @@ class _ConsumerOrdersScreenState extends ConsumerState<ConsumerOrdersScreen> {
                             ],
                           ),
                           const SizedBox(height: 6.0),
-                          Text('किसान: ${order.farmerName ?? 'अन्नदाता किसान'}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.0)),
+                          Text('${'auth.role_farmer'.tr()}: ${order.farmerName ?? ''}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.0)),
                           const SizedBox(height: 2.0),
                           Text(
-                            '${order.deliveryMode == 'pickup' ? 'खेत से उठाना (Pickup)' : 'होम डिलीवरी'} • कुल राशि: ₹${order.totalAmount.toStringAsFixed(0)}',
+                            '${order.deliveryMode == 'pickup' ? 'consumer.farmgate_pickup'.tr() : 'consumer.home_delivery'.tr()} • ${'farmer.total_amount_label'.tr()}: ₹${order.totalAmount.toStringAsFixed(0)}',
                             style: const TextStyle(fontSize: 12.0, color: AppColors.soil600),
                           ),
                           const SizedBox(height: 10.0),
@@ -113,8 +114,8 @@ class _ConsumerOrdersScreenState extends ConsumerState<ConsumerOrdersScreen> {
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
                               Text(
-                                'ट्रैक करें >',
-                                style: TextStyle(color: AppColors.primary600, fontWeight: FontWeight.bold, fontSize: 13.0),
+                                '${'consumer.track_order'.tr()} >',
+                                style: const TextStyle(color: AppColors.primary600, fontWeight: FontWeight.bold, fontSize: 13.0),
                               ),
                             ],
                           ),

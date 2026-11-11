@@ -64,7 +64,7 @@ class MandiController extends StateNotifier<MandiState> {
         isLoading: false,
       );
     } catch (e) {
-      state = state.copyWith(isLoading: false, errorMessage: 'मंडी भाव लोड नहीं हो सके: $e');
+      state = state.copyWith(isLoading: false, errorMessage: e.toString());
     }
   }
 

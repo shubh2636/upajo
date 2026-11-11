@@ -8,11 +8,21 @@ class AppConstants {
   static const String appPackageId = 'com.upajo.app';
   static const String appVersion = '1.0.0';
 
+  /// Feature Flag: SMS OTP Authentication
+  /// Kept strictly disabled across all flavors because no transactional SMS/DLT provider is active.
+  /// All signup and login flows strictly use Mobile Number + Password.
+  static const bool enableOtpAuth = false;
+
   // Localization
-  static const Locale defaultLocale = Locale('hi');
+  static const Locale localeHindi = Locale('hi');
+  static const Locale localeEnglish = Locale('en');
+  static const Locale localeHinglish = Locale.fromSubtags(languageCode: 'hi', scriptCode: 'Latn');
+
+  static const Locale defaultLocale = localeHindi;
   static const List<Locale> supportedLocales = [
-    Locale('hi'),
-    Locale('en'),
+    localeHindi,
+    localeEnglish,
+    localeHinglish,
   ];
   static const String translationsPath = 'assets/translations';
 

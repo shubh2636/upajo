@@ -81,7 +81,7 @@ class DiseaseDetectionController extends StateNotifier<DiseaseDetectionState> {
     } catch (e) {
       state = state.copyWith(
         isAnalyzing: false,
-        errorMessage: 'रोग विश्लेषण में त्रुटि: $e',
+        errorMessage: e.toString(),
       );
     }
   }

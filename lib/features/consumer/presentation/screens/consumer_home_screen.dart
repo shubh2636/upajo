@@ -23,13 +23,13 @@ class _ConsumerHomeScreenState extends ConsumerState<ConsumerHomeScreen> {
   final _searchController = TextEditingController();
 
   final List<Map<String, String>> _categories = [
-    {'name': 'सभी', 'id': ''},
-    {'name': 'गेहूं व अनाज', 'id': 'grains'},
-    {'name': 'दालें', 'id': 'pulses'},
-    {'name': 'ताज़ी सब्जियां', 'id': 'vegetables'},
-    {'name': 'देसी मसाले', 'id': 'spices'},
-    {'name': 'बाग के फल', 'id': 'fruits'},
-    {'name': 'शुद्ध तेल', 'id': 'oilseeds'},
+    {'name': 'consumer.categories.all', 'id': ''},
+    {'name': 'consumer.categories.grains', 'id': 'grains'},
+    {'name': 'consumer.categories.pulses', 'id': 'pulses'},
+    {'name': 'consumer.categories.vegetables', 'id': 'vegetables'},
+    {'name': 'consumer.categories.spices', 'id': 'spices'},
+    {'name': 'consumer.categories.fruits', 'id': 'fruits'},
+    {'name': 'consumer.categories.oilseeds', 'id': 'oilseeds'},
   ];
 
   @override
@@ -59,7 +59,7 @@ class _ConsumerHomeScreenState extends ConsumerState<ConsumerHomeScreen> {
               ],
             ),
             Text(
-              user?.villageOrCity != null ? 'स्थान: ${user!.villageOrCity}, ${user.district}' : 'खेत से सीधी ताज़ी उपज',
+              user?.villageOrCity != null ? '${user!.villageOrCity}, ${user.district}' : 'consumer.browse_title'.tr(),
               style: const TextStyle(fontSize: 11.5, color: AppColors.soil600),
             ),
           ],
@@ -111,11 +111,11 @@ class _ConsumerHomeScreenState extends ConsumerState<ConsumerHomeScreen> {
               // Search & Voice Input Bar
               AppTextField(
                 controller: _searchController,
-                hintText: 'फसल, दाल, फल या किसान खोजें...',
+                hintText: 'consumer.search_hint'.tr(),
                 prefixIcon: const Icon(Icons.search_rounded, color: AppColors.soil400),
                 onVoiceInputPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('बोलकर खोजें (Listening...)')),
+                    SnackBar(content: Text('common.listening'.tr())),
                   );
                 },
                 onChanged: (val) {
@@ -132,7 +132,7 @@ class _ConsumerHomeScreenState extends ConsumerState<ConsumerHomeScreen> {
                     FilterChip(
                       selected: marketState.isOrganicOnly,
                       avatar: const Icon(Icons.eco_outlined, size: 16.0),
-                      label: const Text('केवल जैविक (Organic)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.0)),
+                      label: Text('consumer.organic_only'.tr(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12.0)),
                       selectedColor: AppColors.primary100,
                       checkmarkColor: AppColors.primary700,
                       onSelected: (_) {
@@ -146,7 +146,7 @@ class _ConsumerHomeScreenState extends ConsumerState<ConsumerHomeScreen> {
                         padding: const EdgeInsets.only(right: 8.0),
                         child: ChoiceChip(
                           selected: isSelected,
-                          label: Text(cat['name']!, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12.0)),
+                          label: Text(cat['name']!.tr(), style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12.0)),
                           selectedColor: AppColors.primary500,
                           labelStyle: TextStyle(color: isSelected ? Colors.white : AppColors.soil800),
                           onSelected: (_) {
@@ -175,12 +175,12 @@ class _ConsumerHomeScreenState extends ConsumerState<ConsumerHomeScreen> {
                           borderRadius: BorderRadius.circular(10.0),
                           border: Border.all(color: AppColors.primary200),
                         ),
-                        child: const Row(
+                        child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.spa_rounded, size: 16.0, color: AppColors.primary600),
-                            SizedBox(width: 6.0),
-                            Text('बीज व खाद भंडार', style: TextStyle(fontSize: 12.0, fontWeight: FontWeight.bold, color: AppColors.primary800)),
+                            const Icon(Icons.spa_rounded, size: 16.0, color: AppColors.primary600),
+                            const SizedBox(width: 6.0),
+                            Text('store.title'.tr(), style: const TextStyle(fontSize: 12.0, fontWeight: FontWeight.bold, color: AppColors.primary800)),
                           ],
                         ),
                       ),
@@ -198,12 +198,12 @@ class _ConsumerHomeScreenState extends ConsumerState<ConsumerHomeScreen> {
                           borderRadius: BorderRadius.circular(10.0),
                           border: Border.all(color: AppColors.wheat300),
                         ),
-                        child: const Row(
+                        child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.agriculture_rounded, size: 16.0, color: AppColors.wheat800),
-                            SizedBox(width: 6.0),
-                            Text('यंत्र किराया शेयरिंग', style: TextStyle(fontSize: 12.0, fontWeight: FontWeight.bold, color: AppColors.wheat900)),
+                            const Icon(Icons.agriculture_rounded, size: 16.0, color: AppColors.wheat800),
+                            const SizedBox(width: 6.0),
+                            Text('machinery.title'.tr(), style: const TextStyle(fontSize: 12.0, fontWeight: FontWeight.bold, color: AppColors.wheat900)),
                           ],
                         ),
                       ),
@@ -218,8 +218,8 @@ class _ConsumerHomeScreenState extends ConsumerState<ConsumerHomeScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('सीधे खेत से ताज़ा फसलें', style: AppTypography.headlineSmall),
-                  Text('${marketState.products.length} उपलब्ध', style: const TextStyle(fontSize: 12.0, color: AppColors.soil600, fontWeight: FontWeight.bold)),
+                  Text('consumer.all_produce'.tr(), style: AppTypography.headlineSmall),
+                  Text('${marketState.products.length} ${'common.available'.tr()}', style: const TextStyle(fontSize: 12.0, color: AppColors.soil600, fontWeight: FontWeight.bold)),
                 ],
               ),
               const SizedBox(height: 12.0),
@@ -234,9 +234,9 @@ class _ConsumerHomeScreenState extends ConsumerState<ConsumerHomeScreen> {
                       children: [
                         const Icon(Icons.eco_rounded, size: 54.0, color: AppColors.soil400),
                         const SizedBox(height: 12.0),
-                        Text('कोई फसल नहीं मिली', style: AppTypography.headlineSmall),
+                        Text('common.empty'.tr(), style: AppTypography.headlineSmall),
                         const SizedBox(height: 6.0),
-                        const Text('कृपया अन्य श्रेणी या फिल्टर चुनकर प्रयास करें', style: TextStyle(fontSize: 12.5, color: AppColors.soil600)),
+                        Text('consumer.no_crops_found_desc'.tr(), style: const TextStyle(fontSize: 12.5, color: AppColors.soil600)),
                       ],
                     ),
                   ),
@@ -259,12 +259,12 @@ class _ConsumerHomeScreenState extends ConsumerState<ConsumerHomeScreen> {
                         final added = ref.read(cartControllerProvider.notifier).addToCart(product, defaultPack, 1);
                         if (!added) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('आपकी टोकरी में पहले से दूसरे किसान की उपज है। एक समय में एक ही किसान से ऑर्डर करें।')),
+                            SnackBar(content: Text('consumer.single_farmer_cart_error'.tr())),
                           );
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text('${product.titleHi} (${defaultPack}kg) टोकरी में जोड़ा गया!'),
+                              content: Text('${product.titleHi} ($defaultPack${'common.kg'.tr()}) ${'consumer.added_to_cart_success'.tr()}'),
                               backgroundColor: AppColors.primary500,
                             ),
                           );
@@ -283,10 +283,10 @@ class _ConsumerHomeScreenState extends ConsumerState<ConsumerHomeScreen> {
           if (index == 1) context.push(RouteNames.cart);
           if (index == 2) context.push(RouteNames.consumerOrders);
         },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.storefront_rounded), label: 'बाज़ार'),
-          BottomNavigationBarItem(icon: Icon(Icons.shopping_bag_outlined), label: 'टोकरी'),
-          BottomNavigationBarItem(icon: Icon(Icons.receipt_long_rounded), label: 'मेरे ऑर्डर'),
+        items: [
+          BottomNavigationBarItem(icon: const Icon(Icons.storefront_rounded), label: 'nav.marketplace'.tr()),
+          BottomNavigationBarItem(icon: const Icon(Icons.shopping_bag_outlined), label: 'nav.cart'.tr()),
+          BottomNavigationBarItem(icon: const Icon(Icons.receipt_long_rounded), label: 'nav.orders'.tr()),
         ],
       ),
     );
@@ -336,12 +336,12 @@ class _ProductCard extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                     decoration: BoxDecoration(color: AppColors.primary500, borderRadius: BorderRadius.circular(8.0)),
-                    child: const Row(
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.eco_rounded, size: 14.0, color: Colors.white),
-                        SizedBox(width: 4.0),
-                        Text('प्रमाणित जैविक', style: TextStyle(color: Colors.white, fontSize: 11.0, fontWeight: FontWeight.bold)),
+                        const Icon(Icons.eco_rounded, size: 14.0, color: Colors.white),
+                        const SizedBox(width: 4.0),
+                        Text('consumer.certified_organic'.tr(), style: const TextStyle(color: Colors.white, fontSize: 11.0, fontWeight: FontWeight.bold)),
                       ],
                     ),
                   ),
@@ -353,7 +353,7 @@ class _ProductCard extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 3.0),
                   decoration: BoxDecoration(color: Colors.black.withOpacity(0.7), borderRadius: BorderRadius.circular(6.0)),
                   child: Text(
-                    'स्टॉक: ${product.stockKg.toStringAsFixed(0)} kg',
+                    '${'farmer.active_stock'.tr()}: ${product.stockKg.toStringAsFixed(0)} ${'common.kg'.tr()}',
                     style: const TextStyle(color: Colors.white, fontSize: 11.0, fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -373,11 +373,11 @@ class _ProductCard extends StatelessWidget {
                       '${product.villageOrCity}, ${product.district}',
                       style: const TextStyle(fontSize: 11.5, color: AppColors.soil600, fontWeight: FontWeight.w600),
                     ),
-                    const Row(
+                    Row(
                       children: [
-                        Icon(Icons.verified_rounded, size: 14.0, color: AppColors.primary500),
-                        SizedBox(width: 3.0),
-                        Text('सत्यापित किसान', style: TextStyle(fontSize: 11.0, color: AppColors.primary600, fontWeight: FontWeight.bold)),
+                        const Icon(Icons.verified_rounded, size: 14.0, color: AppColors.primary500),
+                        const SizedBox(width: 3.0),
+                        Text('farmer.kyc_status_verified'.tr(), style: const TextStyle(fontSize: 11.0, color: AppColors.primary600, fontWeight: FontWeight.bold)),
                       ],
                     ),
                   ],
@@ -390,7 +390,7 @@ class _ProductCard extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('₹${product.pricePerKg.toStringAsFixed(0)} / किलो', style: AppTypography.priceLarge),
+                    Text('₹${product.pricePerKg.toStringAsFixed(0)} / ${'common.kg'.tr()}', style: AppTypography.priceLarge),
                     ElevatedButton.icon(
                       onPressed: onQuickAdd,
                       style: ElevatedButton.styleFrom(
@@ -402,7 +402,7 @@ class _ProductCard extends StatelessWidget {
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
                       ),
                       icon: const Icon(Icons.add_shopping_cart_rounded, size: 16.0),
-                      label: const Text('डालें', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.0)),
+                      label: Text('consumer.add_to_cart'.tr(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.0)),
                     ),
                   ],
                 ),

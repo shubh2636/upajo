@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!-- Silhouette Furrow Base -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.6"
+        android:strokeLineCap="round"
+        android:pathData="M 4,20 C 8,22 16,22 20,20"/>
+
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.4"
+        android:strokeLineCap="round"
+        android:pathData="M 7,18 C 10,19.5 14,19.5 17,18"/>
+
+    <!-- Central Stem -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+        android:pathData="M 12,18 C 11.8,14 12.2,10 12,5"/>
+
+    <!-- Left Leaf Silhouette -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M 12,12 C 7,11 5,7 8,5 C 10.5,5.5 11.5,8 12,12 Z"/>
+
+    <!-- Right Leaf Silhouette -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M 12,9.5 C 16,8.5 17.5,5 15,3.5 C 13,4 12.5,6.5 12,9.5 Z"/>
+</vector>
+

@@ -1,6 +1,11 @@
 import os
 import logging
 from typing import Optional, List
+from dotenv import load_dotenv
+
+# Load environment from ml_service/.env or root .env
+load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
+load_dotenv(os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env"))
 from fastapi import FastAPI, HTTPException, Header, Depends, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, HTMLResponse
@@ -147,13 +152,51 @@ def health_check():
 
 
 # Offline-Capable Swagger UI Documentation
-@app.get("/docs", include_in_schema=False)
+@app.get("/docs", include_in_schema=False, response_class=HTMLResponse)
+@app.get("/docs/", include_in_schema=False, response_class=HTMLResponse)
 async def custom_swagger_ui_html():
-    return get_swagger_ui_html(
-        openapi_url="/openapi.json",
-        title="Upajo (उपजो) ML & AI Farming Service - API Docs",
-        swagger_js_url="/static/swagger-ui-bundle.js",
-        swagger_css_url="/static/swagger-ui.css",
+    return HTMLResponse(
+        """<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link type="text/css" rel="stylesheet" href="/static/swagger-ui.css">
+    <link rel="shortcut icon" href="https://fastapi.tiangolo.com/img/favicon.png">
+    <title>Upajo (उपजो) ML & AI Farming Service - API Docs</title>
+    <style>
+        html { box-sizing: border-box; overflow-y: scroll; }
+        *, *:before, *:after { box-sizing: inherit; }
+        body { margin: 0; background: #fafafa; }
+    </style>
+</head>
+<body>
+    <div id="swagger-ui"></div>
+    <script src="/static/swagger-ui-bundle.js"></script>
+    <script>
+    function initSwagger() {
+        if (typeof SwaggerUIBundle === "undefined") {
+            setTimeout(initSwagger, 50);
+            return;
+        }
+        window.ui = SwaggerUIBundle({
+            url: "/openapi.json",
+            dom_id: "#swagger-ui",
+            deepLinking: true,
+            layout: "BaseLayout",
+            presets: [
+                SwaggerUIBundle.presets.apis
+            ]
+        });
+    }
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initSwagger);
+    } else {
+        initSwagger();
+    }
+    </script>
+</body>
+</html>"""
     )
 
 

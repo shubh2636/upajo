@@ -94,7 +94,7 @@ class MandiRepositoryImpl implements MandiRepository {
       ),
       MandiPriceModel(
         id: 'mp_2',
-        cropNameHi: 'देसी चना (Bengal Gram)',
+        cropNameHi: 'देसी चना',
         cropNameEn: 'Desi Chickpea',
         mandiName: 'कृषि उपज मंडी, करोंद (भोपाल)',
         district: 'भोपाल',
@@ -109,7 +109,7 @@ class MandiRepositoryImpl implements MandiRepository {
       ),
       MandiPriceModel(
         id: 'mp_3',
-        cropNameHi: 'पीला सोयाबीन (Yellow Soybean)',
+        cropNameHi: 'पीला सोयाबीन',
         cropNameEn: 'Soybean',
         mandiName: 'चिमनगंज कृषि मंडी, उज्जैन',
         district: 'उज्जैन',
@@ -124,7 +124,7 @@ class MandiRepositoryImpl implements MandiRepository {
       ),
       MandiPriceModel(
         id: 'mp_4',
-        cropNameHi: 'पीली सरसों (Mustard)',
+        cropNameHi: 'पीली सरसों',
         cropNameEn: 'Mustard',
         mandiName: 'कृषि उपज मंडी, मुरैना',
         district: 'मुरैना',
@@ -139,7 +139,7 @@ class MandiRepositoryImpl implements MandiRepository {
       ),
       MandiPriceModel(
         id: 'mp_5',
-        cropNameHi: 'सोना मसूरी धान (Paddy)',
+        cropNameHi: 'सोना मसूरी धान',
         cropNameEn: 'Paddy Sona Masoori',
         mandiName: 'कृषि उपज मंडी, जबलपुर',
         district: 'जबलपुर',
@@ -154,7 +154,7 @@ class MandiRepositoryImpl implements MandiRepository {
       ),
       MandiPriceModel(
         id: 'mp_6',
-        cropNameHi: 'नासिक लाल प्याज (Red Onion)',
+        cropNameHi: 'नासिक लाल प्याज',
         cropNameEn: 'Red Onion',
         mandiName: 'छावनी अनाज व सब्जी मंडी, इंदौर',
         district: 'इंदौर',

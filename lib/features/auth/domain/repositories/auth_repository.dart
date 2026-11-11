@@ -1,23 +1,36 @@
 import '../models/user_profile.dart';
 
+/// Authentication repository interface for Upajo.
+/// 
+/// IMPORTANT NOTICE:
+/// Phone numbers are NOT verified via SMS OTP because no SMS provider is active.
+/// Password reset via SMS is unavailable until an SMS gateway (DLT) is configured.
 abstract class AuthRepository {
-  Future<void> sendOtp(String phone);
-
-  Future<UserProfile?> verifyOtp({
-    required String phone,
-    required String token,
-  });
-
+  /// Sign up with phone/email and password.
+  /// If [email] is omitted, a synthetic email format (<10digit>@phone.upajo.invalid / fallback)
+  /// is generated so that the mobile number serves as the Supabase Auth login identifier.
   Future<UserProfile> signUpWithPassword({
     required String fullName,
     required String phone,
     required String password,
     required String role,
+    String? email,
   });
 
+  /// Log in with either 10-digit mobile number OR email + password.
+  /// Mobile number is mapped directly to the internal email format on the client
+  /// with zero external user lookup to prevent user enumeration attacks.
   Future<UserProfile> signInWithPassword({
-    required String phone,
+    required String identifier,
     required String password,
+  });
+
+  /// Feature-flagged OTP operations (disabled by default until SMS provider is added)
+  Future<void> sendOtp(String phone);
+
+  Future<UserProfile?> verifyOtp({
+    required String phone,
+    required String token,
   });
 
   Future<void> resetPasswordWithOtp({

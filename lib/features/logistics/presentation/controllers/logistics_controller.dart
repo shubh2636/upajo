@@ -42,7 +42,7 @@ class LogisticsController extends StateNotifier<LogisticsState> {
       final tracking = await _repository.getOrderTracking(orderId);
       state = state.copyWith(tracking: tracking, isLoading: false);
     } catch (e) {
-      state = state.copyWith(isLoading: false, errorMessage: 'ट्रैकिंग डेटा लोड नहीं हो सका: $e');
+      state = state.copyWith(isLoading: false, errorMessage: e.toString());
     }
   }
 

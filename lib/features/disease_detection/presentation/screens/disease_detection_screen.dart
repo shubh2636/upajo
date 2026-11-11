@@ -64,9 +64,9 @@ class _DiseaseDetectionScreenState extends ConsumerState<DiseaseDetectionScreen>
           unselectedLabelColor: AppColors.soil600,
           indicatorColor: AppColors.primary500,
           indicatorWeight: 3.0,
-          tabs: const [
-            Tab(icon: Icon(Icons.camera_alt_outlined), text: 'नया स्कैन'),
-            Tab(icon: Icon(Icons.history_rounded), text: 'पुराने स्कैन'),
+          tabs: [
+            Tab(icon: const Icon(Icons.camera_alt_outlined), text: 'disease.tab_new'.tr()),
+            Tab(icon: const Icon(Icons.history_rounded), text: 'disease.tab_history'.tr()),
           ],
         ),
       ),
@@ -93,7 +93,7 @@ class _DiseaseDetectionScreenState extends ConsumerState<DiseaseDetectionScreen>
                       const SizedBox(width: 10.0),
                       Expanded(
                         child: Text(
-                          'संक्रमित पत्ती की साफ, धूप में खींची गई फोटो लें ताकि AI रोग की सटीक पहचान कर सके।',
+                          'disease.guidance'.tr(),
                           style: AppTypography.bodySmall.copyWith(color: AppColors.soil800, height: 1.35),
                         ),
                       ),
@@ -169,7 +169,7 @@ class _DiseaseDetectionScreenState extends ConsumerState<DiseaseDetectionScreen>
               children: [
                 Expanded(
                   child: AppButton(
-                    label: 'कैमरा से दोबारा लें',
+                    label: 'disease.retake_camera'.tr(),
                     variant: ButtonVariant.secondary,
                     onPressed: () => controller.pickAndAnalyzeImage(
                       source: ImageSource.camera,
@@ -181,7 +181,7 @@ class _DiseaseDetectionScreenState extends ConsumerState<DiseaseDetectionScreen>
                 const SizedBox(width: 10.0),
                 Expanded(
                   child: AppButton(
-                    label: 'गैलरी से चुनें',
+                    label: 'disease.retake_gallery'.tr(),
                     variant: ButtonVariant.outline,
                     onPressed: () => controller.pickAndAnalyzeImage(
                       source: ImageSource.gallery,
@@ -211,21 +211,21 @@ class _DiseaseDetectionScreenState extends ConsumerState<DiseaseDetectionScreen>
           ),
           const SizedBox(height: 16.0),
           Text(
-            'फसल की पत्ती स्कैन करें',
+            'disease.capture_title'.tr(),
             style: AppTypography.headlineMedium.copyWith(fontSize: 20.0),
           ),
           const SizedBox(height: 6.0),
-          const Text(
-            'आलू, टमाटर, गेहूं व धान के रोगों की तुरंत पहचान व उपचार',
+          Text(
+            'disease.capture_desc'.tr(),
             textAlign: TextAlign.center,
-            style: TextStyle(color: AppColors.soil600, fontSize: 13.0),
+            style: const TextStyle(color: AppColors.soil600, fontSize: 13.0),
           ),
           const SizedBox(height: 24.0),
           Row(
             children: [
               Expanded(
                 child: AppButton(
-                  label: 'कैमरा चालू करें',
+                  label: 'disease.camera_btn'.tr(),
                   variant: ButtonVariant.primary,
                   onPressed: () => controller.pickAndAnalyzeImage(
                     source: ImageSource.camera,
@@ -237,7 +237,7 @@ class _DiseaseDetectionScreenState extends ConsumerState<DiseaseDetectionScreen>
               const SizedBox(width: 12.0),
               Expanded(
                 child: AppButton(
-                  label: 'गैलरी से लें',
+                  label: 'disease.gallery_btn'.tr(),
                   variant: ButtonVariant.secondary,
                   onPressed: () => controller.pickAndAnalyzeImage(
                     source: ImageSource.gallery,
@@ -264,12 +264,12 @@ class _DiseaseDetectionScreenState extends ConsumerState<DiseaseDetectionScreen>
             child: CircularProgressIndicator(strokeWidth: 3.5, color: AppColors.primary500),
           ),
           const SizedBox(height: 16.0),
-          Text('रोग का विश्लेषण हो रहा है...', style: AppTypography.headlineSmall.copyWith(fontSize: 17.0)),
+          Text('disease.analyzing'.tr(), style: AppTypography.headlineSmall.copyWith(fontSize: 17.0)),
           const SizedBox(height: 6.0),
-          const Text(
-            'PlantVillage AI मॉडल द्वारा पत्तियों के लक्षणों का मिलान किया जा रहा है',
+          Text(
+            'disease.analyzing_sub'.tr(),
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 12.0, color: AppColors.soil600),
+            style: const TextStyle(fontSize: 12.0, color: AppColors.soil600),
           ),
         ],
       ),
@@ -304,7 +304,7 @@ class _DiseaseDetectionScreenState extends ConsumerState<DiseaseDetectionScreen>
                 ),
               ),
               Text(
-                '${(result.confidenceScore * 100).toStringAsFixed(1)}% सटीकता',
+                'disease.accuracy'.tr(args: [(result.confidenceScore * 100).toStringAsFixed(1)]),
                 style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12.0, color: AppColors.soil600),
               ),
             ],
@@ -325,14 +325,14 @@ class _DiseaseDetectionScreenState extends ConsumerState<DiseaseDetectionScreen>
 
           // Symptoms Card
           if (result.symptomsHi.isNotEmpty) ...[
-            _sectionHeader('लक्षण (Symptoms):', Icons.search_rounded),
+            _sectionHeader('disease.symptoms_header'.tr(), Icons.search_rounded),
             const SizedBox(height: 4.0),
             Text(result.symptomsHi, style: const TextStyle(fontSize: 13.0, color: AppColors.soil800, height: 1.35)),
             const SizedBox(height: 14.0),
           ],
 
           // Organic Treatment Card
-          _sectionHeader('जैविक उपचार (Organic Control):', Icons.eco_rounded, color: AppColors.primary600),
+          _sectionHeader('disease.organic_control'.tr(), Icons.eco_rounded, color: AppColors.primary600),
           const SizedBox(height: 4.0),
           Container(
             width: double.infinity,
@@ -350,7 +350,7 @@ class _DiseaseDetectionScreenState extends ConsumerState<DiseaseDetectionScreen>
           const SizedBox(height: 14.0),
 
           // Safe Chemical Dosage Card
-          _sectionHeader('रासायनिक उपचार व सुरक्षित डोज (Chemical Spray):', Icons.science_rounded, color: AppColors.wheat700),
+          _sectionHeader('disease.chemical_control'.tr(), Icons.science_rounded, color: AppColors.wheat700),
           const SizedBox(height: 4.0),
           Container(
             width: double.infinity,
@@ -368,14 +368,14 @@ class _DiseaseDetectionScreenState extends ConsumerState<DiseaseDetectionScreen>
                   style: const TextStyle(fontSize: 12.5, color: AppColors.soil900, height: 1.4),
                 ),
                 const SizedBox(height: 8.0),
-                const Row(
+                Row(
                   children: [
-                    Icon(Icons.shield_outlined, size: 16.0, color: AppColors.wheat800),
-                    SizedBox(width: 6.0),
+                    const Icon(Icons.shield_outlined, size: 16.0, color: AppColors.wheat800),
+                    const SizedBox(width: 6.0),
                     Expanded(
                       child: Text(
-                        'छिड़काव करते समय मास्क व दस्ताने अवश्य पहनें। हवा तेज होने पर छिड़काव न करें।',
-                        style: TextStyle(fontSize: 11.0, color: AppColors.wheat900, fontWeight: FontWeight.bold),
+                        'disease.safety_mask_note'.tr(),
+                        style: const TextStyle(fontSize: 11.0, color: AppColors.wheat900, fontWeight: FontWeight.bold),
                       ),
                     ),
                   ],
@@ -387,7 +387,7 @@ class _DiseaseDetectionScreenState extends ConsumerState<DiseaseDetectionScreen>
 
           // Prevention
           if (result.preventionHi.isNotEmpty) ...[
-            _sectionHeader('भविष्य में रोकथाम:', Icons.security_rounded),
+            _sectionHeader('disease.prevention_header'.tr(), Icons.security_rounded),
             const SizedBox(height: 4.0),
             Text(result.preventionHi, style: const TextStyle(fontSize: 12.5, color: AppColors.soil700, height: 1.35)),
             const SizedBox(height: 16.0),
@@ -395,7 +395,7 @@ class _DiseaseDetectionScreenState extends ConsumerState<DiseaseDetectionScreen>
 
           // Retake Button
           AppButton(
-            label: 'नया स्कैन करें',
+            label: 'disease.scan_new'.tr(),
             variant: ButtonVariant.secondary,
             onPressed: () => controller.clearCurrentScan(),
             icon: const Icon(Icons.refresh_rounded, size: 20.0, color: AppColors.soil900),
@@ -421,19 +421,19 @@ class _DiseaseDetectionScreenState extends ConsumerState<DiseaseDetectionScreen>
               const Icon(Icons.support_agent_rounded, color: AppColors.terracotta600, size: 26.0),
               const SizedBox(width: 10.0),
               Text(
-                'कृषि वैज्ञानिक से सीधे बात करें',
+                'disease.expert_talk'.tr(),
                 style: AppTypography.headlineSmall.copyWith(fontSize: 16.0, color: AppColors.terracotta800),
               ),
             ],
           ),
           const SizedBox(height: 6.0),
-          const Text(
-            'यदि रोग का प्रकोप गंभीर है या संशय है, तो सरकारी किसान कॉल सेंटर पर निःशुल्क कॉल करें:',
-            style: TextStyle(fontSize: 12.0, color: AppColors.soil700),
+          Text(
+            'disease.expert_talk_desc'.tr(),
+            style: const TextStyle(fontSize: 12.0, color: AppColors.soil700),
           ),
           const SizedBox(height: 12.0),
           AppButton(
-            label: 'कॉल करें: 1800-180-1551 (टोल-फ्री)',
+            label: 'disease.helpline_btn_label'.tr(),
             variant: ButtonVariant.terracotta,
             onPressed: _callKisanHelpline,
             icon: const Icon(Icons.phone_in_talk_rounded, size: 20.0, color: Colors.white),
@@ -445,9 +445,9 @@ class _DiseaseDetectionScreenState extends ConsumerState<DiseaseDetectionScreen>
 
   Widget _buildHistoryList(List<DiseaseScanResult> history) {
     if (history.isEmpty) {
-      return const EmptyStateView(
-        title: 'कोई पुराना स्कैन नहीं मिला',
-        subtitle: 'आपने अभी तक किसी फसल की पत्ती स्कैन नहीं की है।',
+      return EmptyStateView(
+        title: 'disease.no_history_title'.tr(),
+        subtitle: 'disease.no_history_sub'.tr(),
         icon: Icons.history_rounded,
       );
     }
@@ -480,7 +480,7 @@ class _DiseaseDetectionScreenState extends ConsumerState<DiseaseDetectionScreen>
                   children: [
                     Text(item.diseaseNameHi, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15.0)),
                     const SizedBox(height: 3.0),
-                    Text('${item.cropName} • ${(item.confidenceScore * 100).toInt()}% सटीकता', style: const TextStyle(fontSize: 12.0, color: AppColors.soil600)),
+                    Text('${item.cropName} • ' + 'disease.accuracy'.tr(args: [(item.confidenceScore * 100).toInt().toString()]), style: const TextStyle(fontSize: 12.0, color: AppColors.soil600)),
                     const SizedBox(height: 3.0),
                     Text(
                       DateFormat('dd MMM yyyy, hh:mm a').format(item.scannedAt),
@@ -527,15 +527,15 @@ class _DiseaseDetectionScreenState extends ConsumerState<DiseaseDetectionScreen>
   String _getSeverityText(String severity) {
     switch (severity) {
       case 'none':
-        return 'स्वस्थ पौधा';
+        return 'disease.severity_healthy'.tr();
       case 'low':
-        return 'कम जोखिम';
+        return 'disease.severity_low'.tr();
       case 'medium':
-        return 'मध्यम संक्रमण';
+        return 'disease.severity_medium'.tr();
       case 'severe':
-        return 'गंभीर चेतावनी';
+        return 'disease.severity_severe'.tr();
       default:
-        return 'मध्यम संक्रमण';
+        return 'disease.severity_medium'.tr();
     }
   }
 }

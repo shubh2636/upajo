@@ -50,6 +50,7 @@ void main() {
         verifiedByAdmin: false,
         createdAt: DateTime.now(),
       );
+      expect(profile.id, 'usr_test_123');
 
       // Verify that when updating profile, sensitive fields are ignored or stripped
       final updateData = {

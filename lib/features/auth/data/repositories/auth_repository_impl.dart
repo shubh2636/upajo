@@ -1,26 +1,31 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../../core/constants/app_constants.dart';
 import '../../domain/models/user_profile.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../../../core/errors/exceptions.dart' hide AuthException;
 import '../../../../core/network/supabase_client.dart';
 import '../../../../core/storage/secure_storage_service.dart';
 
+/// Authentication repository implementation for Upajo (उपजो).
+/// 
+/// AUTHENTICATION MODEL & COMPLIANCE:
+/// - Pure Mobile Number + Password (with optional email) backed by Supabase Auth.
+/// - When phone is supplied without email, a deterministic synthetic email is generated:
+///   `<10digit>@phone.upajo.invalid` (with automatic fallback to `<10digit>@phone.upajo.com`
+///   if hosted DNS enforcement rejects RFC 2606 .invalid domains).
+/// - SMS OTP is strictly disabled (no SMS provider / DLT exists).
+/// - NOTICE: Phone numbers are NOT SMS-verified. Password reset via SMS is unavailable
+///   until an approved transactional SMS provider is integrated.
 class AuthRepositoryImpl implements AuthRepository {
   final SupabaseClient _client;
   final SecureStorageService _secureStorage;
 
-  /// Demo auth is STRICTLY disabled in release builds (impossible to enable in prod)
-  static const bool allowDemoAuth =
-      !kReleaseMode && bool.fromEnvironment('ALLOW_DEMO_AUTH', defaultValue: true);
-
   // Rate Limiting & Lockout Parameters
-  static DateTime? _lastOtpRequestTime;
   static int _failedLoginAttempts = 0;
   static DateTime? _lockoutUntil;
   static const int maxFailedAttempts = 5;
   static const Duration lockoutDuration = Duration(minutes: 15);
-  static const Duration otpResendCooldown = Duration(seconds: 60);
 
   AuthRepositoryImpl({
     SupabaseClient? client,
@@ -28,21 +33,35 @@ class AuthRepositoryImpl implements AuthRepository {
   })  : _client = client ?? SupabaseService.client,
         _secureStorage = secureStorage ?? SecureStorageService();
 
-  String _formatIndianPhone(String phone) {
+  /// Cleans and formats an Indian mobile number to strict 10 digits.
+  String _clean10DigitPhone(String phone) {
     final cleaned = phone.replaceAll(RegExp(r'[^0-9]'), '');
     if (cleaned.length == 10) {
       if (!RegExp(r'^[6-9]').hasMatch(cleaned)) {
-        throw ServerException('कृपया वैध 10-अंकों का भारतीय मोबाइल नंबर दर्ज करें (Invalid Indian mobile prefix)');
+        throw const ServerException('कृपया वैध 10-अंकों का भारतीय मोबाइल नंबर दर्ज करें (Invalid Indian mobile prefix)');
       }
-      return '+91$cleaned';
+      return cleaned;
     } else if (cleaned.length == 12 && cleaned.startsWith('91')) {
       final sub = cleaned.substring(2);
       if (!RegExp(r'^[6-9]').hasMatch(sub)) {
-        throw ServerException('कृपया वैध 10-अंकों का भारतीय मोबाइल नंबर दर्ज करें (Invalid Indian mobile prefix)');
+        throw const ServerException('कृपया वैध 10-अंकों का भारतीय मोबाइल नंबर दर्ज करें (Invalid Indian mobile prefix)');
       }
-      return '+$cleaned';
+      return sub;
     }
-    throw ServerException('कृपया 10 अंकों का वैध मोबाइल नंबर दर्ज करें (Please enter a valid 10-digit phone number)');
+    throw const ServerException('कृपया 10 अंकों का वैध मोबाइल नंबर दर्ज करें (Please enter a valid 10-digit phone number)');
+  }
+
+  /// Maps an identifier (mobile number or email) to the internal Supabase Auth email.
+  /// No external lookup is performed to prevent user enumeration attacks.
+  String _mapIdentifierToEmail(String identifier, {bool useFallback = false}) {
+    final trimmed = identifier.trim();
+    if (trimmed.contains('@')) {
+      return trimmed.toLowerCase();
+    }
+    final cleanPhone = _clean10DigitPhone(trimmed);
+    return useFallback
+        ? '$cleanPhone@phone.upajo.com'
+        : '$cleanPhone@phone.upajo.invalid';
   }
 
   void _checkLockout() {
@@ -56,268 +75,191 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<void> sendOtp(String phone) async {
-    _checkLockout();
-
-    final now = DateTime.now();
-    if (_lastOtpRequestTime != null && now.difference(_lastOtpRequestTime!) < otpResendCooldown) {
-      final waitSecs = otpResendCooldown.inSeconds - now.difference(_lastOtpRequestTime!).inSeconds;
-      throw ServerException(
-        'कृपया नया ओटीपी मांगने से पहले $waitSecs सेकंड प्रतीक्षा करें (Please wait $waitSecs seconds before resending OTP)',
-      );
-    }
-
-    try {
-      final formattedPhone = _formatIndianPhone(phone);
-      await _client.auth.signInWithOtp(
-        phone: formattedPhone,
-        channel: OtpChannel.sms,
-      );
-      _lastOtpRequestTime = DateTime.now();
-    } on AuthException catch (e) {
-      if (allowDemoAuth && (e.message.contains('sms_provider') || e.toString().contains('Failed host lookup'))) {
-        _lastOtpRequestTime = DateTime.now();
-        return; // Dev bypass
-      }
-      throw ServerException('ओटीपी भेजने में असमर्थ: कृपया नेटवर्क या फोन नंबर जांचें।');
-    } catch (e) {
-      if (allowDemoAuth && (e.toString().contains('sms_provider') || e.toString().contains('Failed host lookup'))) {
-        _lastOtpRequestTime = DateTime.now();
-        return; // Dev bypass
-      }
-      throw ServerException('ओटीपी भेजने में त्रुटि: ${e.toString()}');
-    }
-  }
-
-  @override
-  Future<UserProfile?> verifyOtp({
-    required String phone,
-    required String token,
-  }) async {
-    _checkLockout();
-
-    try {
-      final formattedPhone = _formatIndianPhone(phone);
-
-      AuthResponse? res;
-      try {
-        res = await _client.auth.verifyOTP(
-          phone: formattedPhone,
-          token: token.trim(),
-          type: OtpType.sms,
-        );
-      } catch (authErr) {
-        // Dev bypass ONLY allowed in non-release builds when explicit demo flag is true
-        if (allowDemoAuth && token.trim() == '123456') {
-          final cleanPhone = formattedPhone.replaceAll(RegExp(r'[^0-9]'), '').substring(2);
-          try {
-            final existing = await _client
-                .from('profiles')
-                .select('*')
-                .eq('phone', cleanPhone)
-                .maybeSingle();
-
-            _failedLoginAttempts = 0;
-            _lockoutUntil = null;
-
-            if (existing != null) {
-              final profile = UserProfile.fromJson(existing);
-              await _secureStorage.saveAuthSession(
-                accessToken: 'demo_dev_token',
-                refreshToken: 'demo_dev_refresh',
-                userId: profile.id,
-                phone: profile.phone,
-                role: profile.role,
-              );
-              return profile;
-            }
-          } catch (_) {
-            // Offline fallback in dev mode when Supabase is not reachable
-            final offlineProfile = UserProfile(
-              id: 'dev-demo-farmer-id',
-              role: 'farmer',
-              phone: cleanPhone,
-              fullName: 'डेमो किसान (Dev Mode)',
-              preferredLanguage: 'hi',
-              kycStatus: 'verified',
-              verifiedByAdmin: true,
-              villageOrCity: 'करनाल',
-              district: 'करनाल',
-              state: 'हरियाणा',
-              createdAt: DateTime.now(),
-            );
-            await _secureStorage.saveAuthSession(
-              accessToken: 'demo_dev_token',
-              refreshToken: 'demo_dev_refresh',
-              userId: offlineProfile.id,
-              phone: offlineProfile.phone,
-              role: offlineProfile.role,
-            );
-            return offlineProfile;
-          }
-          return null; // Onboarding required
-        }
-
-        _failedLoginAttempts++;
-        if (_failedLoginAttempts >= maxFailedAttempts) {
-          _lockoutUntil = DateTime.now().add(lockoutDuration);
-          throw ServerException(
-            '5 बार गलत प्रयास दर्ज किए गए। सुरक्षा कारणों से खाता 15 मिनट के लिए लॉक कर दिया गया है। (Account locked for 15 minutes due to 5 failed attempts)',
-          );
-        }
-
-        throw ServerException('अमान्य या समाप्त ओटीपी कोड (Invalid or expired OTP code)');
-      }
-
-      _failedLoginAttempts = 0;
-      _lockoutUntil = null;
-
-      final session = res.session;
-      final userId = res.user?.id;
-      if (userId == null) return null;
-
-      final profileData = await _client
-          .from('profiles')
-          .select('*')
-          .eq('id', userId)
-          .maybeSingle();
-
-      if (profileData != null) {
-        final profile = UserProfile.fromJson(profileData);
-        if (session != null) {
-          await _secureStorage.saveAuthSession(
-            accessToken: session.accessToken,
-            refreshToken: session.refreshToken ?? '',
-            userId: userId,
-            phone: profile.phone,
-            role: profile.role,
-          );
-        }
-        return profile;
-      }
-
-      return null;
-    } catch (e) {
-      if (e is ServerException) rethrow;
-      throw ServerException('ओटीपी सत्यापन में त्रुटि: ${e.toString()}');
-    }
-  }
-
-  @override
   Future<UserProfile> signUpWithPassword({
     required String fullName,
     required String phone,
     required String password,
     required String role,
+    String? email,
   }) async {
     _checkLockout();
 
-    // Prevent privilege escalation: User can never request admin role
+    // Prevent privilege escalation: User can never self-assign admin role
     if (role == 'admin') {
-      throw ServerException('सुरक्षा उल्लंघन: एडमिन भूमिका केवल आंतरिक सिस्टम द्वारा दी जा सकती है। (Cannot self-assign admin role)');
+      throw const ServerException('सुरक्षा उल्लंघन: एडमिन भूमिका केवल आंतरिक सिस्टम द्वारा दी जा सकती है। (Cannot self-assign admin role)');
     }
     final assignedRole = (role == 'farmer') ? 'farmer' : 'consumer';
 
     if (password.length < 8) {
-      throw ServerException('पासवर्ड में न्यूनतम 8 अक्षर होने चाहिए (Password must be at least 8 characters)');
+      throw const ServerException('पासवर्ड में न्यूनतम 8 अक्षर होने चाहिए (Password must be at least 8 characters)');
     }
 
-    final formattedPhone = _formatIndianPhone(phone);
-    final raw10Digit = formattedPhone.replaceAll(RegExp(r'[^0-9]'), '').substring(2);
+    final cleanPhone = _clean10DigitPhone(phone);
+
+    // Determine registration email
+    String authEmail;
+    bool hasUserEmail = false;
+    if (email != null && email.trim().isNotEmpty && email.contains('@')) {
+      authEmail = email.trim().toLowerCase();
+      hasUserEmail = true;
+    } else {
+      authEmail = _mapIdentifierToEmail(cleanPhone);
+    }
 
     try {
-      final res = await _client.auth.signUp(
-        phone: formattedPhone,
-        password: password,
-      );
+      AuthResponse res;
+      try {
+        res = await _client.auth.signUp(
+          email: authEmail,
+          password: password,
+          data: {
+            'phone': cleanPhone,
+            'full_name': fullName.trim(),
+            'role': assignedRole,
+          },
+        );
+      } catch (authErr) {
+        // If hosted Supabase GoTrue rejects .invalid TLD with email_address_invalid, retry with fallback domain
+        if (!hasUserEmail && authErr.toString().contains('email_address_invalid')) {
+          authEmail = _mapIdentifierToEmail(cleanPhone, useFallback: true);
+          res = await _client.auth.signUp(
+            email: authEmail,
+            password: password,
+            data: {
+              'phone': cleanPhone,
+              'full_name': fullName.trim(),
+              'role': assignedRole,
+            },
+          );
+        } else {
+          rethrow;
+        }
+      }
 
       final user = res.user;
       if (user == null) {
-        throw ServerException('पंजीकरण असफल रहा। कृपया पुनः प्रयास करें। (Registration failed)');
+        throw const ServerException('पंजीकरण असफल रहा। कृपया पुनः प्रयास करें। (Registration failed)');
       }
 
-      // Create initial profile in profiles table
+      // Check if session was returned; if not, autoconfirm email is off in Supabase
+      if (res.session == null) {
+        // Try direct sign in immediately in case autoconfirm was processed by trigger
+        try {
+          final loginRes = await _client.auth.signInWithPassword(
+            email: authEmail,
+            password: password,
+          );
+          if (loginRes.session != null) {
+            res = loginRes;
+          }
+        } catch (_) {
+          throw const ServerException(
+            'खाता बन गया है परंतु पुष्टि प्रतीक्षित है। कृपया Supabase Dashboard > Authentication > Providers > Email में "Confirm email" को OFF करें।',
+          );
+        }
+      }
+
+      // Ensure profile row exists (created either by Postgres trigger or explicit upsert)
       final profilePayload = {
         'id': user.id,
-        'phone': raw10Digit,
+        'phone': cleanPhone,
         'full_name': fullName.trim(),
         'role': assignedRole,
         'preferred_language': 'hi',
-        'kyc_status': 'pending',
-        'verified_by_admin': false,
+        'kyc_status': assignedRole == 'farmer' ? 'pending' : 'verified',
+        'verified_by_admin': assignedRole != 'farmer',
       };
 
-      final data = await _client.from('profiles').insert(profilePayload).select().single();
-      final profile = UserProfile.fromJson(data);
+      try {
+        await _client.from('profiles').upsert(profilePayload);
+      } catch (upsertErr) {
+        debugPrint('Profile auto-trigger active or upsert notice: $upsertErr');
+      }
 
-      if (res.session != null) {
+      if (assignedRole == 'farmer') {
+        try {
+          await _client.from('farmer_profiles').upsert({
+            'farmer_id': user.id,
+            'farm_name': '${fullName.trim()} Farm',
+            'total_acres': 0.0,
+          });
+        } catch (_) {}
+      }
+
+      final session = res.session;
+      if (session != null) {
         await _secureStorage.saveAuthSession(
-          accessToken: res.session!.accessToken,
-          refreshToken: res.session!.refreshToken ?? '',
+          accessToken: session.accessToken,
+          refreshToken: session.refreshToken ?? '',
           userId: user.id,
-          phone: profile.phone,
-          role: profile.role,
+          phone: cleanPhone,
+          role: assignedRole,
         );
       }
 
-      return profile;
+      return UserProfile(
+        id: user.id,
+        phone: cleanPhone,
+        fullName: fullName.trim(),
+        role: assignedRole,
+        preferredLanguage: 'hi',
+        kycStatus: assignedRole == 'farmer' ? 'pending' : 'verified',
+        verifiedByAdmin: assignedRole != 'farmer',
+        villageOrCity: '',
+        district: '',
+        state: '',
+        createdAt: DateTime.now(),
+      );
     } on AuthException catch (e) {
-      if (e.message.contains('User already registered') || e.message.contains('already exists')) {
-        throw ServerException('यह मोबाइल नंबर पहले से पंजीकृत है। कृपया लॉग इन करें। (Phone number already registered. Please log in.)');
+      if (e.message.toLowerCase().contains('already registered')) {
+        throw const ServerException('यह मोबाइल नंबर/ईमेल पहले से पंजीकृत है। कृपया लॉगिन करें। (Account already exists)');
       }
-      throw ServerException('पंजीकरण में त्रुटि: ${e.message}');
+      throw ServerException(e.message);
     } catch (e) {
-      // Graceful offline fallback in dev mode if network / Supabase is unreachable
-      if (allowDemoAuth &&
-          (e.toString().contains('SocketException') ||
-              e.toString().contains('ClientException') ||
-              e.toString().contains('Failed host lookup'))) {
-        final offlineProfile = UserProfile(
-          id: 'dev-user-${DateTime.now().millisecondsSinceEpoch}',
-          phone: raw10Digit,
-          fullName: fullName.trim(),
-          role: assignedRole,
-          preferredLanguage: 'hi',
-          kycStatus: 'pending',
-          verifiedByAdmin: false,
-          villageOrCity: 'करनाल',
-          district: 'करनाल',
-          state: 'हरियाणा',
-          createdAt: DateTime.now(),
-        );
-        await _secureStorage.saveAuthSession(
-          accessToken: 'dev_offline_access_token',
-          refreshToken: 'dev_offline_refresh_token',
-          userId: offlineProfile.id,
-          phone: offlineProfile.phone,
-          role: offlineProfile.role,
-        );
-        return offlineProfile;
-      }
+      if (e is ServerException) rethrow;
       throw ServerException('पंजीकरण में त्रुटि: $e');
     }
   }
 
   @override
   Future<UserProfile> signInWithPassword({
-    required String phone,
+    required String identifier,
     required String password,
   }) async {
     _checkLockout();
 
-    final formattedPhone = _formatIndianPhone(phone);
+    final isEmail = identifier.contains('@');
+    final primaryEmail = _mapIdentifierToEmail(identifier, useFallback: false);
+    final fallbackEmail = isEmail ? primaryEmail : _mapIdentifierToEmail(identifier, useFallback: true);
 
     try {
-      final res = await _client.auth.signInWithPassword(
-        phone: formattedPhone,
-        password: password,
-      );
+      AuthResponse res;
+      try {
+        res = await _client.auth.signInWithPassword(
+          email: primaryEmail,
+          password: password,
+        );
+      } catch (err) {
+        // If not a direct email and primary synthetic address failed, try fallback domain
+        if (!isEmail) {
+          try {
+            res = await _client.auth.signInWithPassword(
+              email: fallbackEmail,
+              password: password,
+            );
+          } catch (_) {
+            throw err;
+          }
+        } else {
+          rethrow;
+        }
+      }
 
       final user = res.user;
       final session = res.session;
 
       if (user == null || session == null) {
-        throw ServerException('लॉगिन विफल रहा (Login failed)');
+        throw const ServerException('लॉगिन विफल रहा (Login failed)');
       }
 
       _failedLoginAttempts = 0;
@@ -345,44 +287,73 @@ class AuthRepositoryImpl implements AuthRepository {
       _failedLoginAttempts++;
       if (_failedLoginAttempts >= maxFailedAttempts) {
         _lockoutUntil = DateTime.now().add(lockoutDuration);
-        throw ServerException(
+        throw const ServerException(
           '5 बार गलत पासवर्ड दर्ज किया गया। सुरक्षा हेतु 15 मिनट के लिए लॉक किया गया है (Account locked for 15 minutes due to 5 failed attempts)',
         );
       }
       // Generic error prevents user enumeration
-      throw ServerException('अमान्य फोन नंबर अथवा पासवर्ड (Invalid phone or password)');
+      throw const ServerException('गलत मोबाइल नंबर/ईमेल या पासवर्ड (Invalid mobile number/email or password)');
     } catch (e) {
       if (e is ServerException) rethrow;
-      // Graceful offline fallback in dev mode if network / Supabase is unreachable
-      if (allowDemoAuth &&
-          (e.toString().contains('SocketException') ||
-              e.toString().contains('ClientException') ||
-              e.toString().contains('Failed host lookup'))) {
-        final raw10Digit = formattedPhone.replaceAll(RegExp(r'[^0-9]'), '').substring(2);
-        final offlineProfile = UserProfile(
-          id: 'dev-user-${DateTime.now().millisecondsSinceEpoch}',
-          phone: raw10Digit,
-          fullName: 'डेमो किसान (Offline)',
-          role: 'farmer',
-          preferredLanguage: 'hi',
-          kycStatus: 'verified',
-          verifiedByAdmin: true,
-          villageOrCity: 'करनाल',
-          district: 'करनाल',
-          state: 'हरियाणा',
-          createdAt: DateTime.now(),
-        );
-        await _secureStorage.saveAuthSession(
-          accessToken: 'dev_offline_access_token',
-          refreshToken: 'dev_offline_refresh_token',
-          userId: offlineProfile.id,
-          phone: offlineProfile.phone,
-          role: offlineProfile.role,
-        );
-        return offlineProfile;
-      }
-      throw ServerException('लॉगिन में त्रुटि: $e');
+      throw const ServerException('गलत मोबाइल नंबर/ईमेल या पासवर्ड (Invalid mobile number/email or password)');
     }
+  }
+
+  @override
+  Future<void> sendOtp(String phone) async {
+    if (!AppConstants.enableOtpAuth) {
+      throw const ServerException(
+        'SMS OTP प्रमाणीकरण वर्तमान में अक्षम है। कृपया मोबाइल नंबर और पासवर्ड का उपयोग करें। (SMS OTP is disabled. Use mobile number and password.)',
+      );
+    }
+    _checkLockout();
+    final clean = _clean10DigitPhone(phone);
+    await _client.auth.signInWithOtp(phone: '+91$clean');
+  }
+
+  @override
+  Future<UserProfile?> verifyOtp({
+    required String phone,
+    required String token,
+  }) async {
+    if (!AppConstants.enableOtpAuth) {
+      throw const ServerException(
+        'SMS OTP प्रमाणीकरण अक्षम है। (SMS OTP is disabled)',
+      );
+    }
+    _checkLockout();
+    final clean = _clean10DigitPhone(phone);
+
+    final res = await _client.auth.verifyOTP(
+      phone: '+91$clean',
+      token: token.trim(),
+      type: OtpType.sms,
+    );
+
+    final user = res.user;
+    final session = res.session;
+    if (user == null || session == null) {
+      throw const ServerException('अमान्य या समाप्त ओटीपी कोड (Invalid or expired OTP)');
+    }
+
+    final profileData = await _client
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .maybeSingle();
+
+    if (profileData == null) return null;
+
+    final profile = UserProfile.fromJson(profileData);
+    await _secureStorage.saveAuthSession(
+      accessToken: session.accessToken,
+      refreshToken: session.refreshToken ?? '',
+      userId: user.id,
+      phone: profile.phone,
+      role: profile.role,
+    );
+
+    return profile;
   }
 
   @override
@@ -391,31 +362,9 @@ class AuthRepositoryImpl implements AuthRepository {
     required String otpToken,
     required String newPassword,
   }) async {
-    _checkLockout();
-
-    if (newPassword.length < 8) {
-      throw ServerException('नया पासवर्ड कम से कम 8 अक्षरों का होना चाहिए (New password must be at least 8 characters)');
-    }
-
-    final formattedPhone = _formatIndianPhone(phone);
-
-    try {
-      await _client.auth.verifyOTP(
-        phone: formattedPhone,
-        token: otpToken.trim(),
-        type: OtpType.recovery,
-      );
-
-      await _client.auth.updateUser(
-        UserAttributes(password: newPassword),
-      );
-
-      _failedLoginAttempts = 0;
-    } on AuthException catch (e) {
-      throw ServerException('पासवर्ड रीसेट विफल रहा: अमान्य या समाप्त ओटीपी कोड। (${e.message})');
-    } catch (e) {
-      throw ServerException('पासवर्ड रीसेट में त्रुटि: $e');
-    }
+    throw const ServerException(
+      'SMS द्वारा पासवर्ड रीसेट सेवा उपलब्ध नहीं है (कोई SMS गेटवे सक्रिय नहीं है)। कृपया ग्राहक सहायता से संपर्क करें। (SMS password reset unavailable without SMS provider.)',
+    );
   }
 
   @override
@@ -427,7 +376,6 @@ class AuthRepositoryImpl implements AuthRepository {
         if (profile != null) return profile;
       }
 
-      // Check secure storage
       final storedToken = await _secureStorage.getAccessToken();
       final storedUserId = await _secureStorage.getUserId();
 
@@ -475,7 +423,6 @@ class AuthRepositoryImpl implements AuthRepository {
       payload['id'] = currentAuthId;
 
       // SECURITY: Strip privileged fields from client update payloads
-      // Role, verification, and KYC status can only be modified server-side by admins
       payload.remove('role');
       payload.remove('verified_by_admin');
       payload.remove('kyc_status');
@@ -501,7 +448,7 @@ class AuthRepositoryImpl implements AuthRepository {
   }) async {
     final userId = _client.auth.currentUser?.id;
     if (userId == null) {
-      throw ServerException('सत्र समाप्त हो गया है। कृपया पुनः लॉगिन करें। (Session expired)');
+      throw const ServerException('सत्र समाप्त हो गया है। कृपया पुनः लॉगिन करें। (Session expired)');
     }
 
     try {

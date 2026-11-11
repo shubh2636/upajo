@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -10,7 +9,7 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/app_text_field.dart';
-import '../../data/repositories/auth_repository_impl.dart';
+import '../../../../core/widgets/language_switcher_button.dart';
 import '../controllers/auth_controller.dart';
 
 class VerifyOtpScreen extends ConsumerStatefulWidget {
@@ -90,8 +89,8 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
     final phone = ref.read(authControllerProvider).pendingPhone;
     if (phone == null || phone.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('मोबाइल नंबर उपलब्ध नहीं है, कृपया दोबारा लॉगिन करें'),
+        SnackBar(
+          content: Text('auth.phone_not_found'.tr()),
           backgroundColor: AppColors.clay500,
         ),
       );
@@ -104,8 +103,8 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
     if (success) {
       _startCooldown();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('नया ओटीपी सफलतापूर्वक भेजा गया (OTP Resent)'),
+        SnackBar(
+          content: Text('auth.otp_resent_success'.tr()),
           backgroundColor: AppColors.primary600,
         ),
       );
@@ -113,7 +112,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
       final err = ref.read(authControllerProvider).errorMessage;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(err ?? 'ओटीपी पुनः भेजने में त्रुटि हुई'),
+          content: Text(err ?? 'auth.otp_send_failed'.tr()),
           backgroundColor: AppColors.clay500,
         ),
       );
@@ -134,6 +133,12 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
           icon: const Icon(Icons.arrow_back_rounded, color: AppColors.soil800),
           onPressed: () => context.pop(),
         ),
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 12.0),
+            child: LanguageSwitcherButton(),
+          ),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -179,38 +184,6 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
 
                 const SizedBox(height: 24.0),
 
-                // Non-production test banner (strictly disabled in release mode)
-                if (kDebugMode && AuthRepositoryImpl.allowDemoAuth) ...[
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 8.0),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary50,
-                      borderRadius: BorderRadius.circular(10.0),
-                      border: Border.all(color: AppColors.primary200),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'डेवलपमेंट टेस्ट कोड: 123456 (Debug Only)',
-                          style: TextStyle(
-                            fontSize: 12.0,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.primary700,
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            _otpController.text = '123456';
-                          },
-                          child: const Text('स्वतः भरें', style: TextStyle(fontWeight: FontWeight.w800)),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16.0),
-                ],
-
                 AppCard(
                   padding: const EdgeInsets.all(20.0),
                   borderRadius: 20.0,
@@ -219,7 +192,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
                     children: [
                       AppTextField(
                         controller: _otpController,
-                        label: '6 अंकों का ओटीपी (6-Digit OTP)',
+                        label: 'auth.otp_input_label'.tr(),
                         hintText: '• • • • • •',
                         keyboardType: TextInputType.number,
                         validator: (value) {
@@ -249,7 +222,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
                     icon: const Icon(Icons.refresh_rounded, size: 20.0, color: AppColors.primary500),
                     label: Text(
                       _cooldownSeconds > 0
-                          ? 'पुनः ओटीपी भेजें (${_cooldownSeconds}s)'
+                          ? 'auth.resend_in_seconds'.tr(namedArgs: {'seconds': _cooldownSeconds.toString()})
                           : 'auth.resend_otp'.tr(),
                       style: AppTypography.buttonMedium.copyWith(
                         color: _cooldownSeconds > 0 ? AppColors.soil400 : AppColors.primary500,
@@ -265,7 +238,7 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
                     const Icon(Icons.security_rounded, size: 16.0, color: AppColors.primary500),
                     const SizedBox(width: 6.0),
                     Text(
-                      'अधिकतम 5 प्रयास • 15 मिनट सुरक्षा लॉक',
+                      'auth.otp_security_note'.tr(),
                       style: AppTypography.bodySmall.copyWith(
                         fontWeight: FontWeight.w600,
                         color: AppColors.soil600,

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -78,11 +79,12 @@ class _MachineryDetailScreenState extends ConsumerState<MachineryDetailScreen> {
     final controller = ref.read(machineryControllerProvider.notifier);
     final user = ref.watch(authControllerProvider).userProfile;
     final renterId = user?.id ?? 'demo_renter_id';
+    final title = context.locale.languageCode == 'en' ? widget.machine.titleEn : widget.machine.titleHi;
 
     return Scaffold(
       backgroundColor: AppColors.soil50,
       appBar: AppBar(
-        title: Text(widget.machine.titleHi, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17.0)),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17.0)),
       ),
       bottomNavigationBar: Container(
         padding: const EdgeInsets.all(16.0),
@@ -98,7 +100,7 @@ class _MachineryDetailScreenState extends ConsumerState<MachineryDetailScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('कुल अनुमानित राशि', style: TextStyle(fontSize: 11.0, color: AppColors.soil600)),
+                  Text('machinery.total_est_amount'.tr(), style: const TextStyle(fontSize: 11.0, color: AppColors.soil600)),
                   Text(
                     '₹${_grandTotal.toInt()}',
                     style: const TextStyle(fontSize: 22.0, fontWeight: FontWeight.w900, color: AppColors.primary700),
@@ -108,7 +110,7 @@ class _MachineryDetailScreenState extends ConsumerState<MachineryDetailScreen> {
               const SizedBox(width: 16.0),
               Expanded(
                 child: AppButton(
-                  label: 'बुकिंग अनुरोध भेजें',
+                  label: 'machinery.send_booking_req'.tr(),
                   isLoading: state.isLoading,
                   onPressed: () async {
                     final success = await controller.requestBooking(
@@ -126,15 +128,15 @@ class _MachineryDetailScreenState extends ConsumerState<MachineryDetailScreen> {
                       showDialog<void>(
                         context: context,
                         builder: (_) => AlertDialog(
-                          title: const Row(
+                          title: Row(
                             children: [
-                              Icon(Icons.check_circle_rounded, color: AppColors.primary500),
-                              SizedBox(width: 8.0),
-                              Text('बुकिंग अनुरोध भेजा गया'),
+                              const Icon(Icons.check_circle_rounded, color: AppColors.primary500),
+                              const SizedBox(width: 8.0),
+                              Text('machinery.booking_sent_title'.tr()),
                             ],
                           ),
                           content: Text(
-                            'आपका बुकिंग अनुरोध मालिक (${widget.machine.ownerName ?? "किसान"}) को भेज दिया गया है। मालिक द्वारा पुष्टि होने पर आपको सूचना मिलेगी।',
+                            'machinery.booking_sent_desc'.tr(args: [widget.machine.ownerName ?? 'machinery.verified_farmer'.tr()]),
                           ),
                           actions: [
                             TextButton(
@@ -142,7 +144,7 @@ class _MachineryDetailScreenState extends ConsumerState<MachineryDetailScreen> {
                                 Navigator.pop(context);
                                 context.pushReplacement(RouteNames.myRentals);
                               },
-                              child: const Text('मेरी बुकिंग्स देखें', style: TextStyle(fontWeight: FontWeight.bold)),
+                              child: Text('machinery.view_my_bookings'.tr(), style: const TextStyle(fontWeight: FontWeight.bold)),
                             ),
                           ],
                         ),
@@ -188,7 +190,7 @@ class _MachineryDetailScreenState extends ConsumerState<MachineryDetailScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    widget.machine.titleHi,
+                    title,
                     style: AppTypography.displayMedium.copyWith(fontSize: 20.0, color: AppColors.soil900),
                   ),
                   const SizedBox(height: 4.0),
@@ -215,11 +217,11 @@ class _MachineryDetailScreenState extends ConsumerState<MachineryDetailScreen> {
             // Specifications Bento Grid
             Row(
               children: [
-                _specTile('पावर (Power)', '${widget.machine.hp} HP', Icons.speed_rounded),
+                _specTile('machinery.spec_power'.tr(), '${widget.machine.hp} HP', Icons.speed_rounded),
                 const SizedBox(width: 10.0),
-                _specTile('मॉडल वर्ष', '${widget.machine.modelYear}', Icons.calendar_today_rounded),
+                _specTile('machinery.model_year'.tr(), '${widget.machine.modelYear}', Icons.calendar_today_rounded),
                 const SizedBox(width: 10.0),
-                _specTile('रेटिंग', '${widget.machine.rating} ★', Icons.star_rounded, color: AppColors.wheat700),
+                _specTile('machinery.spec_rating'.tr(), '${widget.machine.rating} ★', Icons.star_rounded, color: AppColors.wheat700),
               ],
             ),
             const SizedBox(height: 14.0),
@@ -243,17 +245,17 @@ class _MachineryDetailScreenState extends ConsumerState<MachineryDetailScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          widget.machine.ownerName ?? 'सत्यापित किसान मालिक',
+                          widget.machine.ownerName ?? 'machinery.verified_owner_badge'.tr(),
                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5),
                         ),
-                        const Text('आधार व किसान प्रमाण-पत्र सत्यापित', style: TextStyle(fontSize: 11.5, color: AppColors.primary600, fontWeight: FontWeight.w600)),
+                        Text('machinery.owner_doc_verified'.tr(), style: const TextStyle(fontSize: 11.5, color: AppColors.primary600, fontWeight: FontWeight.w600)),
                       ],
                     ),
                   ),
                   IconButton(
                     icon: const Icon(Icons.phone_rounded, color: AppColors.primary600),
                     onPressed: _callOwner,
-                    tooltip: 'मालिक से बात करें',
+                    tooltip: 'machinery.call_owner_tooltip'.tr(),
                   ),
                 ],
               ),
@@ -269,13 +271,13 @@ class _MachineryDetailScreenState extends ConsumerState<MachineryDetailScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        'किराया अवधि (Booking Dates)',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15.0),
+                      Text(
+                        'machinery.booking_duration'.tr(),
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15.0),
                       ),
                       TextButton.icon(
                         icon: const Icon(Icons.edit_calendar_rounded, size: 18.0),
-                        label: const Text('तारीख बदलें', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5)),
+                        label: Text('machinery.change_dates'.tr(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5)),
                         onPressed: _selectDateRange,
                       ),
                     ],
@@ -292,7 +294,7 @@ class _MachineryDetailScreenState extends ConsumerState<MachineryDetailScreen> {
                       children: [
                         Column(
                           children: [
-                            const Text('शुरुआती तारीख', style: TextStyle(fontSize: 11.0, color: AppColors.soil600)),
+                            Text('machinery.start_date'.tr(), style: const TextStyle(fontSize: 11.0, color: AppColors.soil600)),
                             const SizedBox(height: 4.0),
                             Text(DateFormat('dd MMM yyyy').format(_startDate), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.0)),
                           ],
@@ -300,16 +302,16 @@ class _MachineryDetailScreenState extends ConsumerState<MachineryDetailScreen> {
                         const Icon(Icons.arrow_forward_rounded, color: AppColors.soil400),
                         Column(
                           children: [
-                            const Text('अंतिम तारीख', style: TextStyle(fontSize: 11.0, color: AppColors.soil600)),
+                            Text('machinery.end_date'.tr(), style: const TextStyle(fontSize: 11.0, color: AppColors.soil600)),
                             const SizedBox(height: 4.0),
                             Text(DateFormat('dd MMM yyyy').format(_endDate), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.0)),
                           ],
                         ),
                         Column(
                           children: [
-                            const Text('कुल अवधि', style: TextStyle(fontSize: 11.0, color: AppColors.soil600)),
+                            Text('machinery.total_duration'.tr(), style: const TextStyle(fontSize: 11.0, color: AppColors.soil600)),
                             const SizedBox(height: 4.0),
-                            Text('$_totalDays दिन', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.0, color: AppColors.primary700)),
+                            Text('machinery.days_count'.tr(args: [_totalDays.toString()]), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.0, color: AppColors.primary700)),
                           ],
                         ),
                       ],
@@ -328,23 +330,23 @@ class _MachineryDetailScreenState extends ConsumerState<MachineryDetailScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('किराया गणना (Price Breakdown)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5)),
+                  Text('machinery.price_calc'.tr(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5)),
                   const SizedBox(height: 10.0),
-                  _breakdownRow('दैनिक दर (₹${widget.machine.dailyRate.toInt()} × $_totalDays दिन)', '₹${_totalRent.toInt()}'),
+                  _breakdownRow('machinery.daily_rate_breakdown'.tr(args: [widget.machine.dailyRate.toInt().toString(), _totalDays.toString()]), '₹${_totalRent.toInt()}'),
                   const SizedBox(height: 6.0),
-                  _breakdownRow('जमानत रिकॉर्ड (Security Deposit Record)', '₹${widget.machine.securityDeposit.toInt()}'),
+                  _breakdownRow('machinery.deposit_record_label'.tr(), '₹${widget.machine.securityDeposit.toInt()}'),
                   const Divider(height: 20.0, color: AppColors.wheat300),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('कुल देय राशि', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15.0)),
+                      Text('machinery.total_payable'.tr(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15.0)),
                       Text('₹${_grandTotal.toInt()}', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18.0, color: AppColors.soil900)),
                     ],
                   ),
                   const SizedBox(height: 8.0),
-                  const Text(
-                    '* जमानत राशि एक प्रत्यक्ष सुरक्षा रिकॉर्ड है, जो यंत्र की सकुशल वापसी और मालिक द्वारा भौतिक निरीक्षण व सत्यापन के बाद लौटाई जाएगी (Refundable post-inspection by owner).',
-                    style: TextStyle(fontSize: 11.0, color: AppColors.soil600),
+                  Text(
+                    'machinery.deposit_security_disclaimer'.tr(),
+                    style: const TextStyle(fontSize: 11.0, color: AppColors.soil600),
                   ),
                 ],
               ),
@@ -388,4 +390,3 @@ class _MachineryDetailScreenState extends ConsumerState<MachineryDetailScreen> {
     );
   }
 }
-

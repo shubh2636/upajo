@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 320" width="1024" height="320">
+  <g transform="translate(40, 20) scale(0.55)">
+    <path d="M 64 420 C 140 450, 372 450, 448 420" fill="none" stroke="#FFFFFF" stroke-width="24" stroke-linecap="round"/>
+    <path d="M 112 370 C 180 395, 332 395, 400 370" fill="none" stroke="#FFFFFF" stroke-width="22" stroke-linecap="round"/>
+    <path d="M 160 320 C 205 340, 307 340, 352 320" fill="none" stroke="#FFFFFF" stroke-width="20" stroke-linecap="round"/>
+    <path d="M 256 360 C 254 280, 258 200, 256 120" fill="none" stroke="#FFFFFF" stroke-width="30" stroke-linecap="round"/>
+    <path d="M 256 240 C 150 220, 110 140, 170 100 C 230 110, 245 170, 256 240 Z" fill="#FFFFFF"/>
+    <path d="M 256 190 C 350 170, 380 90, 320 60 C 270 70, 260 130, 256 190 Z" fill="#FFFFFF"/>
+    <circle cx="256" cy="330" r="16" fill="#FFFFFF"/>
+  </g>
+  <text x="360" y="195" font-family="'Noto Sans Devanagari', -apple-system, sans-serif" font-size="140" font-weight="900" fill="#FFFFFF" letter-spacing="-1.5">Upajo</text>
+  <text x="770" y="190" font-family="'Noto Sans Devanagari', sans-serif" font-size="64" font-weight="800" fill="#FFFFFF">उपजो</text>
+  <text x="365" y="248" font-family="'Noto Sans Devanagari', -apple-system, sans-serif" font-size="22" font-weight="600" fill="#FFFFFF" letter-spacing="0.5">DIRECT FARM-TO-FORK PLATFORM</text>
+</svg>
+

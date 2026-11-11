@@ -2,6 +2,9 @@ import 'dart:io';
 import '../models/disease_scan_result.dart';
 
 abstract class DiseaseDetectionRepository {
+  /// Preloads on-device TFLite model and agronomic pathology database
+  Future<void> preloadModel();
+
   /// Runs on-device TFLite inference or FastAPI fallback on the leaf photograph
   Future<DiseaseScanResult> detectDisease({
     required File imageFile,

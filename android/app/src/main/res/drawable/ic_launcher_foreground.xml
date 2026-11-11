@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Furrow Waves at Bottom -->
+    <path
+        android:strokeColor="#6E5F44"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:pathData="M 24,78 C 36,83 72,83 84,78"/>
+
+    <path
+        android:strokeColor="#9E8D6E"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:pathData="M 32,71 C 42,75 66,75 76,71"/>
+
+    <path
+        android:strokeColor="#D8972C"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round"
+        android:pathData="M 40,64 C 47,67 61,67 68,64"/>
+
+    <!-- Central Sprout Stem -->
+    <path
+        android:strokeColor="#1B492C"
+        android:strokeWidth="4"
+        android:strokeLineCap="round"
+        android:pathData="M 54,70 C 53,58 55,46 54,30"/>
+
+    <!-- Left Sprout Leaf -->
+    <path
+        android:fillColor="#3FA65B"
+        android:pathData="M 54,50 C 36,46 30,32 40,24 C 49,26 52,36 54,50 Z"/>
+
+    <!-- Right Sprout Leaf -->
+    <path
+        android:fillColor="#25603A"
+        android:pathData="M 54,42 C 70,38 75,24 65,18 C 57,20 55,30 54,42 Z"/>
+
+    <!-- Golden Seed Center -->
+    <path
+        android:fillColor="#D8972C"
+        android:pathData="M 54,64 A 3,3 0 1,1 53.99,64 Z"/>
+</vector>
+

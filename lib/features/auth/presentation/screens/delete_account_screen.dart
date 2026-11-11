@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import '../../../../core/network/supabase_client.dart';
 import '../../../../core/router/route_names.dart';
@@ -8,8 +9,8 @@ import '../../../../core/security/screen_security.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_button.dart';
-import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/app_text_field.dart';
+import '../../../../core/widgets/language_switcher_button.dart';
 import '../controllers/auth_controller.dart';
 
 class DeleteAccountScreen extends ConsumerStatefulWidget {
@@ -39,11 +40,11 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
 
   Future<void> _handleDeleteAccount() async {
     final confirmation = _confirmController.text.trim().toUpperCase();
-    if (confirmation != 'DELETE' && confirmation != 'हटाएं') {
+    if (confirmation != 'DELETE') {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           backgroundColor: AppColors.error,
-          content: Text('पुष्टि के लिए बॉक्स में "DELETE" अथवा "हटाएं" टाइप करें।'),
+          content: Text('auth.delete_confirm_label'.tr()),
         ),
       );
       return;
@@ -55,30 +56,28 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
     setState(() => _isDeleting = true);
     try {
       // Call Supabase RPC to anonymize data and delete account
-      await SupabaseService.client.rpc(
+      await SupabaseService.client.rpc<void>(
         'delete_user_account',
         params: {'p_user_id': user.id},
       );
 
       // Log out locally and clear hardware-backed storage
-      await ref.read(authControllerProvider.notifier).logout();
+      await ref.read(authControllerProvider.notifier).signOut();
 
       if (mounted) {
-        showDialog(
+        await showDialog<void>(
           context: context,
           barrierDismissible: false,
           builder: (ctx) => AlertDialog(
-            title: const Text('खाता हटा दिया गया है'),
-            content: const Text(
-              'आपका खाता और व्यक्तिगत डेटा सफलतापूर्वक अनामित और हटा दिया गया है। उपजो से जुड़ने के लिए धन्यवाद।',
-            ),
+            title: Text('auth.delete_success_title'.tr()),
+            content: Text('auth.delete_success_desc'.tr()),
             actions: [
               TextButton(
                 onPressed: () {
                   Navigator.of(ctx).pop();
                   context.go(RouteNames.welcome);
                 },
-                child: const Text('ठीक है (OK)'),
+                child: Text('common.done'.tr()),
               ),
             ],
           ),
@@ -90,7 +89,7 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
           SnackBar(
             backgroundColor: AppColors.error,
             duration: const Duration(seconds: 5),
-            content: Text('खाता हटाने में असमर्थ: ${e.toString()}'),
+            content: Text('common.error'.tr()),
           ),
         );
       }
@@ -103,8 +102,14 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('खाता हटाएं (Delete Account)'),
-        backgroundColor: AppColors.surface,
+        title: Text('auth.delete_account_title'.tr()),
+        backgroundColor: AppColors.soil50,
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 12.0),
+            child: LanguageSwitcherButton(),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -128,12 +133,12 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'महत्वपूर्ण चेतावनी (Permanent Action)',
+                          'auth.delete_account_warning_title'.tr(),
                           style: AppTypography.titleMedium.copyWith(color: Colors.red.shade900),
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          'यह प्रक्रिया अपरिवर्तनीय है। एक बार खाता हटा दिए जाने के बाद, आपका प्रोफ़ाइल पुनः प्राप्त नहीं किया जा सकता।',
+                          'auth.delete_account_warning_desc'.tr(),
                           style: AppTypography.bodySmall.copyWith(color: Colors.red.shade900),
                         ),
                       ],
@@ -143,13 +148,12 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
               ),
             ),
             const SizedBox(height: 24),
-            Text('खाता हटाने पर क्या होगा? (DPDP Act 2023)', style: AppTypography.titleMedium),
+            Text('auth.delete_account_consequences_title'.tr(), style: AppTypography.titleMedium),
             const SizedBox(height: 12),
-            _buildBulletPoint('आपका नाम, फ़ोन नंबर और पता तत्काल हटाकर अनामित कर दिया जाएगा।'),
-            _buildBulletPoint('आपके सभी अपलोड किए गए KYC पहचान दस्तावेज़ तत्काल नष्ट कर दिए जाएंगे।'),
-            _buildBulletPoint('आपके बैंक और UPI विवरण हटा दिए जाएंगे।'),
-            _buildBulletPoint('यदि आपकी कोई फसल सूचीबद्ध है, तो वह तुरंत रोक (Pause) दी जाएगी।'),
-            _buildBulletPoint('भारतीय आयकर व जीएसटी अधिनियमों के तहत केवल वित्तीय ऑडिट रिकॉर्ड्स ही अनिवार्य अवधि तक सुरक्षित रखे जाएंगे।'),
+            _buildBulletPoint('auth.delete_point_1'.tr()),
+            _buildBulletPoint('auth.delete_point_2'.tr()),
+            _buildBulletPoint('auth.delete_point_3'.tr()),
+            _buildBulletPoint('auth.delete_point_4'.tr()),
             const SizedBox(height: 20),
             CheckboxListTile(
               contentPadding: EdgeInsets.zero,
@@ -157,7 +161,7 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
               value: _understandsConsequences,
               onChanged: (val) => setState(() => _understandsConsequences = val ?? false),
               title: Text(
-                'मैं समझता/समझती हूँ कि यह क्रिया स्थायी है और मेरा व्यक्तिगत डेटा मिटा दिया जाएगा।',
+                'auth.delete_consent'.tr(),
                 style: AppTypography.bodyMedium,
               ),
             ),
@@ -165,13 +169,13 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
             if (_understandsConsequences) ...[
               AppTextField(
                 controller: _confirmController,
-                label: 'पुष्टि के लिए "DELETE" अथवा "हटाएं" लिखें',
+                label: 'auth.delete_confirm_label'.tr(),
                 hintText: 'DELETE',
               ),
               const SizedBox(height: 24),
               AppButton(
-                text: 'मेरा खाता स्थायी रूप से हटाएं',
-                variant: ButtonVariant.danger,
+                label: 'auth.delete_button'.tr(),
+                variant: ButtonVariant.primary,
                 isLoading: _isDeleting,
                 onPressed: _handleDeleteAccount,
               ),
@@ -188,11 +192,10 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('• ', style: const TextStyle(fontSize: 18, color: AppColors.textPrimary)),
+          const Text('• ', style: TextStyle(fontSize: 18, color: AppColors.soil800)),
           Expanded(child: Text(text, style: AppTypography.bodyMedium)),
         ],
       ),
     );
   }
 }
-

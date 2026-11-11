@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_button.dart';
@@ -55,8 +56,8 @@ class _OrderRatingSheetState extends ConsumerState<OrderRatingSheet> {
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('धन्यवाद! आपकी रेटिंग सफलतापूर्वक दर्ज कर ली गई है'),
+          SnackBar(
+            content: Text('consumer.rating_submitted_success'.tr()),
             backgroundColor: AppColors.primary500,
           ),
         );
@@ -64,7 +65,7 @@ class _OrderRatingSheetState extends ConsumerState<OrderRatingSheet> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('रेटिंग सबमिट करने में त्रुटि: $e')),
+          SnackBar(content: Text(e.toString())),
         );
       }
     } finally {
@@ -85,9 +86,9 @@ class _OrderRatingSheetState extends ConsumerState<OrderRatingSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('फसल की गुणवत्ता को रेटिंग दें', style: AppTypography.headlineMedium, textAlign: TextAlign.center),
+          Text('consumer.rate_produce'.tr(), style: AppTypography.headlineMedium, textAlign: TextAlign.center),
           const SizedBox(height: 6.0),
-          const Text('आपकी रेटिंग से अन्य परिवारों को शुद्ध अनाज चुनने में मदद मिलती है', style: TextStyle(fontSize: 12.0, color: AppColors.soil600), textAlign: TextAlign.center),
+          Text('consumer.rating_subtitle'.tr(), style: const TextStyle(fontSize: 12.0, color: AppColors.soil600), textAlign: TextAlign.center),
           const SizedBox(height: 20.0),
 
           // Star Rating Selector
@@ -110,14 +111,14 @@ class _OrderRatingSheetState extends ConsumerState<OrderRatingSheet> {
 
           AppTextField(
             controller: _commentController,
-            hintText: 'अपना अनुभव साझा करें (उदा. गेहूं बहुत साफ और दानेदार है)...',
+            hintText: 'consumer.rating_hint'.tr(),
             maxLines: 3,
           ),
 
           const SizedBox(height: 24.0),
 
           AppButton(
-            label: 'रेटिंग सबमिट करें (Submit Rating)',
+            label: 'consumer.submit_rating'.tr(),
             onPressed: _submitRating,
             isLoading: _isSubmitting,
           ),
@@ -126,4 +127,3 @@ class _OrderRatingSheetState extends ConsumerState<OrderRatingSheet> {
     );
   }
 }
-

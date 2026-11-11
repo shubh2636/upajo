@@ -23,7 +23,7 @@ class MachineryState {
     this.isLoading = false,
     this.machineryList = const [],
     this.selectedType = 'all',
-    this.selectedDistrict = 'सीहोर',
+    this.selectedDistrict = 'Sehore',
     this.selectedMachine,
     this.myLentRentals = const [],
     this.myBorrowedRentals = const [],
@@ -76,7 +76,7 @@ class MachineryController extends StateNotifier<MachineryState> {
         isLoading: false,
       );
     } catch (e) {
-      state = state.copyWith(isLoading: false, errorMessage: 'यंत्र सूची लोड नहीं हो सकी: $e');
+      state = state.copyWith(isLoading: false, errorMessage: e.toString());
     }
   }
 
@@ -99,7 +99,7 @@ class MachineryController extends StateNotifier<MachineryState> {
       );
       return true;
     } catch (e) {
-      state = state.copyWith(isLoading: false, errorMessage: 'यंत्र सूचीकरण में त्रुटि: $e');
+      state = state.copyWith(isLoading: false, errorMessage: e.toString());
       return false;
     }
   }
@@ -131,7 +131,7 @@ class MachineryController extends StateNotifier<MachineryState> {
       );
       return true;
     } catch (e) {
-      state = state.copyWith(isLoading: false, errorMessage: 'बुकिंग अनुरोध विफल: $e');
+      state = state.copyWith(isLoading: false, errorMessage: e.toString());
       return false;
     }
   }

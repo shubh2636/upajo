@@ -48,4 +48,9 @@ class RouteNames {
 
   // Admin
   static const String admin = '/admin';
+
+  // Support, About & Compliance
+  static const String about = '/about';
+  static const String support = '/support';
+  static const String deleteAccount = '/delete-account';
 }

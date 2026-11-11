@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import '../../../../core/config/env_config.dart';
 import '../../../../core/router/route_names.dart';
@@ -82,16 +83,16 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         setState(() => _isProcessing = false);
         if (isVerified) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('भुगतान सत्यापित एवं ऑर्डर कन्फर्म! (Payment Verified & Confirmed)'),
+            SnackBar(
+              content: Text('consumer.order_placed_success'.tr()),
               backgroundColor: AppColors.primary500,
             ),
           );
           context.go(RouteNames.orderDetail.replaceFirst(':id', _pendingOrder!.id), extra: _pendingOrder);
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('भुगतान सत्यापन विफल: अमान्य हस्ताक्षर (Signature Verification Failed)'),
+            SnackBar(
+              content: Text('consumer.signature_failed'.tr()),
               backgroundColor: AppColors.clay500,
             ),
           );
@@ -102,7 +103,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         setState(() => _isProcessing = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('भुगतान सत्यापन त्रुटि: $e'),
+            content: Text(e.toString()),
             backgroundColor: AppColors.clay500,
           ),
         );
@@ -114,7 +115,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     setState(() => _isProcessing = false);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('भुगतान असफल रहा: ${response.message}'),
+        content: Text(response.message ?? 'Payment failed'),
         backgroundColor: AppColors.clay500,
       ),
     );
@@ -123,7 +124,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   void _handleExternalWallet(ExternalWalletResponse response) {
     setState(() => _isProcessing = false);
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('वॉलेट चयन: ${response.walletName}')),
+      SnackBar(content: Text(response.walletName ?? '')),
     );
   }
 
@@ -158,7 +159,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       if (mounted) {
         setState(() => _isProcessing = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('ऑर्डर बनाने में त्रुटि हुई।')),
+          SnackBar(content: Text('common.error'.tr())),
         );
       }
       return;
@@ -174,8 +175,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         final options = {
           'key': rzpOrder['key_id'] ?? EnvConfig.razorpayKeyId,
           'amount': rzpOrder['amount'], // Authoritative server-calculated paise
-          'name': 'उपजो (Upajo)',
-          'description': 'खेत से सीधी ताज़ी फसल का भुगतान',
+          'name': 'Upajo',
+          'description': 'Farm produce payment',
           'order_id': rzpOrder['razorpay_order_id'],
           'prefill': {
             'contact': _phoneController.text.trim(),
@@ -189,7 +190,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           setState(() => _isProcessing = false);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('भुगतान गेटवे त्रुटि: $e'),
+              content: Text(e.toString()),
               backgroundColor: AppColors.clay500,
             ),
           );
@@ -200,8 +201,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       if (mounted) {
         setState(() => _isProcessing = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('बधाई! आपका सीओडी ऑर्डर दर्ज हो गया है (Order Confirmed - COD)'),
+          SnackBar(
+            content: Text('consumer.order_confirmed_cod'.tr()),
             backgroundColor: AppColors.primary500,
           ),
         );
@@ -217,7 +218,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     return Scaffold(
       backgroundColor: AppColors.soil50,
       appBar: AppBar(
-        title: const Text('चेकआउट (Checkout)'),
+        title: Text('consumer.checkout_title'.tr()),
         backgroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
@@ -233,29 +234,29 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('डिलीवरी / संपर्क पता (Address)', style: AppTypography.headlineSmall),
+                    Text('consumer.delivery_address'.tr(), style: AppTypography.headlineSmall),
                     const SizedBox(height: 14.0),
 
                     AppTextField(
                       controller: _nameController,
-                      label: 'प्राप्तकर्ता का नाम',
-                      validator: (val) => val == null || val.trim().isEmpty ? 'नाम लिखें' : null,
+                      label: 'consumer.recipient_name'.tr(),
+                      validator: (val) => val == null || val.trim().isEmpty ? 'consumer.enter_name'.tr() : null,
                     ),
                     const SizedBox(height: 12.0),
 
                     AppTextField(
                       controller: _phoneController,
-                      label: 'संपर्क मोबाइल नंबर',
+                      label: 'auth.phone_label'.tr(),
                       keyboardType: TextInputType.phone,
-                      validator: (val) => val == null || val.trim().length != 10 ? '10 अंकों का फोन नंबर' : null,
+                      validator: (val) => val == null || val.trim().length != 10 ? 'auth.invalid_phone'.tr() : null,
                     ),
                     const SizedBox(height: 12.0),
 
                     AppTextField(
                       controller: _addressController,
-                      label: 'मकान / पता',
-                      hintText: 'गली, मोहल्ला या लैंडमार्क',
-                      validator: (val) => val == null || val.trim().isEmpty ? 'पता लिखें' : null,
+                      label: 'consumer.address_label'.tr(),
+                      hintText: 'consumer.address_hint'.tr(),
+                      validator: (val) => val == null || val.trim().isEmpty ? 'consumer.enter_address'.tr() : null,
                     ),
                     const SizedBox(height: 12.0),
 
@@ -264,17 +265,17 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                         Expanded(
                           child: AppTextField(
                             controller: _cityController,
-                            label: 'गाँव / शहर',
-                            validator: (val) => val == null || val.trim().isEmpty ? 'शहर लिखें' : null,
+                            label: 'auth.village_city'.tr(),
+                            validator: (val) => val == null || val.trim().isEmpty ? 'consumer.enter_city'.tr() : null,
                           ),
                         ),
                         const SizedBox(width: 10.0),
                         Expanded(
                           child: AppTextField(
                             controller: _pinCodeController,
-                            label: 'पिन कोड',
+                            label: 'auth.pincode'.tr(),
                             keyboardType: TextInputType.number,
-                            validator: (val) => val == null || val.trim().length != 6 ? '6 अंक' : null,
+                            validator: (val) => val == null || val.trim().length != 6 ? 'consumer.enter_pincode'.tr() : null,
                           ),
                         ),
                       ],
@@ -291,14 +292,14 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('भुगतान का माध्यम (Payment Method)', style: AppTypography.headlineSmall),
+                    Text('consumer.choose_payment'.tr(), style: AppTypography.headlineSmall),
                     const SizedBox(height: 12.0),
 
                     RadioListTile<String>(
                       value: 'upi_razorpay',
                       groupValue: _paymentMethod,
-                      title: const Text('UPI / ऑनलाइन भुगतान (Razorpay)', style: TextStyle(fontWeight: FontWeight.bold)),
-                      subtitle: const Text('गूगल पे, फोनपे, पेटीएम या कार्ड द्वारा तुरंत सुरक्षित भुगतान', style: TextStyle(fontSize: 11.5)),
+                      title: Text('consumer.pay_upi_razorpay'.tr(), style: const TextStyle(fontWeight: FontWeight.bold)),
+                      subtitle: Text('consumer.payment_upi_subtitle'.tr(), style: const TextStyle(fontSize: 11.5)),
                       activeColor: AppColors.primary500,
                       contentPadding: EdgeInsets.zero,
                       onChanged: (val) => setState(() => _paymentMethod = val!),
@@ -308,8 +309,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                     RadioListTile<String>(
                       value: 'cod',
                       groupValue: _paymentMethod,
-                      title: const Text('डिलीवरी पर नकद (Cash on Delivery)', style: TextStyle(fontWeight: FontWeight.bold)),
-                      subtitle: const Text('उपज मिलने पर किसान या डिलीवरी पार्टनर को नकद भुगतान करें', style: TextStyle(fontSize: 11.5)),
+                      title: Text('consumer.pay_cod'.tr(), style: const TextStyle(fontWeight: FontWeight.bold)),
+                      subtitle: Text('consumer.payment_cod_subtitle'.tr(), style: const TextStyle(fontSize: 11.5)),
                       activeColor: AppColors.primary500,
                       contentPadding: EdgeInsets.zero,
                       onChanged: (val) => setState(() => _paymentMethod = val!),
@@ -328,7 +329,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('कुल देय राशि (Payable):', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15.0)),
+                    Text('${'consumer.total_payable'.tr()}:', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15.0)),
                     Text('₹${cartState.total.toStringAsFixed(0)}', style: AppTypography.displaySmall.copyWith(color: AppColors.primary600)),
                   ],
                 ),
@@ -337,7 +338,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               const SizedBox(height: 24.0),
 
               AppButton(
-                label: 'भुगतान करें एवं ऑर्डर पूरा करें (Place Order)',
+                label: 'consumer.pay_and_place_order'.tr(),
                 onPressed: _onPlaceOrder,
                 isLoading: _isProcessing,
                 icon: const Icon(Icons.lock_outline_rounded, size: 20.0),

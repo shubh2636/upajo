@@ -20,14 +20,6 @@ class StoreCatalogScreen extends ConsumerStatefulWidget {
 class _StoreCatalogScreenState extends ConsumerState<StoreCatalogScreen> {
   final TextEditingController _searchController = TextEditingController();
 
-  final List<Map<String, String>> _categories = [
-    {'id': 'all', 'label': 'सभी सामग्री'},
-    {'id': 'seed', 'label': 'प्रमाणित बीज (Seeds)'},
-    {'id': 'fertilizer', 'label': 'खाद व उर्वरक'},
-    {'id': 'bio_nutrient', 'label': 'जैव फफूंदनाशक (Bio)'},
-    {'id': 'farm_tool', 'label': 'स्प्रेयर व टूल्स'},
-  ];
-
   @override
   void dispose() {
     _searchController.dispose();
@@ -40,6 +32,14 @@ class _StoreCatalogScreenState extends ConsumerState<StoreCatalogScreen> {
     final controller = ref.read(storeControllerProvider.notifier);
     final cartState = ref.watch(cartControllerProvider);
     final items = state.filteredCatalog;
+
+    final categories = [
+      {'id': 'all', 'label': 'store.cat_all'.tr()},
+      {'id': 'seed', 'label': 'store.cat_seed'.tr()},
+      {'id': 'fertilizer', 'label': 'store.cat_fertilizer'.tr()},
+      {'id': 'bio_nutrient', 'label': 'store.cat_bio'.tr()},
+      {'id': 'farm_tool', 'label': 'store.cat_tools'.tr()},
+    ];
 
     return Scaffold(
       backgroundColor: AppColors.soil50,
@@ -92,7 +92,7 @@ class _StoreCatalogScreenState extends ConsumerState<StoreCatalogScreen> {
                 controller: _searchController,
                 onChanged: (val) => controller.setSearchQuery(val),
                 decoration: InputDecoration(
-                  hintText: 'बीज, खाद या ब्रांड खोजें (उदा. शरबती, IFFCO)...',
+                  hintText: 'store.search_hint'.tr(),
                   hintStyle: const TextStyle(fontSize: 13.5, color: AppColors.soil400),
                   prefixIcon: const Icon(Icons.search_rounded, color: AppColors.soil600),
                   filled: true,
@@ -110,7 +110,7 @@ class _StoreCatalogScreenState extends ConsumerState<StoreCatalogScreen> {
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
-                  children: _categories.map((cat) {
+                  children: categories.map((cat) {
                     final isSelected = state.selectedCategory == cat['id'];
                     return Padding(
                       padding: const EdgeInsets.only(right: 8.0),
@@ -144,9 +144,9 @@ class _StoreCatalogScreenState extends ConsumerState<StoreCatalogScreen> {
                   ),
                 )
               else if (items.isEmpty)
-                const EmptyStateView(
-                  title: 'कोई उत्पाद नहीं मिला',
-                  subtitle: 'आपकी खोज के अनुसार कोई प्रमाणित सामग्री उपलब्ध नहीं है।',
+                EmptyStateView(
+                  title: 'store.empty_title'.tr(),
+                  subtitle: 'store.empty_subtitle'.tr(),
                   icon: Icons.inventory_2_outlined,
                 )
               else
@@ -157,7 +157,7 @@ class _StoreCatalogScreenState extends ConsumerState<StoreCatalogScreen> {
                   separatorBuilder: (_, __) => const SizedBox(height: 16.0),
                   itemBuilder: (context, index) {
                     final item = items[index];
-                    return _buildStoreItemCard(item, controller);
+                    return _buildStoreItemCard(context, item, controller);
                   },
                 ),
 
@@ -188,18 +188,18 @@ class _StoreCatalogScreenState extends ConsumerState<StoreCatalogScreen> {
             child: const Icon(Icons.verified_rounded, color: Colors.white, size: 26.0),
           ),
           const SizedBox(width: 12.0),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'गुणवत्ता जांचे गए कृषि इनपुट (Quality Inspected Inputs)',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5, color: AppColors.soil900),
+                  'store.quality_inspected'.tr(),
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5, color: AppColors.soil900),
                 ),
-                SizedBox(height: 2.0),
+                const SizedBox(height: 2.0),
                 Text(
-                  'विश्वसनीय ब्रांड्स से उच्च गुणवत्ता वाले बीज व बायो-उर्वरक। पारदर्शी मूल्य निर्धारण (अनुमानित दरें)।',
-                  style: TextStyle(fontSize: 11.5, color: AppColors.soil700, height: 1.3),
+                  'store.quality_desc'.tr(),
+                  style: const TextStyle(fontSize: 11.5, color: AppColors.soil700, height: 1.3),
                 ),
               ],
             ),
@@ -209,7 +209,10 @@ class _StoreCatalogScreenState extends ConsumerState<StoreCatalogScreen> {
     );
   }
 
-  Widget _buildStoreItemCard(StoreItemModel item, StoreController controller) {
+  Widget _buildStoreItemCard(BuildContext context, StoreItemModel item, StoreController controller) {
+    final title = context.locale.languageCode == 'en' ? item.titleEn : item.titleHi;
+    final desc = context.locale.languageCode == 'en' ? item.descriptionEn : item.descriptionHi;
+
     return AppCard(
       padding: const EdgeInsets.all(14.0),
       child: Column(
@@ -255,12 +258,12 @@ class _StoreCatalogScreenState extends ConsumerState<StoreCatalogScreen> {
                     ),
                     const SizedBox(height: 6.0),
                     Text(
-                      item.titleHi,
+                      title,
                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15.0, color: AppColors.soil900),
                     ),
                     const SizedBox(height: 4.0),
                     Text(
-                      'पैकिंग: ${item.packSize}',
+                      'store.packing_label'.tr(args: [item.packSize]),
                       style: const TextStyle(fontSize: 12.0, color: AppColors.soil600, fontWeight: FontWeight.w600),
                     ),
                   ],
@@ -272,7 +275,7 @@ class _StoreCatalogScreenState extends ConsumerState<StoreCatalogScreen> {
 
           // Description
           Text(
-            item.descriptionHi,
+            desc,
             style: const TextStyle(fontSize: 12.0, color: AppColors.soil700, height: 1.35),
           ),
           const SizedBox(height: 12.0),
@@ -289,7 +292,7 @@ class _StoreCatalogScreenState extends ConsumerState<StoreCatalogScreen> {
                     style: const TextStyle(fontSize: 20.0, fontWeight: FontWeight.w900, color: AppColors.soil900),
                   ),
                   Text(
-                    'स्टॉक: ${item.stockQuantity} उपलब्ध',
+                    'store.stock_available'.tr(args: [item.stockQuantity.toString()]),
                     style: const TextStyle(fontSize: 11.0, color: AppColors.primary700, fontWeight: FontWeight.w600),
                   ),
                 ],
@@ -302,16 +305,16 @@ class _StoreCatalogScreenState extends ConsumerState<StoreCatalogScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
                 ),
                 icon: const Icon(Icons.add_shopping_cart_rounded, size: 18.0),
-                label: const Text('टोकरी में जोड़ें', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.0)),
+                label: Text('store.add_to_cart'.tr(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.0)),
                 onPressed: () {
                   final added = controller.addItemToCart(ref, item);
                   if (added) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('${item.titleHi} टोकरी में जोड़ा गया!'),
+                        content: Text('store.added_to_cart_msg'.tr(args: [title])),
                         backgroundColor: AppColors.primary600,
                         action: SnackBarAction(
-                          label: 'टोकरी देखें',
+                          label: 'store.view_cart'.tr(),
                           textColor: Colors.white,
                           onPressed: () => context.push(RouteNames.cart),
                         ),
@@ -319,8 +322,8 @@ class _StoreCatalogScreenState extends ConsumerState<StoreCatalogScreen> {
                     );
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('आपकी टोकरी में दूसरे विक्रेता का सामान है। कृपया पहले वह ऑर्डर पूरा करें।'),
+                      SnackBar(
+                        content: Text('store.different_seller_cart_error'.tr()),
                         backgroundColor: AppColors.wheat800,
                       ),
                     );
@@ -334,4 +337,3 @@ class _StoreCatalogScreenState extends ConsumerState<StoreCatalogScreen> {
     );
   }
 }
-

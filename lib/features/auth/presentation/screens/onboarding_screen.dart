@@ -8,6 +8,7 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/app_text_field.dart';
+import '../../../../core/widgets/language_switcher_button.dart';
 import '../controllers/auth_controller.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
@@ -22,7 +23,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final _nameController = TextEditingController();
   final _villageController = TextEditingController();
   final _districtController = TextEditingController();
-  final _stateController = TextEditingController(text: 'मध्य प्रदेश');
+  final _stateController = TextEditingController();
   final _pinCodeController = TextEditingController();
 
   // Farmer specific
@@ -87,6 +88,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         title: Text('auth.complete_profile'.tr()),
         backgroundColor: Colors.white,
         elevation: 0.5,
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 12.0),
+            child: LanguageSwitcherButton(),
+          ),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -103,7 +110,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'बुनियादी जानकारी (Basic Details)',
+                        'auth.basic_details'.tr(),
                         style: AppTypography.headlineSmall,
                       ),
                       const SizedBox(height: 16.0),
@@ -111,11 +118,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       AppTextField(
                         controller: _nameController,
                         label: 'auth.full_name'.tr(),
-                        hintText: 'उदा. रामेश्वर पाटीदार',
+                        hintText: 'auth.full_name_hint'.tr(),
                         prefixIcon: const Icon(Icons.person_rounded, color: AppColors.soil500),
                         validator: (val) {
                           if (val == null || val.trim().length < 2) {
-                            return 'कृपया पूरा नाम लिखें';
+                            return 'auth.full_name_required'.tr();
                           }
                           return null;
                         },
@@ -128,8 +135,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                             child: AppTextField(
                               controller: _villageController,
                               label: 'auth.village_city'.tr(),
-                              hintText: 'उदा. आष्टा',
-                              validator: (val) => val == null || val.trim().isEmpty ? 'गाँव लिखें' : null,
+                              hintText: 'auth.village_city_hint'.tr(),
+                              validator: (val) => val == null || val.trim().isEmpty ? 'auth.village_required'.tr() : null,
                             ),
                           ),
                           const SizedBox(width: 12.0),
@@ -137,8 +144,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                             child: AppTextField(
                               controller: _districtController,
                               label: 'auth.district'.tr(),
-                              hintText: 'उदा. सीहोर',
-                              validator: (val) => val == null || val.trim().isEmpty ? 'जिला लिखें' : null,
+                              hintText: 'auth.district_hint'.tr(),
+                              validator: (val) => val == null || val.trim().isEmpty ? 'auth.district_required'.tr() : null,
                             ),
                           ),
                         ],
@@ -151,8 +158,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                             child: AppTextField(
                               controller: _stateController,
                               label: 'auth.state'.tr(),
-                              hintText: 'राज्य',
-                              validator: (val) => val == null || val.trim().isEmpty ? 'राज्य लिखें' : null,
+                              hintText: 'auth.state_hint'.tr(),
+                              validator: (val) => val == null || val.trim().isEmpty ? 'auth.state_required'.tr() : null,
                             ),
                           ),
                           const SizedBox(width: 12.0),
@@ -160,11 +167,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                             child: AppTextField(
                               controller: _pinCodeController,
                               label: 'auth.pincode'.tr(),
-                              hintText: '466116',
+                              hintText: 'auth.pincode_hint'.tr(),
                               keyboardType: TextInputType.number,
                               validator: (val) {
                                 if (val == null || val.trim().length != 6) {
-                                  return '6 अंकों का पिन कोड';
+                                  return 'auth.pincode_required'.tr();
                                 }
                                 return null;
                               },
@@ -185,22 +192,22 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'खेत की जानकारी (Farm Details)',
+                          'auth.farm_details'.tr(),
                           style: AppTypography.headlineSmall,
                         ),
                         const SizedBox(height: 16.0),
 
                         AppTextField(
                           controller: _farmNameController,
-                          label: 'खेत / फ़ार्म का नाम',
-                          hintText: 'उदा. पाटीदार जैविक फ़ार्म',
+                          label: 'auth.farm_name'.tr(),
+                          hintText: 'auth.farm_name_hint'.tr(),
                         ),
                         const SizedBox(height: 14.0),
 
                         AppTextField(
                           controller: _acresController,
-                          label: 'कुल जमीन (एकड़ में)',
-                          hintText: 'उदा. 5',
+                          label: 'auth.total_acres'.tr(),
+                          hintText: 'auth.total_acres_hint'.tr(),
                           keyboardType: const TextInputType.numberWithOptions(decimal: true),
                         ),
                       ],
@@ -225,4 +232,3 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     );
   }
 }
-

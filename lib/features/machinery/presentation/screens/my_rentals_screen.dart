@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/empty_state_view.dart';
@@ -56,7 +57,7 @@ class _MyRentalsScreenState extends ConsumerState<MyRentalsScreen> with SingleTi
     return Scaffold(
       backgroundColor: AppColors.soil50,
       appBar: AppBar(
-        title: const Text('मेरी बुकिंग्स व किराए', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text('machinery.my_rentals'.tr(), style: const TextStyle(fontWeight: FontWeight.bold)),
         bottom: TabBar(
           controller: _tabController,
           labelColor: AppColors.soil900,
@@ -64,8 +65,8 @@ class _MyRentalsScreenState extends ConsumerState<MyRentalsScreen> with SingleTi
           indicatorColor: AppColors.primary500,
           indicatorWeight: 3.0,
           tabs: [
-            Tab(text: 'मेरे लिए गए (${state.myBorrowedRentals.length})'),
-            Tab(text: 'मेरे दिए गए (${state.myLentRentals.length})'),
+            Tab(text: 'machinery.tab_borrowed'.tr(args: [state.myBorrowedRentals.length.toString()])),
+            Tab(text: 'machinery.tab_lent'.tr(args: [state.myLentRentals.length.toString()])),
           ],
         ),
       ),
@@ -78,8 +79,8 @@ class _MyRentalsScreenState extends ConsumerState<MyRentalsScreen> with SingleTi
             isOwnerView: false,
             controller: controller,
             userId: userId,
-            emptyTitle: 'कोई सक्रिय बुकिंग नहीं',
-            emptySubtitle: 'आपने अभी तक कोई यंत्र किराए पर नहीं लिया है।',
+            emptyTitle: 'machinery.no_borrowed_title'.tr(),
+            emptySubtitle: 'machinery.no_borrowed_sub'.tr(),
           ),
 
           // Tab 2: Lent by user (Owner view)
@@ -88,8 +89,8 @@ class _MyRentalsScreenState extends ConsumerState<MyRentalsScreen> with SingleTi
             isOwnerView: true,
             controller: controller,
             userId: userId,
-            emptyTitle: 'कोई अनुरोध नहीं आया',
-            emptySubtitle: 'आपके सूचीबद्ध यंत्रों पर अभी कोई बुकिंग अनुरोध नहीं आया है।',
+            emptyTitle: 'machinery.no_lent_title'.tr(),
+            emptySubtitle: 'machinery.no_lent_sub'.tr(),
           ),
         ],
       ),
@@ -130,7 +131,7 @@ class _MyRentalsScreenState extends ConsumerState<MyRentalsScreen> with SingleTi
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    item.machineryTitle ?? 'कृषि यंत्र',
+                    item.machineryTitle ?? 'machinery.default_equipment'.tr(),
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
                   ),
                   Container(
@@ -153,7 +154,11 @@ class _MyRentalsScreenState extends ConsumerState<MyRentalsScreen> with SingleTi
                   const Icon(Icons.calendar_month_rounded, size: 16.0, color: AppColors.soil600),
                   const SizedBox(width: 6.0),
                   Text(
-                    '${DateFormat('dd MMM').format(item.startDate)} से ${DateFormat('dd MMM yyyy').format(item.endDate)} (${item.totalDays} दिन)',
+                    'machinery.date_range_days'.tr(args: [
+                      DateFormat('dd MMM').format(item.startDate),
+                      DateFormat('dd MMM yyyy').format(item.endDate),
+                      item.totalDays.toString(),
+                    ]),
                     style: const TextStyle(fontSize: 12.5, color: AppColors.soil700),
                   ),
                 ],
@@ -164,7 +169,10 @@ class _MyRentalsScreenState extends ConsumerState<MyRentalsScreen> with SingleTi
                   const Icon(Icons.currency_rupee_rounded, size: 16.0, color: AppColors.primary600),
                   const SizedBox(width: 4.0),
                   Text(
-                    'कुल राशि: ₹${item.totalAmount.toInt()} (जमानत: ₹${item.depositAmount.toInt()})',
+                    'machinery.total_and_deposit'.tr(args: [
+                      item.totalAmount.toInt().toString(),
+                      item.depositAmount.toInt().toString(),
+                    ]),
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.0, color: AppColors.soil900),
                   ),
                 ],
@@ -181,8 +189,8 @@ class _MyRentalsScreenState extends ConsumerState<MyRentalsScreen> with SingleTi
                       const SizedBox(width: 4.0),
                       Text(
                         isOwnerView
-                            ? 'किराएदार: ${item.renterName ?? "किसान"}'
-                            : 'मालिक: ${item.ownerName ?? "किसान"}',
+                            ? 'machinery.renter_prefix'.tr(args: [item.renterName ?? 'machinery.verified_farmer'.tr()])
+                            : 'machinery.owner_prefix'.tr(args: [item.ownerName ?? 'machinery.verified_farmer'.tr()]),
                         style: const TextStyle(fontSize: 12.5, color: AppColors.soil800, fontWeight: FontWeight.w600),
                       ),
                     ],
@@ -190,7 +198,7 @@ class _MyRentalsScreenState extends ConsumerState<MyRentalsScreen> with SingleTi
                   IconButton(
                     icon: const Icon(Icons.phone_rounded, color: AppColors.primary600, size: 20.0),
                     onPressed: () => _makeCall(isOwnerView ? item.renterPhone : item.ownerPhone),
-                    tooltip: 'कॉल करें',
+                    tooltip: 'machinery.call_tooltip'.tr(),
                   ),
                 ],
               ),
@@ -208,7 +216,7 @@ class _MyRentalsScreenState extends ConsumerState<MyRentalsScreen> with SingleTi
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
                         ),
                         onPressed: () => controller.updateBookingStatus(item.id, 'approved', userId),
-                        child: const Text('स्वीकार करें (Approve)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5)),
+                        child: Text('machinery.btn_approve'.tr(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5)),
                       ),
                     ),
                     const SizedBox(width: 10.0),
@@ -220,7 +228,7 @@ class _MyRentalsScreenState extends ConsumerState<MyRentalsScreen> with SingleTi
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
                         ),
                         onPressed: () => controller.updateBookingStatus(item.id, 'rejected', userId),
-                        child: const Text('अस्वीकार करें', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5)),
+                        child: Text('machinery.btn_reject'.tr(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5)),
                       ),
                     ),
                   ],
@@ -253,20 +261,19 @@ class _MyRentalsScreenState extends ConsumerState<MyRentalsScreen> with SingleTi
   String _getStatusLabel(String status) {
     switch (status) {
       case 'approved':
-        return 'स्वीकृत (Approved)';
+        return 'machinery.status_approved'.tr();
       case 'pending':
-        return 'समीक्षाधीन (Pending)';
+        return 'machinery.status_pending'.tr();
       case 'in_use':
-        return 'उपयोग जारी (In Use)';
+        return 'machinery.status_in_use'.tr();
       case 'completed':
-        return 'पूर्ण (Completed)';
+        return 'machinery.status_completed'.tr();
       case 'rejected':
-        return 'अस्वीकृत';
+        return 'machinery.status_rejected'.tr();
       case 'cancelled':
-        return 'रद्द';
+        return 'machinery.status_cancelled'.tr();
       default:
         return status;
     }
   }
 }
-

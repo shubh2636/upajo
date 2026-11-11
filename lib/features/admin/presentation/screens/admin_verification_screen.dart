@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/network/supabase_client.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -61,7 +62,7 @@ class _AdminVerificationScreenState extends ConsumerState<AdminVerificationScree
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(approve ? 'किसान सत्यापित किया गया (Approved) ✓' : 'किसान खारिज किया गया (Rejected)'),
+            content: Text(approve ? 'admin.farmer_approved_toast'.tr() : 'admin.farmer_rejected_toast'.tr()),
             backgroundColor: approve ? AppColors.primary500 : AppColors.clay500,
           ),
         );
@@ -69,7 +70,7 @@ class _AdminVerificationScreenState extends ConsumerState<AdminVerificationScree
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('त्रुटि: $e')),
+          SnackBar(content: Text(e.toString())),
         );
       }
     }
@@ -84,15 +85,15 @@ class _AdminVerificationScreenState extends ConsumerState<AdminVerificationScree
       child: Scaffold(
         backgroundColor: AppColors.soil50,
         appBar: AppBar(
-          title: const Text('व्यवस्थापक नियंत्रण (Admin Panel)'),
+          title: Text('admin.admin_panel_title'.tr()),
           backgroundColor: Colors.white,
-          bottom: const TabBar(
+          bottom: TabBar(
             indicatorColor: AppColors.primary500,
             labelColor: AppColors.primary600,
             unselectedLabelColor: AppColors.soil600,
             tabs: [
-              Tab(text: 'किसान सत्यापन (KYC)'),
-              Tab(text: 'समस्त ऑर्डर मॉनिटरिंग'),
+              Tab(text: 'admin.tab_kyc'.tr()),
+              Tab(text: 'admin.tab_orders'.tr()),
             ],
           ),
         ),
@@ -102,7 +103,7 @@ class _AdminVerificationScreenState extends ConsumerState<AdminVerificationScree
                 children: [
                   // Tab 1: Farmer KYC Verification
                   _pendingFarmers.isEmpty
-                      ? const Center(child: Text('कोई किसान सत्यापन लंबित नहीं है'))
+                      ? Center(child: Text('admin.no_pending_kyc'.tr()))
                       : ListView.separated(
                           padding: const EdgeInsets.all(16.0),
                           itemCount: _pendingFarmers.length,
@@ -119,7 +120,7 @@ class _AdminVerificationScreenState extends ConsumerState<AdminVerificationScree
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Text((farmer['full_name'] as String?) ?? 'किसान', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16.0)),
+                                      Text((farmer['full_name'] as String?) ?? 'admin.farmer_fallback'.tr(), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16.0)),
                                       Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 3.0),
                                         decoration: BoxDecoration(
@@ -127,7 +128,7 @@ class _AdminVerificationScreenState extends ConsumerState<AdminVerificationScree
                                           borderRadius: BorderRadius.circular(6.0),
                                         ),
                                         child: Text(
-                                          isVerified ? 'सत्यापित (Verified)' : 'लंबित (Pending)',
+                                          isVerified ? 'admin.status_verified_badge'.tr() : 'admin.status_pending_badge'.tr(),
                                           style: TextStyle(
                                             fontSize: 11.0,
                                             fontWeight: FontWeight.bold,
@@ -138,8 +139,8 @@ class _AdminVerificationScreenState extends ConsumerState<AdminVerificationScree
                                     ],
                                   ),
                                   const SizedBox(height: 6.0),
-                                  Text('फोन: +91 ${farmer['phone'] ?? ''}', style: const TextStyle(fontSize: 13.0, fontWeight: FontWeight.w600)),
-                                  Text('स्थान: ${farmer['village_or_city'] ?? ''}, ${farmer['district'] ?? ''} (${farmer['state'] ?? ''}) - ${farmer['pin_code'] ?? ''}', style: const TextStyle(fontSize: 12.0, color: AppColors.soil600)),
+                                  Text('admin.phone_prefix'.tr(args: ['+91 ${farmer['phone'] ?? ''}']), style: const TextStyle(fontSize: 13.0, fontWeight: FontWeight.w600)),
+                                  Text('admin.location_prefix'.tr(args: ['${farmer['village_or_city'] ?? ''}, ${farmer['district'] ?? ''} (${farmer['state'] ?? ''}) - ${farmer['pin_code'] ?? ''}']), style: const TextStyle(fontSize: 12.0, color: AppColors.soil600)),
 
                                   const SizedBox(height: 14.0),
                                   Row(
@@ -151,14 +152,14 @@ class _AdminVerificationScreenState extends ConsumerState<AdminVerificationScree
                                             foregroundColor: AppColors.clay500,
                                             side: const BorderSide(color: AppColors.clay300),
                                           ),
-                                          child: const Text('खारिज करें'),
+                                          child: Text('admin.reject_action'.tr()),
                                         ),
                                       ),
                                       const SizedBox(width: 12.0),
                                       Expanded(
                                         child: AppButton(
                                           height: 44.0,
-                                          label: 'सत्यापित करें (Approve)',
+                                          label: 'admin.approve_action'.tr(),
                                           onPressed: () => _verifyFarmer((farmer['id'] as String?) ?? '', true),
                                         ),
                                       ),
@@ -179,7 +180,7 @@ class _AdminVerificationScreenState extends ConsumerState<AdminVerificationScree
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text('कुल सकल व्यापार (Total GMV):', style: TextStyle(fontWeight: FontWeight.bold)),
+                            Text('admin.total_gmv'.tr(), style: const TextStyle(fontWeight: FontWeight.bold)),
                             Text('₹${totalGmv.toStringAsFixed(0)}', style: AppTypography.headlineMedium.copyWith(color: AppColors.primary600)),
                           ],
                         ),
@@ -200,8 +201,8 @@ class _AdminVerificationScreenState extends ConsumerState<AdminVerificationScree
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(o.orderNumber, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                      Text('${o.farmerName ?? 'किसान'} -> ${o.consumerName ?? 'ग्राहक'}', style: const TextStyle(fontSize: 12.0, color: AppColors.soil600)),
-                                      Text('स्थिति: ${o.status}', style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
+                                      Text('${o.farmerName ?? 'admin.farmer_fallback'.tr()} -> ${o.consumerName ?? 'admin.consumer_fallback'.tr()}', style: const TextStyle(fontSize: 12.0, color: AppColors.soil600)),
+                                      Text('admin.status_prefix'.tr(args: [o.status]), style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
                                     ],
                                   ),
                                   Text('₹${o.totalAmount.toStringAsFixed(0)}', style: AppTypography.priceMedium),
@@ -219,4 +220,3 @@ class _AdminVerificationScreenState extends ConsumerState<AdminVerificationScree
     );
   }
 }
-

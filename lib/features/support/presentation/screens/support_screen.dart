@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import '../../../../core/network/supabase_client.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -27,25 +28,6 @@ class _SupportScreenState extends ConsumerState<SupportScreen> with SingleTicker
   bool _isSubmitting = false;
   List<Map<String, dynamic>> _userTickets = [];
   bool _isLoadingTickets = true;
-
-  final List<Map<String, String>> _faqs = [
-    {
-      'q': 'उपजो पर भुगतान कब और कैसे मिलता है?',
-      'a': 'ग्राहक द्वारा डिलीवरी प्राप्त होने और संतुष्टि की पुष्टि के 24 घंटे के भीतर राशि सीधे आपके बैंक खाते अथवा UPI में स्थानांतरित कर दी जाती है।'
-    },
-    {
-      'q': 'क्या उपजो कोई कमीशन काटता है?',
-      'a': 'नहीं, उपजो की वर्तमान प्रचार अवधि के दौरान 0% प्लेटफॉर्म कमीशन है। केवल 2% + 18% GST का वास्तविक पेमेंट गेटवे (Razorpay) शुल्क लागू होता है।'
-    },
-    {
-      'q': 'खराब या सड़ी हुई उपज मिलने पर क्या करें?',
-      'a': 'डिलीवरी के 48 घंटे के भीतर "नई शिकायत दर्ज करें" टैब में जाकर फोटो सहित शिकायत दर्ज करें। हमारी मध्यस्थ टीम 24 घंटे में रिफंड अथवा प्रतिस्थापन की प्रक्रिया पूर्ण करेगी।'
-    },
-    {
-      'q': 'कृषि यंत्र की सुरक्षा राशि (Deposit) कब वापस होती है?',
-      'a': 'उपकरण को सही सलामत वापस करने और मालिक द्वारा निरीक्षण के 24 घंटे के भीतर पूरी सुरक्षा राशि आपके खाते में वापस कर दी जाती है।'
-    },
-  ];
 
   @override
   void initState() {
@@ -94,7 +76,7 @@ class _SupportScreenState extends ConsumerState<SupportScreen> with SingleTicker
     final user = ref.read(authControllerProvider).userProfile;
     if (user == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('कृपया शिकायत दर्ज करने हेतु पहले लॉगिन करें।')),
+        SnackBar(content: Text('support.login_to_submit'.tr())),
       );
       return;
     }
@@ -112,9 +94,9 @@ class _SupportScreenState extends ConsumerState<SupportScreen> with SingleTicker
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             backgroundColor: AppColors.primary,
-            content: Text('शिकायत सफलतापूर्वक दर्ज हो गई है। टिकट नंबर जल्द एसएमएस द्वारा भेजा जाएगा।'),
+            content: Text('support.ticket_submitted'.tr()),
           ),
         );
         _subjectController.clear();
@@ -127,7 +109,7 @@ class _SupportScreenState extends ConsumerState<SupportScreen> with SingleTicker
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: AppColors.error,
-            content: Text('त्रुटि: ${e.toString()}'),
+            content: Text(e.toString()),
           ),
         );
       }
@@ -147,17 +129,17 @@ class _SupportScreenState extends ConsumerState<SupportScreen> with SingleTicker
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('मदद एवं शिकायत निवारण (Support)'),
+        title: Text('support.title'.tr()),
         backgroundColor: AppColors.surface,
         bottom: TabBar(
           controller: _tabController,
           labelColor: AppColors.primary,
           unselectedLabelColor: AppColors.textSecondary,
           indicatorColor: AppColors.primary,
-          tabs: const [
-            Tab(text: 'अक्सर सवाल (FAQ)'),
-            Tab(text: 'नई शिकायत'),
-            Tab(text: 'मेरी शिकायतें'),
+          tabs: [
+            Tab(text: 'support.tab_faq'.tr()),
+            Tab(text: 'support.tab_new_ticket'.tr()),
+            Tab(text: 'support.tab_my_tickets'.tr()),
           ],
         ),
       ),
@@ -173,6 +155,13 @@ class _SupportScreenState extends ConsumerState<SupportScreen> with SingleTicker
   }
 
   Widget _buildFaqTab() {
+    final faqs = [
+      {'q': 'support.faq_payment_q'.tr(), 'a': 'support.faq_payment_a'.tr()},
+      {'q': 'support.faq_commission_q'.tr(), 'a': 'support.faq_commission_a'.tr()},
+      {'q': 'support.faq_damaged_q'.tr(), 'a': 'support.faq_damaged_a'.tr()},
+      {'q': 'support.faq_deposit_q'.tr(), 'a': 'support.faq_deposit_a'.tr()},
+    ];
+
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -198,8 +187,8 @@ class _SupportScreenState extends ConsumerState<SupportScreen> with SingleTicker
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('किसान कॉल सेंटर (निःशुल्क)', style: AppTypography.titleMedium),
-                        Text('टोल फ्री: 1800-180-1551 (सुबह 6 से रात 10)', style: AppTypography.bodySmall),
+                        Text('support.kisan_call_center'.tr(), style: AppTypography.titleMedium),
+                        Text('support.toll_free_timings'.tr(), style: AppTypography.bodySmall),
                       ],
                     ),
                   ),
@@ -207,7 +196,7 @@ class _SupportScreenState extends ConsumerState<SupportScreen> with SingleTicker
               ),
               const SizedBox(height: 12),
               AppButton(
-                text: 'कॉल करें (1800-180-1551)',
+                text: 'support.call_toll_free'.tr(),
                 icon: const Icon(Icons.call),
                 onPressed: _callHelpline,
               ),
@@ -215,9 +204,9 @@ class _SupportScreenState extends ConsumerState<SupportScreen> with SingleTicker
           ),
         ),
         const SizedBox(height: 20),
-        Text('अक्सर पूछे जाने वाले प्रश्न', style: AppTypography.headlineSmall),
+        Text('support.faq_heading'.tr(), style: AppTypography.headlineSmall),
         const SizedBox(height: 12),
-        ..._faqs.map(
+        ...faqs.map(
           (faq) => Card(
             margin: const EdgeInsets.only(bottom: 8),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -244,7 +233,7 @@ class _SupportScreenState extends ConsumerState<SupportScreen> with SingleTicker
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('समस्या की श्रेणी चुनें', style: AppTypography.titleMedium),
+            Text('support.select_category'.tr(), style: AppTypography.titleMedium),
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
               initialValue: _selectedCategory,
@@ -253,13 +242,13 @@ class _SupportScreenState extends ConsumerState<SupportScreen> with SingleTicker
                 fillColor: AppColors.surface,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
-              items: const [
-                DropdownMenuItem(value: 'payment', child: Text('भुगतान / बैंक अंतरण (Payment / Bank)')),
-                DropdownMenuItem(value: 'product_quality', child: Text('उत्पाद की गुणवत्ता / खराबी (Quality)')),
-                DropdownMenuItem(value: 'delivery', child: Text('डिलीवरी एवं परिवहन (Delivery)')),
-                DropdownMenuItem(value: 'machinery', child: Text('कृषि मशीनरी / उपकरण (Machinery)')),
-                DropdownMenuItem(value: 'kyc', child: Text('किसान सत्यापन / KYC (Verification)')),
-                DropdownMenuItem(value: 'other', child: Text('अन्य सहायता (Other)')),
+              items: [
+                DropdownMenuItem(value: 'payment', child: Text('support.cat_payment'.tr())),
+                DropdownMenuItem(value: 'product_quality', child: Text('support.cat_quality'.tr())),
+                DropdownMenuItem(value: 'delivery', child: Text('support.cat_delivery'.tr())),
+                DropdownMenuItem(value: 'machinery', child: Text('support.cat_machinery'.tr())),
+                DropdownMenuItem(value: 'kyc', child: Text('support.cat_kyc'.tr())),
+                DropdownMenuItem(value: 'other', child: Text('support.cat_other'.tr())),
               ],
               onChanged: (val) {
                 if (val != null) setState(() => _selectedCategory = val);
@@ -268,27 +257,27 @@ class _SupportScreenState extends ConsumerState<SupportScreen> with SingleTicker
             const SizedBox(height: 16),
             AppTextField(
               controller: _subjectController,
-              label: 'समस्या का शीर्षक (Subject)',
-              hintText: 'उदा. ऑर्डर #1024 का भुगतान अभी तक प्राप्त नहीं हुआ',
-              validator: (val) => (val == null || val.trim().isEmpty) ? 'कृपया शीर्षक लिखें' : null,
+              label: 'support.ticket_subject_label'.tr(),
+              hintText: 'support.subject_hint'.tr(),
+              validator: (val) => (val == null || val.trim().isEmpty) ? 'support.subject_error'.tr() : null,
             ),
             const SizedBox(height: 16),
-            Text('विस्तृत विवरण (Description)', style: AppTypography.titleSmall),
+            Text('support.ticket_desc_label'.tr(), style: AppTypography.titleSmall),
             const SizedBox(height: 8),
             TextFormField(
               controller: _descController,
               maxLines: 5,
               decoration: InputDecoration(
-                hintText: 'अपनी समस्या का पूरा विवरण यहाँ लिखें...',
+                hintText: 'support.desc_hint'.tr(),
                 filled: true,
                 fillColor: AppColors.surface,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
-              validator: (val) => (val == null || val.trim().length < 10) ? 'कृपया कम से कम 10 अक्षरों में विवरण लिखें' : null,
+              validator: (val) => (val == null || val.trim().length < 10) ? 'support.desc_min_error'.tr() : null,
             ),
             const SizedBox(height: 24),
             AppButton(
-              text: 'शिकायत दर्ज करें (Submit Ticket)',
+              text: 'support.submit_ticket'.tr(),
               icon: const Icon(Icons.send),
               isLoading: _isSubmitting,
               onPressed: _submitTicket,
@@ -311,9 +300,9 @@ class _SupportScreenState extends ConsumerState<SupportScreen> with SingleTicker
           children: [
             const Icon(Icons.check_circle_outline, size: 64, color: AppColors.primary),
             const SizedBox(height: 16),
-            Text('आपकी कोई लंबित शिकायत नहीं है', style: AppTypography.titleMedium),
+            Text('support.no_tickets_title'.tr(), style: AppTypography.titleMedium),
             const SizedBox(height: 8),
-            Text('यदि कोई समस्या हो तो नई शिकायत दर्ज करें।', style: AppTypography.bodySmall),
+            Text('support.no_tickets_sub'.tr(), style: AppTypography.bodySmall),
           ],
         ),
       );
@@ -343,7 +332,7 @@ class _SupportScreenState extends ConsumerState<SupportScreen> with SingleTicker
                       border: Border.all(color: isResolved ? Colors.green : Colors.amber.shade700),
                     ),
                     child: Text(
-                      isResolved ? 'समाधान हुआ (Resolved)' : 'प्रक्रियाधीन (In Progress)',
+                      isResolved ? 'support.status_resolved'.tr() : 'support.status_in_progress'.tr(),
                       style: TextStyle(
                         color: isResolved ? Colors.green.shade800 : Colors.amber.shade900,
                         fontWeight: FontWeight.bold,
@@ -358,12 +347,12 @@ class _SupportScreenState extends ConsumerState<SupportScreen> with SingleTicker
                 ],
               ),
               const SizedBox(height: 8),
-              Text(t['subject']?.toString() ?? 'शिकायत', style: AppTypography.titleMedium),
+              Text(t['subject']?.toString() ?? 'support.ticket_fallback'.tr(), style: AppTypography.titleMedium),
               const SizedBox(height: 4),
               Text(t['description']?.toString() ?? '', style: AppTypography.bodyMedium),
               if (t['admin_response'] != null) ...[
                 const Divider(height: 20),
-                Text('उपजो सपोर्ट टीम का उत्तर:', style: AppTypography.titleSmall.copyWith(color: AppColors.primary)),
+                Text('support.team_response'.tr(), style: AppTypography.titleSmall.copyWith(color: AppColors.primary)),
                 const SizedBox(height: 4),
                 Text(t['admin_response'].toString(), style: AppTypography.bodyMedium),
               ],
@@ -374,4 +363,3 @@ class _SupportScreenState extends ConsumerState<SupportScreen> with SingleTicker
     );
   }
 }
-

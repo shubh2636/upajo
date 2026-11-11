@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 import 'app_button.dart';
+import 'brand_motifs.dart';
 
 class EmptyStateView extends StatelessWidget {
   final String title;
   final String? message;
   final String? subtitle;
-  final IconData icon;
+  final IconData? icon;
   final String? actionLabel;
   final VoidCallback? onAction;
 
@@ -16,7 +17,7 @@ class EmptyStateView extends StatelessWidget {
     required this.title,
     this.message,
     this.subtitle,
-    this.icon = Icons.inbox_outlined,
+    this.icon,
     this.actionLabel,
     this.onAction,
   });
@@ -33,17 +34,21 @@ class EmptyStateView extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 80.0,
-              height: 80.0,
+              width: 84.0,
+              height: 84.0,
               decoration: BoxDecoration(
                 color: AppColors.soil100,
                 shape: BoxShape.circle,
                 border: Border.all(color: AppColors.soil200, width: 1.5),
               ),
-              child: Icon(
-                icon,
-                size: 40.0,
-                color: AppColors.soil600,
+              child: Center(
+                child: icon != null
+                    ? Icon(
+                        icon,
+                        size: 40.0,
+                        color: AppColors.soil600,
+                      )
+                    : const SeedSproutMotif(size: 48.0),
               ),
             ),
             const SizedBox(height: 18.0),
@@ -74,3 +79,4 @@ class EmptyStateView extends StatelessWidget {
     );
   }
 }
+
