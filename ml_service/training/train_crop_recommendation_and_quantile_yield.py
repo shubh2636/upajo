@@ -103,7 +103,7 @@ def generate_ground_truth_agronomic_dataset(n_samples: int = 12000, seed: int = 
             elif c == "Cotton":
                 if soil_type == "black_soil" and mean_temperature_c > 27: score += 35
             elif c == "Maize":
-                if seasonal_rainfall_mm between_rain(seasonal_rainfall_mm, 500, 900): score += 30
+                if 500 <= seasonal_rainfall_mm <= 900: score += 30
             elif c == "Moong":
                 if seasonal_rainfall_mm < 700 and soil_p > 20: score += 30
 

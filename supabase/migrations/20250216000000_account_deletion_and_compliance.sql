@@ -78,8 +78,8 @@ BEGIN
   -- 2. Check for active uncompleted consumer orders
   SELECT COUNT(*) INTO v_active_orders_count
   FROM public.orders
-  WHERE (customer_id = p_user_id OR farmer_id = p_user_id)
-    AND status IN ('placed', 'confirmed', 'packed', 'out_for_delivery');
+  WHERE (consumer_id = p_user_id OR farmer_id = p_user_id)
+    AND status IN ('pending_payment', 'confirmed', 'harvesting_packed', 'out_for_delivery', 'ready_for_pickup');
 
   IF v_active_orders_count > 0 THEN
     RAISE EXCEPTION 'Cannot delete account: You have % active in-transit order(s). Please complete or cancel them first.', v_active_orders_count;
@@ -88,8 +88,8 @@ BEGIN
   -- 3. Check for active machinery rentals
   SELECT COUNT(*) INTO v_active_rentals_count
   FROM public.rentals
-  WHERE (renter_id = p_user_id OR lender_id = p_user_id)
-    AND status IN ('requested', 'approved', 'active');
+  WHERE (renter_id = p_user_id OR owner_id = p_user_id)
+    AND status IN ('pending', 'approved', 'active');
 
   IF v_active_rentals_count > 0 THEN
     RAISE EXCEPTION 'Cannot delete account: You have % active machinery rental(s). Please return the equipment and settle deposits first.', v_active_rentals_count;
@@ -111,17 +111,15 @@ BEGIN
     kyc_status = 'rejected',
     verified_by_admin = false,
     updated_at = NOW()
-  WHERE id = p_user_id;
+  WHERE farmer_id = p_user_id;
 
   -- 5. Anonymize User Profile (DPDP Act Right to Erasure)
   UPDATE public.profiles
   SET
     full_name = 'Deleted User',
     phone = 'DELETED_' || SUBSTRING(p_user_id::text, 1, 8),
-    email = NULL,
     avatar_url = NULL,
-    address = 'REDACTED',
-    is_banned = true,
+    address_line = 'REDACTED',
     updated_at = NOW()
   WHERE id = p_user_id;
 

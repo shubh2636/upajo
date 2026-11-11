@@ -159,6 +159,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         response = await call_next(request)
         response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
         # Apply strict CSP and frame protection to API endpoints (leave docs, dashboard & static assets unconstrained)
         norm_path = request.url.path.rstrip("/")
         is_doc_or_asset = (

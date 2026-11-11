@@ -159,4 +159,13 @@ class EnvConfig {
     _isInitialized = true;
     _evaluateConfig();
   }
+
+  /// Validates configuration and fails loudly if required variables are missing,
+  /// malformed, or set to placeholder dummy strings.
+  static void validateConfig() {
+    if (!_isInitialized) _lazyInit();
+    if (_configErrorReason != null) {
+      throw StateError(_configErrorReason!);
+    }
+  }
 }

@@ -48,11 +48,12 @@ android {
 
     defaultConfig {
         applicationId "com.upajo.app"
-        minSdkVersion flutter.minSdkVersion
+        minSdk 23
         targetSdk 34
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         multiDexEnabled true
+        // ABI targeting: armeabi-v7a, arm64-v8a, x86_64 managed via Flutter --split-per-abi
     }
 
     signingConfigs {

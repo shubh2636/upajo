@@ -12,37 +12,29 @@ void main() {
       mockClient = SupabaseClient('https://mock.supabase.co', 'mock-anon-key');
     });
 
-    test('1. Rate Limiting Cooldown on OTP Requests', () async {
+    test('1. SMS OTP Authentication is Disabled (No DLT/SMS Provider)', () async {
       final repo = AuthRepositoryImpl(client: mockClient);
 
-      // First OTP request succeeds (or hits dev bypass)
-      await repo.sendOtp('9876543210');
-
-      // Immediate second request within 60s cooldown must throw ServerException
-      expect(
+      // sendOtp should throw ServerException indicating SMS OTP is disabled
+      await expectLater(
         () => repo.sendOtp('9876543210'),
         throwsA(predicate((e) =>
-            e.toString().contains('प्रतीक्षा करें') ||
-            e.toString().contains('Please wait'))),
+            e.toString().contains('SMS OTP') ||
+            e.toString().contains('disabled') ||
+            e.toString().contains('अक्षम'))),
       );
     });
 
-    test('2. Brute-Force Lockout After 5 Failed Attempts', () async {
+    test('2. SMS OTP Verification is Disabled', () async {
       final repo = AuthRepositoryImpl(client: mockClient);
 
-      // Simulate 5 consecutive failed OTP entries
-      for (int i = 0; i < 4; i++) {
-        try {
-          await repo.verifyOtp(phone: '9876543210', token: '00000$i');
-        } catch (_) {}
-      }
-
-      // 5th failed attempt should trigger lockout
-      expect(
-        () => repo.verifyOtp(phone: '9876543210', token: '000005'),
+      // verifyOtp should throw ServerException indicating SMS OTP is disabled
+      await expectLater(
+        () => repo.verifyOtp(phone: '9876543210', token: '123456'),
         throwsA(predicate((e) =>
-            e.toString().contains('15 मिनट') ||
-            e.toString().contains('Locked for 15 minutes'))),
+            e.toString().contains('SMS OTP') ||
+            e.toString().contains('disabled') ||
+            e.toString().contains('अक्षम'))),
       );
     });
 
