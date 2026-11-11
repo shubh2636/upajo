@@ -109,6 +109,9 @@ jobs:
     needs: test_suite
     if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    env:
+      ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+      KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -130,14 +133,12 @@ jobs:
         run: flutter pub get
 
       - name: Decode Android Keystore
-        if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
-        env:
-          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        if: env.ANDROID_KEYSTORE_BASE64 != ''
         run: |
           echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/upload-keystore.jks
 
       - name: Create key.properties
-        if: ${{ secrets.KEY_ALIAS != '' }}
+        if: env.KEY_ALIAS != ''
         env:
           STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
@@ -166,6 +167,8 @@ jobs:
     needs: test_suite
     if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -176,9 +179,8 @@ jobs:
           version: latest
 
       - name: Deploy Database Migrations to Supabase Prod
-        if: ${{ secrets.SUPABASE_ACCESS_TOKEN != '' }}
+        if: env.SUPABASE_ACCESS_TOKEN != ''
         env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
           PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
         run: |
@@ -186,9 +188,8 @@ jobs:
           supabase db push
 
       - name: Deploy Edge Functions
-        if: ${{ secrets.SUPABASE_ACCESS_TOKEN != '' }}
+        if: env.SUPABASE_ACCESS_TOKEN != ''
         env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
         run: |
           supabase functions deploy create-razorpay-order --project-ref $PROJECT_ID
